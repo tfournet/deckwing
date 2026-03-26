@@ -1,15 +1,17 @@
 import html2canvas from 'html2canvas';
+import { THEME_COLORS } from '../../shared/theme-colors.js';
 
-const EXPORT_THEMES = {
-  rewst: { accent: '#1EAFAF', panel: '#141121', text: '#FFFFFF' },
-  dramatic: { accent: '#F15B5B', panel: '#141121', text: '#FFFFFF' },
-  terminal: { accent: '#10B981', panel: '#000000', text: '#10B981' },
-  highlight: { accent: '#78CFCF', panel: '#141121', text: '#FFFFFF' },
-  warning: { accent: '#F9A100', panel: '#141121', text: '#FFFFFF' },
-};
+function formatHexColor(color) {
+  return `#${color}`;
+}
 
 function resolveTheme(defaultTheme) {
-  return EXPORT_THEMES[defaultTheme] || EXPORT_THEMES.rewst;
+  const theme = THEME_COLORS[defaultTheme] || THEME_COLORS.rewst;
+  return {
+    accent: formatHexColor(theme.accent),
+    panel: formatHexColor(theme.bg),
+    text: formatHexColor(theme.text),
+  };
 }
 
 function escapeScriptContent(value) {

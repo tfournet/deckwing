@@ -14,6 +14,7 @@ export function DetachedEditorView() {
 
     function handler(event) {
       if (event.origin !== window.location.origin) return;
+      if (event.source !== window.opener) return;
       if (event.data?.type === 'deckwing:slide-data') {
         setSlide(event.data.slide);
         setIndex(event.data.index);

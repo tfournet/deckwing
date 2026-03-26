@@ -53,16 +53,15 @@ export function useDeckState() {
   const removeSlide = useCallback((index) => {
     setDeck(prev => {
       if (prev.slides.length <= 1) return prev;
+      const slides = prev.slides.filter((_, i) => i !== index);
+      setCurrentSlideIndex(currentIndex => Math.min(currentIndex, slides.length - 1));
       return {
         ...prev,
-        slides: prev.slides.filter((_, i) => i !== index),
+        slides,
         updatedAt: new Date().toISOString(),
       };
     });
-    setCurrentSlideIndex(prev => (
-      prev >= deck.slides.length - 1 ? Math.max(0, prev - 1) : prev
-    ));
-  }, [deck.slides.length]);
+  }, []);
 
   const duplicateSlide = useCallback((index) => {
     setDeck(prev => {
@@ -148,6 +147,7 @@ export function useDeckState() {
           const { index } = action.data;
           if (index == null || prev.slides.length <= 1) return prev;
           const slides = prev.slides.filter((_, i) => i !== index);
+          setCurrentSlideIndex(currentIndex => Math.min(currentIndex, slides.length - 1));
           return { ...prev, slides, updatedAt: now };
         }
 
@@ -169,12 +169,7 @@ export function useDeckState() {
     if (action.type === 'create_deck') {
       setCurrentSlideIndex(0);
     }
-    if (action.type === 'remove_slide' && action.data?.index != null) {
-      setCurrentSlideIndex(prev =>
-        Math.min(prev, Math.max(0, deck.slides.length - 2))
-      );
-    }
-  }, [deck.slides.length]);
+  }, []);
 
   return {
     deck,

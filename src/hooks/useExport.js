@@ -6,12 +6,14 @@ import { exportDeckToHTML, downloadHTMLFile } from '../engine/export-html';
 export function useExport({ deck }) {
   const [exporting, setExporting] = useState(false);
   const [exportType, setExportType] = useState(null); // 'pdf' | 'pptx' | 'html'
+  const [exportError, setExportError] = useState(null);
   const slideContainerRef = useRef(null);
 
   const handleExportPDF = useCallback(async () => {
     const container = slideContainerRef.current;
     if (!container || exporting) return;
 
+    setExportError(null);
     setExporting(true);
     setExportType('pdf');
     try {
@@ -24,6 +26,7 @@ export function useExport({ deck }) {
       downloadBlob(blob, `${deck.title || 'presentation'}.pdf`);
     } catch (err) {
       console.error('PDF export failed:', err);
+      setExportError(err instanceof Error ? err.message : 'PDF export failed.');
     } finally {
       setExporting(false);
       setExportType(null);
@@ -33,6 +36,7 @@ export function useExport({ deck }) {
   const handleExportPPTX = useCallback(async () => {
     if (exporting) return;
 
+    setExportError(null);
     setExporting(true);
     setExportType('pptx');
     try {
@@ -40,6 +44,7 @@ export function useExport({ deck }) {
       downloadBlob(blob, `${deck.title || 'presentation'}.pptx`);
     } catch (err) {
       console.error('PPTX export failed:', err);
+      setExportError(err instanceof Error ? err.message : 'PPTX export failed.');
     } finally {
       setExporting(false);
       setExportType(null);
@@ -50,6 +55,7 @@ export function useExport({ deck }) {
     const container = slideContainerRef.current;
     if (!container || exporting) return;
 
+    setExportError(null);
     setExporting(true);
     setExportType('html');
     try {
@@ -62,6 +68,7 @@ export function useExport({ deck }) {
       downloadHTMLFile(html, `${deck.title || 'presentation'}.html`);
     } catch (err) {
       console.error('HTML export failed:', err);
+      setExportError(err instanceof Error ? err.message : 'HTML export failed.');
     } finally {
       setExporting(false);
       setExportType(null);
@@ -71,6 +78,7 @@ export function useExport({ deck }) {
   return {
     exporting,
     exportType,
+    exportError,
     slideContainerRef,
     handleExportPDF,
     handleExportPPTX,

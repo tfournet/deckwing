@@ -36,7 +36,7 @@ function MainLayout() {
     updateSlide,
     applyAction,
   } = useDeckState();
-  const { exporting, exportType, slideContainerRef, handleExportPDF, handleExportPPTX, handleExportHTML } = useExport({ deck });
+  const { exporting, exportType, exportError, slideContainerRef, handleExportPDF, handleExportPPTX, handleExportHTML } = useExport({ deck });
   const { messages, isLoading, sendMessage, resetChat } = useChat({ deck, onAction: applyAction, model: selectedModel });
 
   // Persist model selection
@@ -127,6 +127,12 @@ function MainLayout() {
           Present
         </button>
       </header>
+
+      {exportError && (
+        <div className="px-4 py-2 bg-alert-coral-900/20 border-b border-alert-coral-700/40 text-alert-coral-200 text-sm shrink-0">
+          Export failed: {exportError}
+        </div>
+      )}
 
       <div className="flex-1 flex overflow-hidden">
         <aside className="w-56 bg-ops-indigo-900/50 border-r border-ops-indigo-700/30 flex flex-col shrink-0">

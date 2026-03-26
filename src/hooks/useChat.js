@@ -87,6 +87,7 @@ export function useChat({ deck, onAction, model }) {
   }, [deck, isLoading, model, onAction]);
 
   const resetChat = useCallback(async () => {
+    const oldSessionId = sessionIdRef.current;
     sessionIdRef.current = generateSessionId();
     setMessages([]);
     setIsLoading(false);
@@ -95,7 +96,7 @@ export function useChat({ deck, onAction, model }) {
       await fetch('/api/chat/reset', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ sessionId: sessionIdRef.current }),
+        body: JSON.stringify({ sessionId: oldSessionId }),
       });
     } catch {
       // Reset is best-effort — local state already cleared
