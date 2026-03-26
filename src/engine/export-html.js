@@ -2,7 +2,11 @@ import html2canvas from 'html2canvas';
 import { THEME_COLORS } from '../../shared/theme-colors.js';
 
 function formatHexColor(color) {
-  return `#${color}`;
+  const cleaned = String(color).replace(/^#/, '');
+  if (!/^[0-9a-fA-F]{3,8}$/.test(cleaned)) {
+    return '#141121';
+  }
+  return `#${cleaned}`;
 }
 
 function resolveTheme(defaultTheme) {
@@ -57,7 +61,7 @@ function buildHTMLDocument({ deckTitle, slides, themeName, theme }) {
   <title>${safeDeckTitle}</title>
   <style>
     :root {
-      --dw-bg: #000000;
+      --dw-bg: ${theme.panel};
       --dw-panel: ${theme.panel};
       --dw-accent: ${theme.accent};
       --dw-text: ${theme.text};
@@ -70,7 +74,7 @@ function buildHTMLDocument({ deckTitle, slides, themeName, theme }) {
 
     html, body {
       margin: 0;
-      min-height: 100%;
+      height: 100%;
       background: var(--dw-bg);
       color: var(--dw-text);
       font-family: var(--dw-font);
@@ -98,18 +102,17 @@ function buildHTMLDocument({ deckTitle, slides, themeName, theme }) {
       display: flex;
       align-items: center;
       justify-content: center;
-      padding: 24px;
+      padding: 0;
       transition: inset 180ms ease;
     }
 
     .slide-image {
       display: block;
-      max-width: 100vw;
-      max-height: 100vh;
+      max-width: 100%;
+      max-height: 100%;
       width: auto;
       height: auto;
       object-fit: contain;
-      box-shadow: 0 24px 48px rgba(0, 0, 0, 0.35);
     }
 
     .empty-state {
@@ -150,11 +153,11 @@ function buildHTMLDocument({ deckTitle, slides, themeName, theme }) {
     }
 
     .presenter-mode .viewer {
-      inset: 0 0 calc(30vh + 4px) 0;
+      inset: 12px 12px calc(30vh + 4px) 12px;
     }
 
     .presenter-mode .slide-image {
-      max-height: calc(70vh - 48px);
+      max-height: 100%;
     }
 
     .presenter-mode .presenter-panel {
@@ -410,14 +413,29 @@ export async function exportDeckToHTML({ slideContainer, deck, defaultTheme, onP
 
     await waitForNextPaint();
 
-    const canvas = await html2canvas(slideContainer, {
-      scale: 2,
-      useCORS: true,
-      backgroundColor: null,
-    });
+    let canvas;
+    try {
+      canvas = await html2canvas(slideContainer, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: null,
+      });
+    } catch (err) {
+      throw new Error(
+        `Failed to render slide ${i + 1} ("${slides[i]?.title || 'Untitled'}"): ${err.message}`
+      );
+    }
+
+    const imageDataURI = canvas.toDataURL('image/png');
+    if (!imageDataURI || !imageDataURI.startsWith('data:image/')) {
+      throw new Error(
+        `Slide ${i + 1} ("${slides[i]?.title || 'Untitled'}") produced an empty image. ` +
+        'This may be caused by cross-origin images on the slide.'
+      );
+    }
 
     exportedSlides.push({
-      imageDataURI: canvas.toDataURL('image/png'),
+      imageDataURI,
       notes: slides[i]?.notes ?? '',
       title: slides[i]?.title ?? '',
       type: slides[i]?.type ?? 'slide',
