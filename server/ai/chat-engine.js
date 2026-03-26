@@ -20,9 +20,9 @@ let directClient = null;
 if (HAS_API_KEY) {
   const { default: Anthropic } = await import('@anthropic-ai/sdk');
   directClient = new Anthropic();
-  console.log('Chat engine: using direct Anthropic API');
+  console.log('  AI ready (API key)');
 } else {
-  console.log('Chat engine: no ANTHROPIC_API_KEY found, using Claude Agent SDK (local OAuth)');
+  console.log('  AI ready (using your Claude account)');
 }
 
 /**
@@ -227,7 +227,7 @@ export async function chat({ sessionId, message, deck, currentSlideIndex }) {
   try {
     parsed = parseClaudeResponse(rawResponse);
   } catch (parseError) {
-    console.error('Failed to parse Claude response:', parseError.message);
+    console.error('  [parse error]', parseError.message);
     const fallbackReply = "I had trouble formatting my response. Could you try rephrasing your request?";
     session.messages.push({ role: 'assistant', content: JSON.stringify({ reply: fallbackReply, action: null }) });
     return { reply: fallbackReply, action: null };
@@ -238,7 +238,7 @@ export async function chat({ sessionId, message, deck, currentSlideIndex }) {
   if (parsed.action) {
     const validationErrors = validateActionSlides(parsed.action);
     if (validationErrors.length > 0) {
-      console.error('AI generated invalid slides:', validationErrors);
+      console.error('  [validation]', validationErrors.join('; '));
       return {
         reply: `I generated slides that didn't pass validation: ${validationErrors.join('; ')}. Please try again.`,
         action: null,

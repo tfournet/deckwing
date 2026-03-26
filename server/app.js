@@ -161,7 +161,8 @@ app.post('/api/chat', async (req, res) => {
 
     res.json({ reply: result.reply, action: result.action });
   } catch (err) {
-    console.error('Chat endpoint error:', err.message);
+    // Log for debugging, not user-facing (the API returns a friendly message)
+    console.error('  [chat error]', err.message);
     res.status(500).json({
       error: 'Failed to process chat message',
       reply: 'Something went wrong on my end. Please try again.',

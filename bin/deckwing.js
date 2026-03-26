@@ -22,8 +22,16 @@ function toImportURL(filePath) {
   return pathToFileURL(filePath).href;
 }
 
+console.log('');
+console.log('  Starting DeckWing...');
+
 if (!existsSync(join(DIST, 'index.html'))) {
-  console.error('Error: dist/ not found. Run `npm run build` first, or reinstall the package.');
+  console.log('');
+  console.log('  Hmm, it looks like the app files are missing.');
+  console.log('  Try reinstalling:');
+  console.log('');
+  console.log('    npm install -g github:tfournet/deckwing');
+  console.log('');
   process.exit(1);
 }
 
@@ -47,10 +55,10 @@ setInterval(cleanStaleSessions, 15 * 60 * 1000);
 const server = app.listen(PORT, () => {
   const url = `http://localhost:${PORT}`;
   console.log('');
-  console.log('  DeckWing is running');
-  console.log(`  ${url}`);
+  console.log('  DeckWing is ready!');
+  console.log(`  Open in your browser: ${url}`);
   console.log('');
-  console.log('  Press Ctrl+C to stop.');
+  console.log('  When you\'re done, press Ctrl+C to stop.');
   console.log('');
 
   // Open browser
@@ -64,8 +72,25 @@ const server = app.listen(PORT, () => {
   }
 });
 
+server.on('error', (err) => {
+  if (err.code === 'EADDRINUSE') {
+    console.log('');
+    console.log(`  Port ${PORT} is already in use.`);
+    console.log('  DeckWing might already be running! Check your browser.');
+    console.log(`  Or try a different port: PORT=3001 deckwing`);
+    console.log('');
+  } else {
+    console.log('');
+    console.log(`  Something went wrong starting the server: ${err.message}`);
+    console.log('');
+  }
+  process.exit(1);
+});
+
 // Graceful shutdown
 process.on('SIGINT', () => {
-  console.log('\nShutting down...');
+  console.log('');
+  console.log('  DeckWing stopped. See you next time!');
+  console.log('');
   server.close(() => process.exit(0));
 });
