@@ -20,6 +20,30 @@ fail()  { echo -e "  ${RED}✗ $1${NC}"; exit 1; }
 step()  { echo -e "\n  ${BOLD}$1${NC}"; }
 detail(){ echo -e "    ${DIM}$1${NC}"; }
 
+# Spinner — runs a command with an animated progress indicator
+# Usage: run_with_spinner "Installing packages" npm install -g something
+run_with_spinner() {
+  local label="$1"
+  shift
+  local frames=('⠋' '⠙' '⠹' '⠸' '⠼' '⠴' '⠦' '⠧' '⠇' '⠏')
+  local pid elapsed=0
+
+  "$@" >/dev/null 2>&1 &
+  pid=$!
+
+  while kill -0 "$pid" 2>/dev/null; do
+    local frame="${frames[$((elapsed % ${#frames[@]}))]}"
+    printf "\r    ${DIM}%s %s (%ds)${NC}  " "$frame" "$label" "$elapsed"
+    sleep 1
+    elapsed=$((elapsed + 1))
+  done
+
+  wait "$pid"
+  local exit_code=$?
+  printf "\r    \033[K"  # Clear the spinner line
+  return $exit_code
+}
+
 clear
 echo ""
 echo -e "  ${BOLD}🐔 DeckWing${NC}"
@@ -60,8 +84,6 @@ fi
 # ── Step 2: DeckWing ──────────────────────────────────────────────────
 
 step "Step 2/3 — DeckWing"
-detail "Downloading and installing the app..."
-echo ""
 
 # Download the tarball from the latest release — no Git needed
 TARBALL_URL="https://github.com/${GITHUB_REPO}/releases/latest/download/deckwing-0.1.0.tgz"
@@ -73,7 +95,7 @@ if [ -n "$LATEST_TAG" ]; then
   TARBALL_URL="https://github.com/${GITHUB_REPO}/releases/latest/download/deckwing-${VERSION}.tgz"
 fi
 
-if npm install -g "$TARBALL_URL" 2>&1 | tail -3; then
+if run_with_spinner "Downloading and installing DeckWing" npm install -g "$TARBALL_URL"; then
   # Refresh PATH — npm global bin may not be in current session
   NPM_BIN=$(npm config get prefix 2>/dev/null)/bin
   if [ -d "$NPM_BIN" ] && [[ ":$PATH:" != *":$NPM_BIN:"* ]]; then
@@ -101,14 +123,11 @@ fi
 # ── Step 3: Claude Code (for AI features) ─────────────────────────────
 
 step "Step 3/3 — AI Setup (Claude)"
-detail "Claude Code powers the AI presentation builder."
-echo ""
 
 if command -v claude &>/dev/null; then
   info "Claude Code — already installed"
 else
-  detail "Installing Claude Code..."
-  npm install -g @anthropic-ai/claude-code 2>&1 | tail -1
+  run_with_spinner "Installing Claude Code" npm install -g @anthropic-ai/claude-code
   if command -v claude &>/dev/null; then
     info "Claude Code — installed"
   else

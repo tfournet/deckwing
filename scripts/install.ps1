@@ -12,6 +12,25 @@ function Write-Fail($msg)  { Write-Host "    " -NoNewline; Write-Host "[XX] $msg
 function Write-Step($msg)  { Write-Host ""; Write-Host "  $msg" -ForegroundColor White }
 function Write-Detail($msg){ Write-Host "    $msg" -ForegroundColor DarkGray }
 
+# Run a command with a spinner and elapsed time
+function Invoke-WithSpinner {
+    param([string]$Label, [scriptblock]$Command)
+    $frames = @('|','/','-','\')
+    $job = Start-Job -ScriptBlock $Command
+    $elapsed = 0
+    while ($job.State -eq 'Running') {
+        $frame = $frames[$elapsed % $frames.Count]
+        Write-Host "`r    $frame $Label ($($elapsed)s)  " -NoNewline -ForegroundColor DarkGray
+        Start-Sleep -Seconds 1
+        $elapsed++
+    }
+    Write-Host "`r                                                       `r" -NoNewline
+    $result = Receive-Job -Job $job
+    $exitOk = $job.State -eq 'Completed'
+    Remove-Job -Job $job
+    return $exitOk
+}
+
 Clear-Host
 Write-Host ""
 Write-Host "  DeckWing" -ForegroundColor Cyan -NoNewline
@@ -61,7 +80,6 @@ if (-not $hasNode) {
 # ── Step 2: DeckWing ──────────────────────────────────────────────────
 
 Write-Step "Step 2/3 - DeckWing"
-Write-Detail "Downloading and installing the app..."
 
 try {
     # Download tarball from latest release — no Git needed
@@ -73,7 +91,7 @@ try {
     } catch {}
     $tarballUrl = "https://github.com/$GithubRepo/releases/latest/download/deckwing-$version.tgz"
 
-    npm install -g $tarballUrl 2>&1 | Out-Null
+    $installOk = Invoke-WithSpinner -Label "Downloading and installing DeckWing" -Command ([scriptblock]::Create("npm install -g $tarballUrl 2>&1 | Out-Null"))
 
     # Refresh PATH to pick up npm global bin
     $env:Path = [System.Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path", "User")
@@ -115,9 +133,8 @@ try {
 } catch {}
 
 if (-not $hasClaude) {
-    Write-Detail "Installing Claude Code..."
     try {
-        npm install -g @anthropic-ai/claude-code 2>&1 | Out-Null
+        Invoke-WithSpinner -Label "Installing Claude Code" -Command { npm install -g @anthropic-ai/claude-code 2>&1 | Out-Null } | Out-Null
         $env:Path = [System.Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path", "User")
         try { if (Get-Command claude -ErrorAction SilentlyContinue) { $hasClaude = $true } } catch {}
     } catch {
