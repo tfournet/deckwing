@@ -2,6 +2,9 @@ import express from 'express';
 import cors from 'cors';
 import { execFile } from 'child_process';
 import { promisify } from 'util';
+import { existsSync, readFileSync } from 'fs';
+import { join } from 'path';
+import { homedir } from 'os';
 import { chat, resetSession } from './ai/chat-engine.js';
 
 const execFileAsync = promisify(execFile);
@@ -21,6 +24,7 @@ async function checkClaudeAuth() {
     return { authenticated: true, method: 'api_key' };
   }
 
+  // First, try the CLI (works when claude is in PATH)
   try {
     const { stdout } = await execFileAsync('claude', ['auth', 'status'], {
       timeout: 5000,
@@ -33,13 +37,49 @@ async function checkClaudeAuth() {
       loginCommand: status.loggedIn ? null : 'claude auth login',
     };
   } catch {
-    return {
-      authenticated: false,
-      method: null,
-      loginCommand: 'claude auth login',
-      error: 'Claude CLI not found or not responding. Install Claude Code first.',
-    };
+    // CLI not in PATH — fall back to checking credentials file directly
   }
+
+  // Check the credentials file — works even when claude isn't in PATH
+  // (common on Windows after fresh install without terminal restart)
+  const credPaths = [
+    join(homedir(), '.claude', '.credentials.json'),
+    join(homedir(), '.claude', 'credentials.json'),
+  ];
+
+  for (const credPath of credPaths) {
+    if (existsSync(credPath)) {
+      try {
+        const creds = JSON.parse(readFileSync(credPath, 'utf-8'));
+        const oauth = creds.claudeAiOauth;
+        if (oauth?.accessToken && oauth?.expiresAt > Date.now()) {
+          return {
+            authenticated: true,
+            method: 'claude.ai',
+            email: null,
+            claudeInstalled: true,
+          };
+        }
+        // Credentials exist but expired or incomplete
+        return {
+          authenticated: false,
+          method: null,
+          loginCommand: 'claude auth login',
+          claudeInstalled: true,
+        };
+      } catch {
+        // Corrupted credentials file
+      }
+    }
+  }
+
+  // No CLI and no credentials file
+  return {
+    authenticated: false,
+    method: null,
+    loginCommand: 'claude auth login',
+    error: 'Claude Code not found. Install it with: npm install -g @anthropic-ai/claude-code',
+  };
 }
 
 // Health check + auth status

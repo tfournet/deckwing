@@ -272,7 +272,7 @@ export default function App() {
       }
     };
 
-    const hasClaude = !authState.error?.includes('not found');
+    const hasClaude = authState.claudeInstalled || !authState.error?.includes('not found');
 
     return (
       <div className="w-screen h-screen bg-ops-indigo-950 flex items-center justify-center">
