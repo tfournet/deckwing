@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { ChevronDown, ChevronUp, Pencil, Code, Eye } from 'lucide-react';
+import { useState, useRef, useCallback, useEffect } from 'react';
+import { ChevronDown, ChevronUp, Pencil, Code, Eye, Maximize2, Minimize2, X } from 'lucide-react';
 import { SLIDE_TYPES } from '../../schema/slide-schema';
 import { getThemeNames } from '../../config/themes';
 import { PointsEditor } from './PointsEditor';
@@ -212,12 +212,41 @@ const TYPE_FIELDS = {
 export function SlideEditor({ slide, index, onUpdateSlide }) {
   const [open, setOpen] = useState(false);
   const [jsonMode, setJsonMode] = useState(false);
+  const [poppedOut, setPoppedOut] = useState(false);
+  const [panelHeight, setPanelHeight] = useState(320);
+  const dragRef = useRef(null);
 
   const update = (changes) => onUpdateSlide(index, changes);
   const handleJsonChange = (parsed) => {
     const { id, ...rest } = parsed;
     onUpdateSlide(index, rest);
   };
+
+  // Drag-to-resize handle
+  const handleDragStart = useCallback((e) => {
+    e.preventDefault();
+    const startY = e.clientY;
+    const startHeight = panelHeight;
+
+    function onMove(ev) {
+      const delta = startY - ev.clientY;
+      setPanelHeight(Math.max(160, Math.min(800, startHeight + delta)));
+    }
+    function onUp() {
+      document.removeEventListener('mousemove', onMove);
+      document.removeEventListener('mouseup', onUp);
+    }
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup', onUp);
+  }, [panelHeight]);
+
+  // Close popout on Escape
+  useEffect(() => {
+    if (!poppedOut) return;
+    const handler = (e) => { if (e.key === 'Escape') setPoppedOut(false); };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [poppedOut]);
 
   const TypeFields = TYPE_FIELDS[slide?.type] || null;
   const themeNames = getThemeNames();
@@ -242,15 +271,25 @@ export function SlideEditor({ slide, index, onUpdateSlide }) {
           <Pencil size={14} className="text-bot-teal-400" />
           Edit Slide
           {open && (
-            <button
-              type="button"
-              onClick={(e) => { e.stopPropagation(); setJsonMode(v => !v); }}
-              className="ml-3 flex items-center gap-1 px-2 py-0.5 rounded text-xs bg-ops-indigo-800 hover:bg-ops-indigo-700 text-cloud-gray-400 hover:text-white transition-colors"
-              title={jsonMode ? 'Visual editor' : 'JSON editor'}
-            >
-              {jsonMode ? <Eye size={12} /> : <Code size={12} />}
-              {jsonMode ? 'Visual' : 'JSON'}
-            </button>
+            <>
+              <button
+                type="button"
+                onClick={(e) => { e.stopPropagation(); setJsonMode(v => !v); }}
+                className="ml-3 flex items-center gap-1 px-2 py-0.5 rounded text-xs bg-ops-indigo-800 hover:bg-ops-indigo-700 text-cloud-gray-400 hover:text-white transition-colors"
+                title={jsonMode ? 'Visual editor' : 'JSON editor'}
+              >
+                {jsonMode ? <Eye size={12} /> : <Code size={12} />}
+                {jsonMode ? 'Visual' : 'JSON'}
+              </button>
+              <button
+                type="button"
+                onClick={(e) => { e.stopPropagation(); setPoppedOut(true); }}
+                className="flex items-center gap-1 px-2 py-0.5 rounded text-xs bg-ops-indigo-800 hover:bg-ops-indigo-700 text-cloud-gray-400 hover:text-white transition-colors"
+                title="Pop out editor"
+              >
+                <Maximize2 size={12} />
+              </button>
+            </>
           )}
         </div>
         {open ? (
@@ -260,65 +299,144 @@ export function SlideEditor({ slide, index, onUpdateSlide }) {
         )}
       </button>
 
-      {/* Editor body */}
-      {open && (
-        <div className="bg-ops-indigo-900/40 px-4 py-4 space-y-4 overflow-y-auto max-h-80">
-          {jsonMode ? (
-            <JsonEditor value={slide} onChange={handleJsonChange} mode="slide" />
-          ) : (
-          <>
-          {/* Slide meta controls */}
-          <div className="grid grid-cols-2 gap-3">
-            <Field label="Slide Type">
-              <select
-                value={slide.type}
-                onChange={(e) => handleTypeChange(e.target.value)}
-                className={`${INPUT_CLS} cursor-pointer`}
-              >
-                {slideTypes.map((t) => (
-                  <option key={t} value={t}>{t}</option>
-                ))}
-              </select>
-            </Field>
-            <Field label="Theme">
-              <select
-                value={slide.theme || 'rewst'}
-                onChange={(e) => update({ theme: e.target.value })}
-                className={`${INPUT_CLS} cursor-pointer`}
-              >
-                {themeNames.map((t) => (
-                  <option key={t} value={t}>{t}</option>
-                ))}
-              </select>
-            </Field>
+      {/* Editor body — inline panel */}
+      {open && !poppedOut && (
+        <>
+          {/* Drag-to-resize handle */}
+          <div
+            className="h-1.5 cursor-ns-resize bg-ops-indigo-700/30 hover:bg-bot-teal-400/30 transition-colors flex items-center justify-center"
+            onMouseDown={handleDragStart}
+            title="Drag to resize"
+          >
+            <div className="w-8 h-0.5 bg-cloud-gray-600 rounded-full" />
           </div>
-
-          {/* Type-specific fields */}
-          {TypeFields && (
-            <>
-              <Divider />
-              <div className="space-y-3">
-                <TypeFields slide={slide} update={update} />
-              </div>
-            </>
-          )}
-
-          {/* Speaker notes */}
-          <Divider />
-          <Field label="Speaker Notes">
-            <textarea
-              value={slide.notes || ''}
-              onChange={(e) => update({ notes: e.target.value })}
-              rows={3}
-              placeholder="Notes for the presenter…"
-              className={TEXTAREA_CLS}
+          <div
+            className="bg-ops-indigo-900/40 px-4 py-4 space-y-4 overflow-y-auto"
+            style={{ maxHeight: panelHeight }}
+          >
+            <EditorContent
+              slide={slide}
+              jsonMode={jsonMode}
+              handleJsonChange={handleJsonChange}
+              handleTypeChange={handleTypeChange}
+              update={update}
+              slideTypes={slideTypes}
+              themeNames={themeNames}
+              TypeFields={TypeFields}
             />
-          </Field>
-          </>
-          )}
+          </div>
+        </>
+      )}
+
+      {/* Pop-out modal */}
+      {open && poppedOut && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+          <div className="bg-ops-indigo-900 border border-ops-indigo-600/50 rounded-xl shadow-2xl w-[700px] max-w-[calc(100vw-2rem)] max-h-[80vh] flex flex-col">
+            {/* Modal header */}
+            <div className="flex items-center justify-between px-4 py-3 border-b border-ops-indigo-700/30 shrink-0">
+              <div className="flex items-center gap-2 text-cloud-gray-300 text-sm font-display font-semibold">
+                <Pencil size={14} className="text-bot-teal-400" />
+                Edit Slide {index + 1}
+                <span className="text-cloud-gray-500 text-xs capitalize">({slide.type})</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <button
+                  type="button"
+                  onClick={() => setJsonMode(v => !v)}
+                  className="flex items-center gap-1 px-2 py-1 rounded text-xs bg-ops-indigo-800 hover:bg-ops-indigo-700 text-cloud-gray-400 hover:text-white transition-colors"
+                >
+                  {jsonMode ? <Eye size={12} /> : <Code size={12} />}
+                  {jsonMode ? 'Visual' : 'JSON'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setPoppedOut(false)}
+                  className="flex items-center gap-1 px-2 py-1 rounded text-xs bg-ops-indigo-800 hover:bg-ops-indigo-700 text-cloud-gray-400 hover:text-white transition-colors"
+                  title="Dock editor"
+                >
+                  <Minimize2 size={12} />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setPoppedOut(false); setOpen(false); }}
+                  className="p-1 rounded text-cloud-gray-500 hover:text-cloud-gray-300 transition-colors"
+                >
+                  <X size={16} />
+                </button>
+              </div>
+            </div>
+            {/* Modal body */}
+            <div className="flex-1 overflow-y-auto px-5 py-4 space-y-4">
+              <EditorContent
+                slide={slide}
+                jsonMode={jsonMode}
+                handleJsonChange={handleJsonChange}
+                handleTypeChange={handleTypeChange}
+                update={update}
+                slideTypes={slideTypes}
+                themeNames={themeNames}
+                TypeFields={TypeFields}
+              />
+            </div>
+          </div>
         </div>
       )}
     </div>
+  );
+}
+
+/* ── shared editor content (used by both inline and popout) ──────── */
+
+function EditorContent({ slide, jsonMode, handleJsonChange, handleTypeChange, update, slideTypes, themeNames, TypeFields }) {
+  return jsonMode ? (
+    <JsonEditor value={slide} onChange={handleJsonChange} mode="slide" />
+  ) : (
+    <>
+      <div className="grid grid-cols-2 gap-3">
+        <Field label="Slide Type">
+          <select
+            value={slide.type}
+            onChange={(e) => handleTypeChange(e.target.value)}
+            className={`${INPUT_CLS} cursor-pointer`}
+          >
+            {slideTypes.map((t) => (
+              <option key={t} value={t}>{t}</option>
+            ))}
+          </select>
+        </Field>
+        <Field label="Theme">
+          <select
+            value={slide.theme || 'rewst'}
+            onChange={(e) => update({ theme: e.target.value })}
+            className={`${INPUT_CLS} cursor-pointer`}
+          >
+            {themeNames.map((t) => (
+              <option key={t} value={t}>{t}</option>
+            ))}
+          </select>
+        </Field>
+      </div>
+
+      {TypeFields && (
+        <>
+          <Divider />
+          <div className="space-y-3">
+            <TypeFields slide={slide} update={update} />
+          </div>
+        </>
+      )}
+
+      <Divider />
+      <Field label="Speaker Notes">
+        <textarea
+          value={slide.notes || ''}
+          onChange={(e) => update({ notes: e.target.value })}
+          rows={3}
+          placeholder="Notes for the presenter…"
+          className={TEXTAREA_CLS}
+        />
+      </Field>
+    </>
   );
 }
 
