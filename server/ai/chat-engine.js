@@ -55,8 +55,8 @@ if (HAS_API_KEY) {
   if (oauthToken) {
     const { default: Anthropic } = await import('@anthropic-ai/sdk');
     directClient = new Anthropic({
-      apiKey: oauthToken,
       authToken: oauthToken,
+      apiKey: null,
     });
     authMode = 'oauth';
     console.log('  AI ready (Claude account)');
@@ -224,8 +224,8 @@ export async function chat({ sessionId, message, deck, currentSlideIndex, model 
       if (freshToken) {
         const { default: Anthropic } = await import('@anthropic-ai/sdk');
         directClient = new Anthropic({
-          apiKey: freshToken,
           authToken: freshToken,
+          apiKey: null,
         });
       } else {
         throw new Error('Not authenticated. Please sign in with Claude first.');
