@@ -274,7 +274,7 @@ export function SlideEditor({
   if (!slide) return null;
 
   return (
-    <div className="shrink-0 border-t border-ops-indigo-700/30">
+    <div className="shrink-0 border-t border-ops-indigo-700/30 min-w-0 overflow-hidden">
       {/* Toggle bar */}
       <button
         type="button"

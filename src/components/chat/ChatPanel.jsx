@@ -53,7 +53,7 @@ export function ChatPanel({ messages, isLoading, onSendMessage, onResetChat, onC
   const isEmpty = messages.length === 0;
 
   return (
-    <aside className="min-w-[280px] max-w-[400px] w-[25%] bg-ops-indigo-900/50 border-l border-ops-indigo-700/30 flex flex-col shrink-0">
+    <aside className="w-80 bg-ops-indigo-900/50 border-l border-ops-indigo-700/30 flex flex-col shrink-0 overflow-hidden">
       {/* Panel header */}
       <div className="px-3 py-2 border-b border-ops-indigo-700/30 shrink-0 space-y-1.5">
         <div className="flex items-center justify-between">
@@ -93,7 +93,7 @@ export function ChatPanel({ messages, isLoading, onSendMessage, onResetChat, onC
               onChange={(e) => onModelChange(e.target.value)}
             >
               {models.map(m => (
-                <option key={m.id} value={m.id}>{m.label} — {m.description}</option>
+                <option key={m.id} value={m.id}>{m.label}</option>
               ))}
             </select>
           </div>
@@ -114,10 +114,10 @@ export function ChatPanel({ messages, isLoading, onSendMessage, onResetChat, onC
             <p className="text-cloud-gray-200 text-base font-display font-semibold mb-2">
               Chat with AI to build your deck
             </p>
-            <p className="text-cloud-gray-500 text-sm leading-relaxed max-w-xs">
+            <p className="text-cloud-gray-500 text-sm leading-relaxed max-w-full">
               Describe your topic, ask to add slides, or refine content. The AI understands Rewst's brand and audience.
             </p>
-            <div className="mt-6 space-y-2 w-full max-w-xs">
+            <div className="mt-6 space-y-2 w-full max-w-full">
               {[
                 'Create a 6-slide deck about MSP automation ROI',
                 'Add a metrics slide with onboarding stats',

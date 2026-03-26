@@ -65,7 +65,7 @@ function MainLayout() {
   }
 
   return (
-    <div className="w-screen h-screen bg-ops-indigo-950 flex flex-col overflow-hidden">
+    <div className="w-full h-screen bg-ops-indigo-950 flex flex-col overflow-hidden">
       <header className="h-14 bg-ops-indigo-900 border-b border-ops-indigo-700/50 flex items-center px-4 gap-4 shrink-0">
         <h1 className="font-display font-bold text-white text-lg">DeckWing</h1>
         <button className="text-cloud-gray-400 hover:text-bot-teal-400 transition-colors p-1" onClick={() => setDeckListOpen(true)} title="Open / New deck">
@@ -125,7 +125,7 @@ function MainLayout() {
       )}
 
       <div className="flex-1 flex overflow-hidden">
-        <aside className="min-w-[180px] max-w-[240px] w-[15%] bg-ops-indigo-900/50 border-r border-ops-indigo-700/30 flex flex-col shrink-0">
+        <aside className="w-52 bg-ops-indigo-900/50 border-r border-ops-indigo-700/30 flex flex-col shrink-0">
           <SlideOutline
             slides={deck.slides}
             currentIndex={currentSlideIndex}
@@ -137,7 +137,7 @@ function MainLayout() {
           />
         </aside>
 
-        <main className="flex-1 flex flex-col">
+        <main className="flex-1 min-w-0 flex flex-col">
           <div className="flex items-center justify-center gap-4 py-3 bg-ops-indigo-900/30">
             <button className="text-cloud-gray-400 hover:text-white transition-colors disabled:opacity-30" onClick={() => goToSlide(currentSlideIndex - 1)} disabled={currentSlideIndex === 0}>
               <ChevronLeft size={24} />
@@ -148,8 +148,8 @@ function MainLayout() {
             </button>
           </div>
 
-          <div className="flex-1 flex items-center justify-center p-8">
-            <div ref={slideContainerRef} className="w-full max-w-5xl aspect-video rounded-xl overflow-hidden shadow-2xl shadow-black/50 border border-ops-indigo-700/30">
+          <div className="flex-1 min-h-0 flex items-center justify-center p-4">
+            <div ref={slideContainerRef} className="w-full max-h-full aspect-video rounded-xl overflow-hidden shadow-2xl shadow-black/50 border border-ops-indigo-700/30">
               <SlideFrame slide={currentSlide} defaultTheme={deck.defaultTheme} />
             </div>
           </div>
