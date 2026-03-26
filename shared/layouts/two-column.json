@@ -1,0 +1,38 @@
+{
+  "id": "two-column",
+  "name": "Two Columns",
+  "description": "Side-by-side content areas.",
+  "promptDescription": "Use for comparing two things, before/after, or splitting content into two parallel sections.",
+  "editorLabel": "Two Columns",
+  "editorIcon": "Columns",
+  "thumbnail": "two-column.svg",
+  "slots": [
+    {
+      "name": "title",
+      "label": "Title",
+      "kinds": ["heading"],
+      "required": true,
+      "position": { "col": 1, "row": 1, "colSpan": 12, "rowSpan": 1 },
+      "maxContent": { "text": 80 }
+    },
+    {
+      "name": "left",
+      "label": "Left Column",
+      "kinds": ["list", "text", "metric", "chart", "image"],
+      "required": true,
+      "position": { "col": 1, "row": 2, "colSpan": 6, "rowSpan": 5 },
+      "maxContent": { "list": 5, "text": 300 }
+    },
+    {
+      "name": "right",
+      "label": "Right Column",
+      "kinds": ["list", "text", "metric", "chart", "image"],
+      "required": true,
+      "position": { "col": 7, "row": 2, "colSpan": 6, "rowSpan": 5 },
+      "maxContent": { "list": 5, "text": 300 }
+    }
+  ],
+  "pptx": {
+    "slotOverrides": {}
+  }
+}

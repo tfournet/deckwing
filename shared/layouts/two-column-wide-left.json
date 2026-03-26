@@ -1,0 +1,81 @@
+{
+  "id": "two-column-wide-left",
+  "name": "Two Columns Wide Left",
+  "description": "Two-column layout with a wide primary content area and a narrow sidebar.",
+  "promptDescription": "Use when the main narrative or artifact needs more room and supporting details can live in a compact sidebar.",
+  "editorLabel": "Wide Left",
+  "editorIcon": "PanelLeftOpen",
+  "thumbnail": "two-column-wide-left.svg",
+  "slots": [
+    {
+      "name": "title",
+      "label": "Title",
+      "kinds": [
+        "heading"
+      ],
+      "required": true,
+      "position": {
+        "col": 1,
+        "row": 1,
+        "colSpan": 12,
+        "rowSpan": 1
+      },
+      "maxContent": {
+        "text": 80
+      }
+    },
+    {
+      "name": "main",
+      "label": "Main Content",
+      "kinds": [
+        "heading",
+        "text",
+        "list",
+        "quote",
+        "metric",
+        "chart",
+        "image",
+        "table"
+      ],
+      "required": true,
+      "position": {
+        "col": 1,
+        "row": 2,
+        "colSpan": 8,
+        "rowSpan": 5
+      },
+      "maxContent": {
+        "list": 7,
+        "text": 420
+      }
+    },
+    {
+      "name": "sidebar",
+      "label": "Sidebar",
+      "kinds": [
+        "heading",
+        "text",
+        "list",
+        "quote",
+        "metric",
+        "chart",
+        "image",
+        "table"
+      ],
+      "required": true,
+      "position": {
+        "col": 9,
+        "row": 2,
+        "colSpan": 4,
+        "rowSpan": 5
+      },
+      "maxContent": {
+        "list": 5,
+        "text": 220
+      }
+    }
+  ],
+  "pptx": {
+    "slotOverrides": {}
+  }
+}

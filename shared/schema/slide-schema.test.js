@@ -1,8 +1,12 @@
 import { describe, it, expect } from 'vitest';
 import {
   SLIDE_TYPES,
+  BLOCK_KINDS,
+  CURRENT_SCHEMA_VERSION,
   createSlide,
   createDeck,
+  migrateDeck,
+  validateBlock,
   validateSlide,
   validateDeck,
   EXAMPLE_DECK,
@@ -11,10 +15,10 @@ import {
 // --- SLIDE_TYPES ---
 
 describe('SLIDE_TYPES', () => {
-  it('defines all 8 slide types', () => {
+  it('defines all 9 slide types', () => {
     const types = Object.keys(SLIDE_TYPES);
     expect(types).toEqual([
-      'title', 'content', 'grid', 'image', 'quote', 'metric', 'section', 'blank',
+      'title', 'content', 'grid', 'image', 'quote', 'metric', 'section', 'blank', 'layout',
     ]);
   });
 
@@ -27,6 +31,16 @@ describe('SLIDE_TYPES', () => {
 
   it('blank has no required fields', () => {
     expect(SLIDE_TYPES.blank.required).toEqual([]);
+  });
+});
+
+describe('BLOCK_KINDS', () => {
+  it('defines all 12 block kinds', () => {
+    const kinds = Object.keys(BLOCK_KINDS);
+    expect(kinds).toEqual([
+      'heading', 'text', 'list', 'metric', 'chart', 'table',
+      'image', 'icon', 'quote', 'callout', 'divider', 'spacer',
+    ]);
   });
 });
 
@@ -68,9 +82,57 @@ describe('createSlide', () => {
     expect(slide.theme).toBe('rewst');
   });
 
+  it('creates a layout slide', () => {
+    const slide = createSlide('layout', {
+      layout: 'single-center',
+      blocks: [
+        { slot: 'title', kind: 'heading', text: 'Layout title' },
+        { slot: 'body', kind: 'text', text: 'Layout body' },
+      ],
+    });
+
+    expect(slide.type).toBe('layout');
+    expect(slide.layout).toBe('single-center');
+    expect(slide.blocks).toHaveLength(2);
+  });
+
   it('generates unique ids across calls', () => {
     const ids = new Set(Array.from({ length: 50 }, () => createSlide('blank').id));
     expect(ids.size).toBe(50);
+  });
+});
+
+describe('migrateDeck', () => {
+  it('adds schemaVersion 2 to decks without a version', () => {
+    const old = { title: 'Old', slides: [{ type: 'title', title: 'Hi' }] };
+    const migrated = migrateDeck(old);
+    expect(migrated.schemaVersion).toBe(2);
+  });
+
+  it('preserves schemaVersion on already-migrated decks', () => {
+    const deck = { schemaVersion: 2, title: 'New', slides: [] };
+    const migrated = migrateDeck(deck);
+    expect(migrated.schemaVersion).toBe(2);
+  });
+
+  it('does not mutate the original deck', () => {
+    const old = { title: 'Old', slides: [] };
+    const migrated = migrateDeck(old);
+    expect(old.schemaVersion).toBeUndefined();
+    expect(migrated.schemaVersion).toBe(2);
+  });
+
+  it('deep copies slides so migrated slide edits do not affect the original deck', () => {
+    const old = {
+      title: 'Old',
+      slides: [{ type: 'title', title: 'Original Title' }],
+    };
+
+    const migrated = migrateDeck(old);
+    migrated.slides[0].title = 'Changed After Migration';
+
+    expect(old.slides[0].title).toBe('Original Title');
+    expect(migrated.slides[0].title).toBe('Changed After Migration');
   });
 });
 
@@ -105,6 +167,11 @@ describe('createDeck', () => {
     expect(deck.slides).toHaveLength(2);
     expect(deck.slides[0].title).toBe('A');
     expect(deck.slides[1].title).toBe('B');
+  });
+
+  it('stamps schemaVersion on new decks', () => {
+    const deck = createDeck({ title: 'Test' });
+    expect(deck.schemaVersion).toBe(CURRENT_SCHEMA_VERSION);
   });
 });
 
@@ -168,6 +235,53 @@ describe('validateSlide', () => {
   it('validates metric slide requires metrics', () => {
     expect(validateSlide({ type: 'metric' }).valid).toBe(false);
     expect(validateSlide({ type: 'metric', metrics: [] }).valid).toBe(true);
+  });
+
+  it('delegates layout slides to the layout validator', () => {
+    const result = validateSlide({
+      type: 'layout',
+      layout: 'single-center',
+      blocks: [
+        { slot: 'title', kind: 'heading', text: 'Quarterly Review' },
+        { slot: 'body', kind: 'text', text: 'Strong customer retention and margin growth.' },
+      ],
+    });
+
+    expect(result.valid).toBe(true);
+    expect(result.errors).toEqual([]);
+  });
+
+  it('rejects layout slide with wrong kind in slot', () => {
+    const result = validateSlide({
+      type: 'layout',
+      layout: 'single-center',
+      blocks: [
+        { slot: 'title', kind: 'heading', text: 'Quarterly Review' },
+        { slot: 'body', kind: 'heading', text: 'Not allowed here' },
+      ],
+    });
+
+    expect(result.valid).toBe(false);
+    expect(result.errors[0]).toContain('kind "heading" not allowed in slot "body"');
+  });
+});
+
+describe('validateBlock', () => {
+  it('passes for valid heading block', () => {
+    const result = validateBlock({ kind: 'heading', text: 'Quarterly Review' });
+    expect(result).toEqual({ valid: true, errors: [] });
+  });
+
+  it('fails for missing required field', () => {
+    const result = validateBlock({ kind: 'metric', value: '42%' });
+    expect(result.valid).toBe(false);
+    expect(result.errors).toContain('Block kind "metric" missing required field: label');
+  });
+
+  it('fails for unknown kind', () => {
+    const result = validateBlock({ kind: 'sparkles' });
+    expect(result.valid).toBe(false);
+    expect(result.errors).toContain('Unknown block kind: sparkles');
   });
 });
 

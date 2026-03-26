@@ -1,0 +1,48 @@
+{
+  "id": "comparison-table",
+  "name": "Comparison Table",
+  "description": "Full-width table beneath a title for structured comparison.",
+  "promptDescription": "Use when rows and columns communicate the story more clearly than separate cards or text blocks.",
+  "editorLabel": "Table",
+  "editorIcon": "Table2",
+  "thumbnail": "comparison-table.svg",
+  "slots": [
+    {
+      "name": "title",
+      "label": "Title",
+      "kinds": [
+        "heading"
+      ],
+      "required": true,
+      "position": {
+        "col": 1,
+        "row": 1,
+        "colSpan": 12,
+        "rowSpan": 1
+      },
+      "maxContent": {
+        "text": 80
+      }
+    },
+    {
+      "name": "table",
+      "label": "Table",
+      "kinds": [
+        "table"
+      ],
+      "required": true,
+      "position": {
+        "col": 1,
+        "row": 2,
+        "colSpan": 12,
+        "rowSpan": 5
+      },
+      "maxContent": {
+        "text": 600
+      }
+    }
+  ],
+  "pptx": {
+    "slotOverrides": {}
+  }
+}

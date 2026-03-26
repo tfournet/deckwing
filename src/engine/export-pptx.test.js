@@ -165,6 +165,38 @@ describe('export-pptx', () => {
     warnSpy.mockRestore();
   });
 
+  it('exports layout slides through the block PPTX path', async () => {
+    const renderBlockToPNG = vi.fn().mockResolvedValue('data:image/png;base64,icon');
+
+    await exportDeckToPPTX(createDeck([
+      {
+        type: 'layout',
+        layout: 'custom',
+        slots: [
+          { name: 'title', position: { col: 1, row: 1, colSpan: 8, rowSpan: 1 } },
+          { name: 'icon', position: { col: 9, row: 1, colSpan: 4, rowSpan: 2 } },
+        ],
+        blocks: [
+          { slot: 'title', kind: 'heading', text: 'Layout Title' },
+          { slot: 'icon', kind: 'icon', name: 'Zap' },
+        ],
+      },
+    ]), { renderBlockToPNG });
+
+    const instance = getLastInstance();
+
+    expect(instance.addSlide).toHaveBeenCalledTimes(1);
+    expect(instance.slides[0].background).toEqual({ color: '141121' });
+    expect(instance.slides[0].addText).toHaveBeenCalledWith(
+      'Layout Title',
+      expect.objectContaining({ color: '1EAFAF', fontFace: 'Montserrat' }),
+    );
+    expect(instance.slides[0].addImage).toHaveBeenCalledWith(expect.objectContaining({
+      data: 'data:image/png;base64,icon',
+    }));
+    expect(renderBlockToPNG).toHaveBeenCalledTimes(1);
+  });
+
   it('falls back to the rewst theme when no theme is specified', async () => {
     await exportDeckToPPTX({
       title: 'Fallback Deck',

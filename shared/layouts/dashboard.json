@@ -1,0 +1,62 @@
+{
+  "id": "dashboard",
+  "name": "Dashboard",
+  "description": "Summary metrics above two detailed content areas.",
+  "promptDescription": "Use for an executive summary with KPI tiles and supporting analysis beneath them.",
+  "editorLabel": "Dashboard",
+  "editorIcon": "LayoutDashboard",
+  "thumbnail": "dashboard.svg",
+  "slots": [
+    {
+      "name": "title",
+      "label": "Title",
+      "kinds": ["heading"],
+      "required": true,
+      "position": { "col": 1, "row": 1, "colSpan": 12, "rowSpan": 1 },
+      "maxContent": { "text": 80 }
+    },
+    {
+      "name": "m1",
+      "label": "Metric 1",
+      "kinds": ["metric"],
+      "required": true,
+      "position": { "col": 1, "row": 2, "colSpan": 4, "rowSpan": 2 },
+      "maxContent": { "text": 60 }
+    },
+    {
+      "name": "m2",
+      "label": "Metric 2",
+      "kinds": ["metric"],
+      "required": true,
+      "position": { "col": 5, "row": 2, "colSpan": 4, "rowSpan": 2 },
+      "maxContent": { "text": 60 }
+    },
+    {
+      "name": "m3",
+      "label": "Metric 3",
+      "kinds": ["metric"],
+      "required": true,
+      "position": { "col": 9, "row": 2, "colSpan": 4, "rowSpan": 2 },
+      "maxContent": { "text": 60 }
+    },
+    {
+      "name": "body1",
+      "label": "Body Left",
+      "kinds": ["text", "list", "chart", "image"],
+      "required": true,
+      "position": { "col": 1, "row": 4, "colSpan": 6, "rowSpan": 3 },
+      "maxContent": { "list": 6, "text": 280 }
+    },
+    {
+      "name": "body2",
+      "label": "Body Right",
+      "kinds": ["text", "list", "chart", "image"],
+      "required": true,
+      "position": { "col": 7, "row": 4, "colSpan": 6, "rowSpan": 3 },
+      "maxContent": { "list": 6, "text": 280 }
+    }
+  ],
+  "pptx": {
+    "slotOverrides": {}
+  }
+}

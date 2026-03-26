@@ -1,0 +1,167 @@
+{
+  "id": "logo-wall",
+  "name": "Logo Wall",
+  "description": "Eight evenly spaced logo placements arranged in two rows.",
+  "promptDescription": "Use for partner, customer, sponsor, or integration logo collections where every logo should have equal emphasis.",
+  "editorLabel": "Logo Wall",
+  "editorIcon": "GalleryHorizontalEnd",
+  "thumbnail": "logo-wall.svg",
+  "slots": [
+    {
+      "name": "title",
+      "label": "Title",
+      "kinds": [
+        "heading"
+      ],
+      "required": true,
+      "position": {
+        "col": 1,
+        "row": 1,
+        "colSpan": 12,
+        "rowSpan": 1
+      },
+      "maxContent": {
+        "text": 80
+      }
+    },
+    {
+      "name": "logo1",
+      "label": "Logo 1",
+      "kinds": [
+        "image"
+      ],
+      "required": true,
+      "position": {
+        "col": 1,
+        "row": 2,
+        "colSpan": 3,
+        "rowSpan": 2
+      },
+      "maxContent": {
+        "text": 0
+      }
+    },
+    {
+      "name": "logo2",
+      "label": "Logo 2",
+      "kinds": [
+        "image"
+      ],
+      "required": true,
+      "position": {
+        "col": 4,
+        "row": 2,
+        "colSpan": 3,
+        "rowSpan": 2
+      },
+      "maxContent": {
+        "text": 0
+      }
+    },
+    {
+      "name": "logo3",
+      "label": "Logo 3",
+      "kinds": [
+        "image"
+      ],
+      "required": true,
+      "position": {
+        "col": 7,
+        "row": 2,
+        "colSpan": 3,
+        "rowSpan": 2
+      },
+      "maxContent": {
+        "text": 0
+      }
+    },
+    {
+      "name": "logo4",
+      "label": "Logo 4",
+      "kinds": [
+        "image"
+      ],
+      "required": true,
+      "position": {
+        "col": 10,
+        "row": 2,
+        "colSpan": 3,
+        "rowSpan": 2
+      },
+      "maxContent": {
+        "text": 0
+      }
+    },
+    {
+      "name": "logo5",
+      "label": "Logo 5",
+      "kinds": [
+        "image"
+      ],
+      "required": true,
+      "position": {
+        "col": 1,
+        "row": 4,
+        "colSpan": 3,
+        "rowSpan": 3
+      },
+      "maxContent": {
+        "text": 0
+      }
+    },
+    {
+      "name": "logo6",
+      "label": "Logo 6",
+      "kinds": [
+        "image"
+      ],
+      "required": true,
+      "position": {
+        "col": 4,
+        "row": 4,
+        "colSpan": 3,
+        "rowSpan": 3
+      },
+      "maxContent": {
+        "text": 0
+      }
+    },
+    {
+      "name": "logo7",
+      "label": "Logo 7",
+      "kinds": [
+        "image"
+      ],
+      "required": true,
+      "position": {
+        "col": 7,
+        "row": 4,
+        "colSpan": 3,
+        "rowSpan": 3
+      },
+      "maxContent": {
+        "text": 0
+      }
+    },
+    {
+      "name": "logo8",
+      "label": "Logo 8",
+      "kinds": [
+        "image"
+      ],
+      "required": true,
+      "position": {
+        "col": 10,
+        "row": 4,
+        "colSpan": 3,
+        "rowSpan": 3
+      },
+      "maxContent": {
+        "text": 0
+      }
+    }
+  ],
+  "pptx": {
+    "slotOverrides": {}
+  }
+}

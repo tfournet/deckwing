@@ -10,6 +10,8 @@
 import React, { useRef, useState, useEffect } from 'react';
 import * as Icons from 'lucide-react';
 import { getTheme } from '../config/themes';
+import { getBlockThemeVars } from './block-theme.js';
+import { LayoutSlide } from './blocks/LayoutSlide.jsx';
 
 // ── Helpers ──────────────────────────────────────────────────────────
 
@@ -220,6 +222,7 @@ const RENDERERS = {
   metric: MetricSlide,
   section: SectionSlide,
   blank: BlankSlide,
+  layout: LayoutSlide,
 };
 
 /**
@@ -250,6 +253,9 @@ export function SlideFrame({ slide, defaultTheme = 'rewst', children }) {
   const theme = getTheme(slide.theme || defaultTheme);
   const containerRef = useRef(null);
   const [scale, setScale] = useState(1);
+  const blockVars = slide.type === 'layout'
+    ? getBlockThemeVars(slide.theme || defaultTheme, slide.customColors)
+    : {};
 
   useEffect(() => {
     const el = containerRef.current;
@@ -269,7 +275,11 @@ export function SlideFrame({ slide, defaultTheme = 'rewst', children }) {
   }, []);
 
   return (
-    <div ref={containerRef} className={`w-full h-full ${theme.bg} bg-gradient-to-br ${theme.gradient} overflow-hidden relative`}>
+    <div
+      ref={containerRef}
+      className={`w-full h-full ${theme.bg} bg-gradient-to-br ${theme.gradient} overflow-hidden relative`}
+      style={blockVars}
+    >
       <div
         style={{
           width: SLIDE_W,

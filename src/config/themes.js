@@ -6,6 +6,8 @@
  * for backgrounds, text, accents, and effects.
  */
 
+import { palette } from './colors.js';
+
 export const themes = {
   rewst: {
     name: 'Rewst',
@@ -25,6 +27,14 @@ export const themes = {
     gradient: 'from-ops-indigo-900 via-ops-indigo-800 to-ops-indigo-900',
     highlightBg: 'bg-bot-teal-400/10',
     accentGlow: 'shadow-bot-teal-400/20',
+    hex: {
+      bg: palette.indigo.darkest,
+      cardBg: palette.indigo.dark,
+      text: palette.pure.white,
+      textMuted: palette.gray.dark,
+      accent: palette.teal.primary,
+      accentLight: palette.teal.light,
+    },
   },
 
   dramatic: {
@@ -45,6 +55,14 @@ export const themes = {
     gradient: 'from-ops-indigo-900 via-alert-coral-900/20 to-ops-indigo-900',
     highlightBg: 'bg-alert-coral-400/10',
     accentGlow: 'shadow-alert-coral-400/20',
+    hex: {
+      bg: palette.indigo.darkest,
+      cardBg: palette.indigo.dark,
+      text: palette.pure.white,
+      textMuted: palette.gray.dark,
+      accent: palette.coral.primary,
+      accentLight: palette.coral.light,
+    },
   },
 
   terminal: {
@@ -65,6 +83,14 @@ export const themes = {
     gradient: 'from-black via-emerald-950/10 to-black',
     highlightBg: 'bg-emerald-500/10',
     accentGlow: 'shadow-emerald-500/20',
+    hex: {
+      bg: palette.pure.black,
+      cardBg: palette.indigo.darkest,
+      text: '#10B981',
+      textMuted: '#059669',
+      accent: '#10B981',
+      accentLight: '#34D399',
+    },
   },
 
   highlight: {
@@ -85,6 +111,14 @@ export const themes = {
     gradient: 'from-ops-indigo-900 via-bot-teal-900/20 to-ops-indigo-900',
     highlightBg: 'bg-bot-teal-200/10',
     accentGlow: 'shadow-bot-teal-200/20',
+    hex: {
+      bg: palette.indigo.darkest,
+      cardBg: palette.indigo.dark,
+      text: palette.pure.white,
+      textMuted: palette.gray.dark,
+      accent: palette.teal.light,
+      accentLight: palette.teal.lighter,
+    },
   },
 
   warning: {
@@ -105,6 +139,14 @@ export const themes = {
     gradient: 'from-ops-indigo-900 via-trigger-amber-900/20 to-ops-indigo-900',
     highlightBg: 'bg-trigger-amber-400/10',
     accentGlow: 'shadow-trigger-amber-400/20',
+    hex: {
+      bg: palette.indigo.darkest,
+      cardBg: palette.indigo.dark,
+      text: palette.pure.white,
+      textMuted: palette.gray.dark,
+      accent: palette.amber.primary,
+      accentLight: palette.amber.light,
+    },
   },
 };
 

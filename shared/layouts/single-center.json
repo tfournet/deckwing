@@ -1,0 +1,30 @@
+{
+  "id": "single-center",
+  "name": "Single Center",
+  "description": "Full-width title and body content.",
+  "promptDescription": "Use for a single core message with one main content area beneath the title.",
+  "editorLabel": "Single Center",
+  "editorIcon": "AlignCenter",
+  "thumbnail": "single-center.svg",
+  "slots": [
+    {
+      "name": "title",
+      "label": "Title",
+      "kinds": ["heading"],
+      "required": true,
+      "position": { "col": 1, "row": 1, "colSpan": 12, "rowSpan": 1 },
+      "maxContent": { "text": 80 }
+    },
+    {
+      "name": "body",
+      "label": "Body",
+      "kinds": ["text", "list", "quote", "metric", "chart", "image"],
+      "required": true,
+      "position": { "col": 2, "row": 2, "colSpan": 10, "rowSpan": 4 },
+      "maxContent": { "list": 6, "text": 400 }
+    }
+  ],
+  "pptx": {
+    "slotOverrides": {}
+  }
+}

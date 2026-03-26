@@ -3,6 +3,7 @@
   "version": "0.7.1",
   "description": "AI-powered presentation builder for Rewst",
   "type": "module",
+  "engines": { "node": ">=22" },
   "bin": {
     "deckwing": "./bin/deckwing.js"
   },

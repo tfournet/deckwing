@@ -1,0 +1,54 @@
+{
+  "id": "four-column",
+  "name": "Four Columns",
+  "description": "Four metric tiles under a shared title.",
+  "promptDescription": "Use for KPIs, headline numbers, or four equal highlight callouts.",
+  "editorLabel": "Four Metrics",
+  "editorIcon": "BarChart4",
+  "thumbnail": "four-column.svg",
+  "slots": [
+    {
+      "name": "title",
+      "label": "Title",
+      "kinds": ["heading"],
+      "required": true,
+      "position": { "col": 1, "row": 1, "colSpan": 12, "rowSpan": 1 },
+      "maxContent": { "text": 80 }
+    },
+    {
+      "name": "m1",
+      "label": "Metric 1",
+      "kinds": ["metric"],
+      "required": true,
+      "position": { "col": 1, "row": 2, "colSpan": 3, "rowSpan": 4 },
+      "maxContent": { "text": 60 }
+    },
+    {
+      "name": "m2",
+      "label": "Metric 2",
+      "kinds": ["metric"],
+      "required": true,
+      "position": { "col": 4, "row": 2, "colSpan": 3, "rowSpan": 4 },
+      "maxContent": { "text": 60 }
+    },
+    {
+      "name": "m3",
+      "label": "Metric 3",
+      "kinds": ["metric"],
+      "required": true,
+      "position": { "col": 7, "row": 2, "colSpan": 3, "rowSpan": 4 },
+      "maxContent": { "text": 60 }
+    },
+    {
+      "name": "m4",
+      "label": "Metric 4",
+      "kinds": ["metric"],
+      "required": true,
+      "position": { "col": 10, "row": 2, "colSpan": 3, "rowSpan": 4 },
+      "maxContent": { "text": 60 }
+    }
+  ],
+  "pptx": {
+    "slotOverrides": {}
+  }
+}

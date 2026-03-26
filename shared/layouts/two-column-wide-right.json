@@ -1,0 +1,81 @@
+{
+  "id": "two-column-wide-right",
+  "name": "Two Columns Wide Right",
+  "description": "Two-column layout with a narrow sidebar and a wide primary content area on the right.",
+  "promptDescription": "Use when context or metadata belongs in a compact left rail and the main story should dominate the right side.",
+  "editorLabel": "Wide Right",
+  "editorIcon": "PanelRightOpen",
+  "thumbnail": "two-column-wide-right.svg",
+  "slots": [
+    {
+      "name": "title",
+      "label": "Title",
+      "kinds": [
+        "heading"
+      ],
+      "required": true,
+      "position": {
+        "col": 1,
+        "row": 1,
+        "colSpan": 12,
+        "rowSpan": 1
+      },
+      "maxContent": {
+        "text": 80
+      }
+    },
+    {
+      "name": "sidebar",
+      "label": "Sidebar",
+      "kinds": [
+        "heading",
+        "text",
+        "list",
+        "quote",
+        "metric",
+        "chart",
+        "image",
+        "table"
+      ],
+      "required": true,
+      "position": {
+        "col": 1,
+        "row": 2,
+        "colSpan": 4,
+        "rowSpan": 5
+      },
+      "maxContent": {
+        "list": 5,
+        "text": 220
+      }
+    },
+    {
+      "name": "main",
+      "label": "Main Content",
+      "kinds": [
+        "heading",
+        "text",
+        "list",
+        "quote",
+        "metric",
+        "chart",
+        "image",
+        "table"
+      ],
+      "required": true,
+      "position": {
+        "col": 5,
+        "row": 2,
+        "colSpan": 8,
+        "rowSpan": 5
+      },
+      "maxContent": {
+        "list": 7,
+        "text": 420
+      }
+    }
+  ],
+  "pptx": {
+    "slotOverrides": {}
+  }
+}

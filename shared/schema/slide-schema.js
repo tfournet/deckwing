@@ -1,3 +1,5 @@
+import { validateLayoutSlide } from '../layouts/index.js';
+
 /**
  * Slide Schema - DeckWing
  *
@@ -20,6 +22,8 @@
  * section:  Section divider between topics
  * blank:    Empty slide for custom content
  */
+export const CURRENT_SCHEMA_VERSION = 2;
+
 export const SLIDE_TYPES = {
   title: {
     required: ['title'],
@@ -53,6 +57,25 @@ export const SLIDE_TYPES = {
     required: [],
     optional: ['theme'],
   },
+  layout: {
+    required: ['layout', 'blocks'],
+    optional: ['slots', 'customColors', 'theme', 'notes'],
+  },
+};
+
+export const BLOCK_KINDS = {
+  heading: { required: ['text'], optional: ['size'] },
+  text: { required: ['text'], optional: ['style'] },
+  list: { required: ['items'], optional: ['style'] },
+  metric: { required: ['value', 'label'], optional: ['color'] },
+  chart: { required: ['type', 'data'], optional: [] },
+  table: { required: ['headers', 'rows'], optional: [] },
+  image: { required: ['src'], optional: ['fit', 'alt'] },
+  icon: { required: ['name'], optional: ['size'] },
+  quote: { required: ['text'], optional: ['attribution', 'role'] },
+  callout: { required: ['text'], optional: ['variant'] },
+  divider: { required: [], optional: ['direction'] },
+  spacer: { required: [], optional: [] },
 };
 
 /**
@@ -84,6 +107,7 @@ export function createDeck(metadata = {}) {
   const now = new Date().toISOString();
   return {
     id: generateId(),
+    schemaVersion: CURRENT_SCHEMA_VERSION,
     title: metadata.title || 'Untitled Presentation',
     author: metadata.author || '',
     createdAt: now,
@@ -93,6 +117,25 @@ export function createDeck(metadata = {}) {
       createSlide('title', { title: metadata.title || 'Untitled Presentation' }),
     ],
   };
+}
+
+/**
+ * Migrate old decks to the current schema version
+ * @param {object} deck - Deck to migrate
+ * @returns {object} Migrated deck object
+ */
+export function migrateDeck(deck) {
+  const version = deck.schemaVersion || 1;
+  let migrated = {
+    ...deck,
+    slides: Array.isArray(deck.slides) ? deck.slides.map(slide => ({ ...slide })) : deck.slides,
+  };
+
+  if (version < 2) {
+    migrated.schemaVersion = 2;
+  }
+
+  return migrated;
 }
 
 /**
@@ -108,6 +151,10 @@ export function validateSlide(slide) {
     return { valid: false, errors };
   }
 
+  if (slide.type === 'layout') {
+    return validateLayoutSlide(slide);
+  }
+
   const schema = SLIDE_TYPES[slide.type];
   if (!schema) {
     errors.push(`Unknown slide type: ${slide.type}`);
@@ -117,6 +164,34 @@ export function validateSlide(slide) {
   for (const field of schema.required) {
     if (slide[field] === undefined || slide[field] === null) {
       errors.push(`Slide type "${slide.type}" missing required field: ${field}`);
+    }
+  }
+
+  return { valid: errors.length === 0, errors };
+}
+
+/**
+ * Validate a block against its kind schema
+ * @param {object} block - Block to validate
+ * @returns {{ valid: boolean, errors: string[] }}
+ */
+export function validateBlock(block) {
+  const errors = [];
+
+  if (!block.kind) {
+    errors.push('Block missing required field: kind');
+    return { valid: false, errors };
+  }
+
+  const schema = BLOCK_KINDS[block.kind];
+  if (!schema) {
+    errors.push(`Unknown block kind: ${block.kind}`);
+    return { valid: false, errors };
+  }
+
+  for (const field of schema.required) {
+    if (block[field] === undefined || block[field] === null) {
+      errors.push(`Block kind "${block.kind}" missing required field: ${field}`);
     }
   }
 

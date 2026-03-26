@@ -1,0 +1,77 @@
+{
+  "id": "top-bottom",
+  "name": "Top Bottom",
+  "description": "Stacked content regions for sequential narrative or before-and-after flow.",
+  "promptDescription": "Use when content should be read vertically, with one section building on the section below it.",
+  "editorLabel": "Top / Bottom",
+  "editorIcon": "Rows3",
+  "thumbnail": "top-bottom.svg",
+  "slots": [
+    {
+      "name": "title",
+      "label": "Title",
+      "kinds": [
+        "heading"
+      ],
+      "required": true,
+      "position": {
+        "col": 1,
+        "row": 1,
+        "colSpan": 12,
+        "rowSpan": 1
+      },
+      "maxContent": {
+        "text": 80
+      }
+    },
+    {
+      "name": "top",
+      "label": "Top Section",
+      "kinds": [
+        "text",
+        "list",
+        "quote",
+        "metric",
+        "chart",
+        "image"
+      ],
+      "required": true,
+      "position": {
+        "col": 1,
+        "row": 2,
+        "colSpan": 12,
+        "rowSpan": 2
+      },
+      "maxContent": {
+        "list": 6,
+        "text": 260
+      }
+    },
+    {
+      "name": "bottom",
+      "label": "Bottom Section",
+      "kinds": [
+        "text",
+        "list",
+        "quote",
+        "metric",
+        "chart",
+        "image"
+      ],
+      "required": true,
+      "position": {
+        "col": 1,
+        "row": 4,
+        "colSpan": 12,
+        "rowSpan": 3
+      },
+      "maxContent": {
+        "list": 7,
+        "text": 320
+      }
+    }
+  ],
+  "pptx": {
+    "slotOverrides": {}
+  }
+}
