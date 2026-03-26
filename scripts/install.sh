@@ -85,12 +85,25 @@ detail "Downloading and installing the app..."
 echo ""
 
 if npm install -g "github:${GITHUB_REPO}" 2>&1 | tail -3; then
+  # Refresh PATH — npm global bin may not be in current session
+  NPM_BIN=$(npm config get prefix 2>/dev/null)/bin
+  if [ -d "$NPM_BIN" ] && [[ ":$PATH:" != *":$NPM_BIN:"* ]]; then
+    export PATH="$NPM_BIN:$PATH"
+  fi
+
   if command -v deckwing &>/dev/null; then
     info "DeckWing — installed"
     detail "You can start it anytime by typing: deckwing"
   else
-    warn "DeckWing installed but command not in PATH yet"
-    detail "You may need to restart your terminal."
+    warn "DeckWing installed but not in PATH for this session"
+    echo ""
+    if [ -n "$NPM_BIN" ]; then
+      detail "Run it directly:"
+      echo -e "    ${GREEN}${NPM_BIN}/deckwing${NC}"
+      detail "Or restart your terminal and type: deckwing"
+    else
+      detail "Restart your terminal and type: deckwing"
+    fi
   fi
 else
   fail "DeckWing installation failed. Check the error above and try again."
@@ -145,5 +158,11 @@ read -rp "  Launch DeckWing now? [Y/n] " LAUNCH_NOW
 LAUNCH_NOW=${LAUNCH_NOW:-Y}
 if [[ "$LAUNCH_NOW" =~ ^[Yy] ]]; then
   echo ""
-  exec deckwing
+  if command -v deckwing &>/dev/null; then
+    exec deckwing
+  elif [ -x "$(npm config get prefix 2>/dev/null)/bin/deckwing" ]; then
+    exec "$(npm config get prefix)/bin/deckwing"
+  else
+    warn "Restart your terminal first, then type: deckwing"
+  fi
 fi
