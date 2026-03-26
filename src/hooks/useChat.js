@@ -19,8 +19,9 @@ function generateSessionId() {
  * @param {object} options
  * @param {object} options.deck - Current deck state to send with each message
  * @param {function} options.onAction - Called with action object when AI returns one
+ * @param {string} [options.model] - Claude model id to use for generation
  */
-export function useChat({ deck, onAction }) {
+export function useChat({ deck, onAction, model }) {
   const [messages, setMessages] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const sessionIdRef = useRef(generateSessionId());
@@ -47,6 +48,7 @@ export function useChat({ deck, onAction }) {
           message: text.trim(),
           sessionId: sessionIdRef.current,
           deck,
+          model,
         }),
       });
 
@@ -82,7 +84,7 @@ export function useChat({ deck, onAction }) {
     } finally {
       setIsLoading(false);
     }
-  }, [deck, isLoading, onAction]);
+  }, [deck, isLoading, model, onAction]);
 
   const resetChat = useCallback(async () => {
     sessionIdRef.current = generateSessionId();

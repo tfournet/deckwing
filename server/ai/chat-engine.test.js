@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { DEFAULT_MODEL } from '../../shared/models.js';
 
 // Must set API key before chat-engine.js evaluates its top-level code
 const { mockCreate } = vi.hoisted(() => {
@@ -113,6 +114,37 @@ describe('chat', () => {
     const userContent = mockCreate.mock.calls[0][0].messages[0].content;
     expect(userContent).toBe('Hello');
     expect(userContent).not.toContain('deck_state');
+  });
+
+  it('passes the selected model to the API client', async () => {
+    stubClaudeResponse({ reply: 'Custom model response' });
+
+    await chat({
+      sessionId: 'test-session',
+      message: 'Use Opus',
+      deck: null,
+      currentSlideIndex: 0,
+      model: 'claude-opus-4-6-20250807',
+    });
+
+    expect(mockCreate).toHaveBeenCalledWith(expect.objectContaining({
+      model: 'claude-opus-4-6-20250807',
+    }));
+  });
+
+  it('falls back to DEFAULT_MODEL when model is not provided', async () => {
+    stubClaudeResponse({ reply: 'Default model response' });
+
+    await chat({
+      sessionId: 'test-session',
+      message: 'Use default',
+      deck: null,
+      currentSlideIndex: 0,
+    });
+
+    expect(mockCreate).toHaveBeenCalledWith(expect.objectContaining({
+      model: DEFAULT_MODEL,
+    }));
   });
 });
 

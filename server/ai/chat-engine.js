@@ -10,8 +10,8 @@
 import { SYSTEM_PROMPT } from './system-prompt.js';
 import { validateSlide } from '../../shared/schema/slide-schema.js';
 import { findClaudeBinary, checkClaudeVersion } from './find-claude.js';
+import { DEFAULT_MODEL } from '../../shared/models.js';
 
-const MODEL = 'claude-sonnet-4-6-20250514';
 const MAX_TOKENS = 8192;
 
 // Determine auth mode at startup
@@ -164,9 +164,9 @@ function buildUserMessage(message, deck, currentSlideIndex) {
 /**
  * Call Claude via direct API (fast path when API key is available).
  */
-async function callDirectAPI(messages) {
+async function callDirectAPI(messages, model = DEFAULT_MODEL) {
   const response = await directClient.messages.create({
-    model: MODEL,
+    model,
     max_tokens: MAX_TOKENS,
     system: SYSTEM_PROMPT,
     messages,
@@ -180,7 +180,7 @@ async function callDirectAPI(messages) {
 /**
  * Call Claude via Agent SDK (uses local Claude Code OAuth session).
  */
-async function callAgentSDK(messages) {
+async function callAgentSDK(messages, model = DEFAULT_MODEL) {
   const { query } = await import('@anthropic-ai/claude-agent-sdk');
 
   // Build a single prompt that includes conversation history for context
@@ -197,6 +197,7 @@ async function callAgentSDK(messages) {
   let fullResponse = '';
 
   const sdkOptions = {
+    model,
     systemPrompt: SYSTEM_PROMPT,
     allowedTools: ['WebSearch', 'WebFetch'],
     maxTurns: 3,
@@ -227,17 +228,19 @@ async function callAgentSDK(messages) {
 /**
  * Send a message to Claude and return the parsed response.
  */
-export async function chat({ sessionId, message, deck, currentSlideIndex }) {
+export async function chat({ sessionId, message, deck, currentSlideIndex, model }) {
   const session = getSession(sessionId);
 
   const userContent = buildUserMessage(message, deck, currentSlideIndex);
   session.messages.push({ role: 'user', content: userContent });
 
+  const selectedModel = typeof model === 'string' && model.trim() ? model : DEFAULT_MODEL;
+
   let rawResponse;
   try {
     rawResponse = HAS_API_KEY
-      ? await callDirectAPI(session.messages)
-      : await callAgentSDK(session.messages);
+      ? await callDirectAPI(session.messages, selectedModel)
+      : await callAgentSDK(session.messages, selectedModel);
   } catch (apiError) {
     session.messages.pop();
     throw new Error(`Claude API call failed: ${apiError.message}`);
