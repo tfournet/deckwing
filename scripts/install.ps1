@@ -152,7 +152,7 @@ if ($hasGit) {
 } else {
     Write-Detail "Git is required by Claude Code on Windows. Installing..."
     try {
-        winget install Git.Git --accept-source-agreements --accept-package-agreements 2>&1 | Out-Null
+        winget install Git.Git --accept-source-agreements --accept-package-agreements --silent 2>&1 | Out-Null
         $env:Path = [System.Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path", "User")
         Write-Info "Git installed"
     } catch {
