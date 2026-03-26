@@ -38,10 +38,19 @@ export default function App() {
   const [saveStatus, setSaveStatus] = useState('new');
   const [deckListOpen, setDeckListOpen] = useState(false);
   const [exporting, setExporting] = useState(false);
+  const [authState, setAuthState] = useState(null); // null = loading, object = result
   const saveTimerRef = useRef(null);
   const slideContainerRef = useRef(null);
 
   const currentSlide = deck.slides[currentSlideIndex];
+
+  // Check auth on mount
+  useEffect(() => {
+    fetch('/api/health')
+      .then(r => r.json())
+      .then(data => setAuthState(data.auth))
+      .catch(() => setAuthState({ authenticated: false, error: 'Cannot reach server' }));
+  }, []);
 
   // Auto-save with debounce
   useEffect(() => {
@@ -232,6 +241,45 @@ export default function App() {
       setExporting(false);
     }
   }, [deck, exporting]);
+
+  // ── Auth gate ───────────────────────────────────────────────────────
+
+  if (authState && !authState.authenticated) {
+    return (
+      <div className="w-screen h-screen bg-ops-indigo-950 flex items-center justify-center">
+        <div className="bg-ops-indigo-900 border border-ops-indigo-700/50 rounded-xl p-8 max-w-md text-center space-y-4">
+          <h1 className="font-display font-bold text-white text-xl">Rewst Deck Builder</h1>
+          <div className="w-12 h-12 mx-auto rounded-full bg-trigger-amber-400/20 flex items-center justify-center">
+            <AlertTriangle size={24} className="text-trigger-amber-400" />
+          </div>
+          <p className="text-cloud-gray-300 text-sm">
+            {authState.error || 'Claude authentication required to use AI features.'}
+          </p>
+          <div className="bg-ops-indigo-950 rounded-lg p-4">
+            <p className="text-cloud-gray-400 text-xs mb-2">Run this in your terminal:</p>
+            <code className="text-bot-teal-400 text-sm font-mono">
+              {authState.loginCommand || 'claude auth login'}
+            </code>
+          </div>
+          <p className="text-cloud-gray-500 text-xs">
+            Then refresh this page.
+          </p>
+          <button
+            className="btn-primary text-sm px-6 py-2"
+            onClick={() => {
+              setAuthState(null);
+              fetch('/api/health')
+                .then(r => r.json())
+                .then(data => setAuthState(data.auth))
+                .catch(() => setAuthState({ authenticated: false, error: 'Cannot reach server' }));
+            }}
+          >
+            Check Again
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   // ── Present mode ───────────────────────────────────────────────────
 
