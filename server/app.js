@@ -142,18 +142,37 @@ app.post('/api/auth/login', async (req, res) => {
   }
 
   try {
+    // Capture the OAuth URL from claude's stdout so the frontend can open it
     const child = execFile(claudeBinForLogin, ['auth', 'login'], {
-      timeout: 120000, // 2 minute timeout
+      timeout: 120000,
     }, () => {
       loginInProgress = false;
     });
 
-    // Don't wait for it to finish — it's interactive (waits for browser callback)
+    // Wait briefly for claude to output the OAuth URL
+    let oauthUrl = null;
+    await new Promise((resolve) => {
+      let output = '';
+      child.stdout?.on('data', (chunk) => {
+        output += chunk.toString();
+        const match = output.match(/https:\/\/claude\.com\/[^\s]+/);
+        if (match) {
+          oauthUrl = match[0];
+          resolve();
+        }
+      });
+      // Don't wait forever — resolve after 5s even without URL
+      setTimeout(resolve, 5000);
+    });
+
     child.unref();
 
     res.json({
       ok: true,
-      message: 'Login page opened in your browser. Sign in with your Claude account, then come back here.',
+      oauthUrl,
+      message: oauthUrl
+        ? 'Sign in with your Claude account to continue.'
+        : 'Login started — check your browser for the sign-in page.',
     });
   } catch (err) {
     loginInProgress = false;

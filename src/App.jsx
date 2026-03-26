@@ -245,11 +245,19 @@ export default function App() {
 
   if (authState && !authState.authenticated) {
     const startLogin = async () => {
-      setLoginMessage('Opening login page...');
+      setLoginMessage('Connecting to Claude...');
       try {
         const res = await fetch('/api/auth/login', { method: 'POST' });
         const data = await res.json();
-        setLoginMessage(data.message);
+
+        // Open the OAuth URL directly from the browser — always works
+        if (data.oauthUrl) {
+          window.open(data.oauthUrl, '_blank');
+          setLoginMessage('Sign in in the new tab, then come back here.');
+        } else {
+          setLoginMessage(data.message);
+        }
+
         setPolling(true);
 
         // Poll until authenticated
