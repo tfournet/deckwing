@@ -17,10 +17,9 @@ const ROOT = join(__dirname, '..');
 const DIST = join(ROOT, 'dist');
 const PORT = process.env.PORT || 3000;
 
-// If dist/ doesn't exist, build first
-if (!existsSync(DIST)) {
-  console.log('Building frontend (first run)...');
-  execFileSync('npm', ['run', 'build'], { cwd: ROOT, stdio: 'inherit' });
+if (!existsSync(join(DIST, 'index.html'))) {
+  console.error('Error: dist/ not found. Run `npm run build` first, or reinstall the package.');
+  process.exit(1);
 }
 
 // Start the production server
