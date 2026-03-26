@@ -114,7 +114,7 @@ try {
     if ($deckwingPath) {
         $dwVersion = "?"
         try {
-            $pkgPath = Join-Path $npmPrefix "node_modules" "deckwing" "package.json"
+            $pkgPath = Join-Path (Join-Path (Join-Path $npmPrefix "node_modules") "deckwing") "package.json"
             if (Test-Path $pkgPath) {
                 $dwVersion = (node -e "console.log(JSON.parse(require('fs').readFileSync('$($pkgPath -replace '\\','/')','utf-8')).version)" 2>$null)
             }
@@ -144,7 +144,7 @@ try {
 
 Write-Step "Step 3/3 - AI Setup"
 
-$claudeDir = Join-Path $env:USERPROFILE ".deckwing" "claude"
+$claudeDir = Join-Path (Join-Path $env:USERPROFILE ".deckwing") "claude"
 $claudeBin = Join-Path $claudeDir "claude.exe"
 $hasClaude = Test-Path $claudeBin
 

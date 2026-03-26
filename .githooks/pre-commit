@@ -37,6 +37,11 @@ if git diff --cached --name-only | grep -q "scripts/install.ps1"; then
     echo "  FAIL: install.ps1 uses ?. (requires PowerShell 7+)"
     ERRORS=1
   fi
+  # Join-Path with 3+ args requires PS 6+
+  if grep -nP 'Join-Path\s+\S+\s+"[^"]*"\s+"' scripts/install.ps1; then
+    echo "  FAIL: install.ps1 uses Join-Path with 3+ args (requires PowerShell 6+)"
+    ERRORS=1
+  fi
   if grep -nP '\? ' scripts/install.ps1 | grep -v '#' | grep -qP '[^-]\?[^?].*:'; then
     echo "  WARN: install.ps1 may use ternary operator (requires PowerShell 7+)"
   fi
