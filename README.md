@@ -54,12 +54,16 @@ Opens the app at `http://localhost:3000`. Start typing in the AI chat panel to g
 
 ## Authentication
 
-DeckWing uses Claude for AI generation. It supports two auth modes:
+DeckWing uses Claude for AI-powered slide generation. First launch walks you through sign-in:
 
-1. **Claude Code OAuth** (default) — if you have Claude Code installed and logged in, it just works. No API key needed.
-2. **API key** — set `ANTHROPIC_API_KEY` as an environment variable for direct API access.
+1. Open DeckWing — if not authenticated, you'll see a **"Sign in with Claude"** button
+2. Click it — Anthropic's login page opens in your browser
+3. Sign in with your Claude account
+4. Come back to DeckWing — it detects the auth automatically
 
-If you're not authenticated, the app shows a login screen with instructions.
+No terminal commands, no API keys, no configuration files.
+
+**Alternative:** Set `ANTHROPIC_API_KEY` as an environment variable for direct API access (useful for hosted deployments with a shared key).
 
 ## Development
 
