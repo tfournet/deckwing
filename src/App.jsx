@@ -308,30 +308,22 @@ export default function App() {
           <FolderOpen size={18} />
         </button>
         <span className="text-cloud-gray-500 text-sm">|</span>
-        <input
-          className="bg-transparent text-cloud-gray-200 text-sm font-medium focus:outline-none focus:text-white flex-1 max-w-md"
-          value={deck.title}
-          onChange={(e) => setDeck(prev => ({ ...prev, title: e.target.value }))}
-        />
-        {/* Save indicator */}
-        {saveStatus === 'saving' && (
-          <span className="text-cloud-gray-500 text-xs flex items-center gap-1">
-            <Save size={12} className="animate-pulse" />
-            Saving...
-          </span>
-        )}
-        {saveStatus === 'saved' && (
-          <span className="text-cloud-gray-600 text-xs flex items-center gap-1">
-            <Save size={12} />
-            Saved
-          </span>
-        )}
-        {saveStatus === 'error' && (
-          <span className="text-alert-coral-400 text-xs flex items-center gap-1">
-            <AlertTriangle size={12} />
-            Save failed
-          </span>
-        )}
+        <div className="flex items-center gap-2 flex-1 max-w-md">
+          <input
+            className="bg-transparent text-cloud-gray-200 text-sm font-medium focus:outline-none focus:text-white flex-1"
+            value={deck.title}
+            onChange={(e) => setDeck(prev => ({ ...prev, title: e.target.value }))}
+          />
+          {saveStatus === 'saving' && (
+            <Save size={12} className="text-cloud-gray-600 animate-pulse shrink-0" />
+          )}
+          {saveStatus === 'saved' && (
+            <Save size={12} className="text-cloud-gray-700 shrink-0" />
+          )}
+          {saveStatus === 'error' && (
+            <AlertTriangle size={12} className="text-alert-coral-400 shrink-0" title="Save failed" />
+          )}
+        </div>
         <div className="flex-1" />
         <button
           className="btn-secondary text-sm flex items-center gap-2"
