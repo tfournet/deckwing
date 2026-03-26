@@ -7,34 +7,61 @@
  *   2. Claude Agent SDK (no key) — uses local Claude Code OAuth session
  */
 
+import { existsSync, readFileSync } from 'fs';
+import { join } from 'path';
+import { homedir } from 'os';
 import { SYSTEM_PROMPT } from './system-prompt.js';
 import { validateSlide } from '../../shared/schema/slide-schema.js';
-import { findClaudeBinary, checkClaudeVersion } from './find-claude.js';
 import { DEFAULT_MODEL } from '../../shared/models.js';
 
 const MAX_TOKENS = 8192;
 
-// Determine auth mode at startup
+/**
+ * Read the OAuth access token from Claude's credentials file.
+ */
+function getOAuthToken() {
+  const credPaths = [
+    join(process.env.CLAUDE_CONFIG_DIR || join(homedir(), '.claude'), '.credentials.json'),
+  ];
+  for (const p of credPaths) {
+    if (existsSync(p)) {
+      try {
+        const creds = JSON.parse(readFileSync(p, 'utf-8'));
+        const oauth = creds.claudeAiOauth;
+        if (oauth?.accessToken && oauth?.expiresAt > Date.now()) {
+          return oauth.accessToken;
+        }
+      } catch { /* corrupted file */ }
+    }
+  }
+  return null;
+}
+
+// Determine auth mode at startup — three paths:
+// 1. ANTHROPIC_API_KEY env var → direct API
+// 2. OAuth token from ~/.claude/.credentials.json → direct API with auth header
+// 3. Neither → AI not available
 const HAS_API_KEY = !!process.env.ANTHROPIC_API_KEY;
 let directClient = null;
-let claudePath = null;
+let authMode = 'none';
 
 if (HAS_API_KEY) {
   const { default: Anthropic } = await import('@anthropic-ai/sdk');
   directClient = new Anthropic();
+  authMode = 'api_key';
   console.log('  AI ready (API key)');
 } else {
-  claudePath = findClaudeBinary();
-  if (claudePath) {
-    const { ok, version } = checkClaudeVersion(claudePath);
-    if (ok) {
-      console.log(`  AI ready (Claude Code ${version})`);
-    } else {
-      console.log(`  AI may not work — Claude Code ${version || 'unknown'} is outdated`);
-      console.log('  Run: curl -fsSL https://claude.ai/install.sh | sh');
-    }
+  const oauthToken = getOAuthToken();
+  if (oauthToken) {
+    const { default: Anthropic } = await import('@anthropic-ai/sdk');
+    directClient = new Anthropic({
+      apiKey: oauthToken,
+      authToken: oauthToken,
+    });
+    authMode = 'oauth';
+    console.log('  AI ready (Claude account)');
   } else {
-    console.log('  AI not available — Claude Code not found');
+    console.log('  AI not available — sign in with Claude first');
   }
 }
 
@@ -177,53 +204,6 @@ async function callDirectAPI(messages, model = DEFAULT_MODEL) {
   return text;
 }
 
-/**
- * Call Claude via Agent SDK (uses local Claude Code OAuth session).
- */
-async function callAgentSDK(messages, model = DEFAULT_MODEL) {
-  const { query } = await import('@anthropic-ai/claude-agent-sdk');
-
-  // Build a single prompt that includes conversation history for context
-  const lastMessage = messages[messages.length - 1];
-  const history = messages.slice(0, -1);
-  const historyContext = history.length > 0
-    ? '\n\n<conversation_history>\n' +
-      history.map(m => `${m.role === 'user' ? 'User' : 'Assistant'}: ${m.content}`).join('\n\n') +
-      '\n</conversation_history>\n\n'
-    : '';
-
-  const fullPrompt = historyContext + lastMessage.content;
-
-  let fullResponse = '';
-
-  const sdkOptions = {
-    model,
-    systemPrompt: SYSTEM_PROMPT,
-    allowedTools: ['WebSearch', 'WebFetch'],
-    maxTurns: 3,
-  };
-
-  // Tell the SDK where to find claude if it's not in PATH
-  if (claudePath) {
-    sdkOptions.pathToClaudeCodeExecutable = claudePath;
-  }
-
-  for await (const message of query({
-    prompt: fullPrompt,
-    options: sdkOptions,
-  })) {
-    if (message.type === 'assistant' && message.message?.content) {
-      for (const block of message.message.content) {
-        if (block.type === 'text') {
-          fullResponse += block.text;
-        }
-      }
-    }
-  }
-
-  if (!fullResponse) throw new Error('Claude Agent SDK returned an empty response');
-  return fullResponse;
-}
 
 /**
  * Send a message to Claude and return the parsed response.
@@ -238,9 +218,20 @@ export async function chat({ sessionId, message, deck, currentSlideIndex, model 
 
   let rawResponse;
   try {
-    rawResponse = HAS_API_KEY
-      ? await callDirectAPI(session.messages, selectedModel)
-      : await callAgentSDK(session.messages, selectedModel);
+    if (!directClient) {
+      // Try to pick up credentials that were written after startup (e.g. user just signed in)
+      const freshToken = getOAuthToken();
+      if (freshToken) {
+        const { default: Anthropic } = await import('@anthropic-ai/sdk');
+        directClient = new Anthropic({
+          apiKey: freshToken,
+          authToken: freshToken,
+        });
+      } else {
+        throw new Error('Not authenticated. Please sign in with Claude first.');
+      }
+    }
+    rawResponse = await callDirectAPI(session.messages, selectedModel);
   } catch (apiError) {
     session.messages.pop();
     throw new Error(`Claude API call failed: ${apiError.message}`);
