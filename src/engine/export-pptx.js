@@ -1,5 +1,6 @@
 import PptxGenJS from 'pptxgenjs';
 import { THEME_COLORS } from '../../shared/theme-colors.js';
+import { exportLayoutSlide } from './blocks/export-pptx-blocks.js';
 
 export { THEME_COLORS };
 
@@ -397,7 +398,7 @@ async function renderSlide(slide, slideData, theme) {
   }
 }
 
-export async function exportDeckToPPTX(deck) {
+export async function exportDeckToPPTX(deck, options = {}) {
   const pres = new PptxGenJS();
   pres.defineLayout(PPTX_LAYOUT);
   pres.layout = PPTX_LAYOUT.name;
@@ -406,6 +407,11 @@ export async function exportDeckToPPTX(deck) {
   const slides = Array.isArray(deck?.slides) ? deck.slides : [];
 
   for (const slideData of slides) {
+    if (slideData?.type === 'layout') {
+      await exportLayoutSlide(slideData, pres, deck?.defaultTheme, options);
+      continue;
+    }
+
     const slide = pres.addSlide();
     const theme = resolveTheme(slideData?.theme, deck?.defaultTheme);
 
