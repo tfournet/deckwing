@@ -62,10 +62,13 @@ function getAppURL() {
 
 function showWindow() {
   if (!mainWindow || mainWindow.isDestroyed()) {
+    const { screen } = require('electron');
+    const { width, height } = screen.getPrimaryDisplay().workAreaSize;
+
     mainWindow = new BrowserWindow({
-      width: 1440,
-      height: 960,
-      minWidth: 1100,
+      width: Math.min(width, 1920),
+      height: Math.min(height, 1080),
+      minWidth: 1024,
       minHeight: 700,
       show: false,
       autoHideMenuBar: true,
@@ -80,6 +83,7 @@ function showWindow() {
 
     mainWindow.once('ready-to-show', () => {
       if (mainWindow && !mainWindow.isDestroyed()) {
+        mainWindow.maximize();
         mainWindow.show();
         mainWindow.focus();
       }
