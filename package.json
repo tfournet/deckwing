@@ -29,7 +29,14 @@
     "start": "node bin/deckwing.js",
     "prepublishOnly": "npm test && npm run build"
   },
-  "keywords": ["presentation", "slides", "ai", "claude", "rewst", "msp"],
+  "keywords": [
+    "presentation",
+    "slides",
+    "ai",
+    "claude",
+    "rewst",
+    "msp"
+  ],
   "license": "MIT",
   "dependencies": {
     "@anthropic-ai/claude-agent-sdk": "^0.2.84",
@@ -41,6 +48,7 @@
     "html2canvas": "^1.4.1",
     "jspdf": "^4.2.1",
     "lucide-react": "^0.284.0",
+    "pptxgenjs": "^4.0.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "tailwind-merge": "^1.14.0"
