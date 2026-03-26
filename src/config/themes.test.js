@@ -20,6 +20,15 @@ describe('themes', () => {
       }
     }
   });
+
+  it('each theme has a hex section with bg, text, and accent fields', () => {
+    for (const [themeName, theme] of Object.entries(themes)) {
+      expect(theme.hex, `${themeName}.hex`).toBeDefined();
+      expect(theme.hex.bg, `${themeName}.hex.bg`).toBeDefined();
+      expect(theme.hex.text, `${themeName}.hex.text`).toBeDefined();
+      expect(theme.hex.accent, `${themeName}.hex.accent`).toBeDefined();
+    }
+  });
 });
 
 describe('getTheme', () => {
