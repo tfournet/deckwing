@@ -1,0 +1,51 @@
+#!/usr/bin/env bash
+#
+# Pre-commit hook: lint install scripts
+#
+set -euo pipefail
+
+ERRORS=0
+
+# Lint bash script
+if git diff --cached --name-only | grep -q "scripts/install.sh"; then
+  echo "Linting install.sh..."
+  if ! bash -n scripts/install.sh; then
+    echo "  FAIL: install.sh has syntax errors"
+    ERRORS=1
+  fi
+  echo "  OK"
+fi
+
+# Lint PowerShell script — syntax check + PS 5.1 compatibility
+if git diff --cached --name-only | grep -q "scripts/install.ps1"; then
+  echo "Linting install.ps1..."
+
+  # Syntax check with pwsh
+  if command -v pwsh &>/dev/null; then
+    if ! pwsh -Command "Get-Content scripts/install.ps1 | Out-Null" 2>/dev/null; then
+      echo "  FAIL: install.ps1 has syntax errors"
+      ERRORS=1
+    fi
+  fi
+
+  # Check for PowerShell 7+ features that break on Windows PS 5.1
+  if grep -nP '\?\?' scripts/install.ps1; then
+    echo "  FAIL: install.ps1 uses ?? (requires PowerShell 7+)"
+    ERRORS=1
+  fi
+  if grep -nP '\?\.' scripts/install.ps1; then
+    echo "  FAIL: install.ps1 uses ?. (requires PowerShell 7+)"
+    ERRORS=1
+  fi
+  if grep -nP '\? ' scripts/install.ps1 | grep -v '#' | grep -qP '[^-]\?[^?].*:'; then
+    echo "  WARN: install.ps1 may use ternary operator (requires PowerShell 7+)"
+  fi
+
+  echo "  OK"
+fi
+
+if [ "$ERRORS" -ne 0 ]; then
+  echo ""
+  echo "Pre-commit check failed. Fix the issues above."
+  exit 1
+fi
