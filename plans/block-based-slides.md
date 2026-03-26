@@ -166,6 +166,27 @@ Fix: when `update_slide` includes blocks, validate the **merged slide state** ag
 
 This validates the actual semantic correctness — not just "does the JSON have the right shape" but "does the content match the layout contract."
 
+### Merge Semantics for Partial Updates
+
+When `update_slide` receives `changes`, the validator must reconstruct the candidate slide before validating:
+
+```js
+// Reconstruct the full slide state after merge
+const candidateSlide = {
+  ...currentSlide,           // existing slide data
+  ...changes,                // scalar field overrides (title, theme, etc.)
+};
+
+// blocks and slots are REPLACED, not merged (array replace semantics)
+if (changes.blocks) candidateSlide.blocks = changes.blocks;
+if (changes.slots) candidateSlide.slots = changes.slots;
+
+// Now validate the candidate as a complete slide
+validateLayoutSlide(candidateSlide);
+```
+
+**Array replace, not merge:** If `changes.blocks` is present, it replaces the entire blocks array. This avoids complex per-block diffing and matches how the AI generates updates ("here's the new blocks array"). Same for `slots` on custom layouts.
+
 ### P3: Shared Layout Registry
 
 Create `shared/layouts/` as the **single source of truth** for all layout definitions. Every consumer imports from here:
@@ -334,6 +355,17 @@ When no template matches, the AI defines slots inline:
 - Validation checks for overlaps and grid bounds on slots
 - Same renderer and exporter — `layout: "custom"` just reads slots from the slide instead of the registry
 
+**Custom slot defaults (when metadata is omitted by AI):**
+
+| Field | Default when omitted | Rationale |
+|-------|---------------------|-----------|
+| `label` | Derived from `name` (capitalize) | Editor needs display text |
+| `kinds` | All block kinds | No restriction — user chose custom for flexibility |
+| `required` | `false` | Slots may be intentionally empty |
+| `maxContent` | `{ list: 8, text: 500 }` | Generous defaults, review agent still warns on excess |
+
+The validator/editor/review-agent apply these defaults when processing custom layouts. The AI doesn't need to specify them — it just defines `name` + `position`.
+
 **Custom slot validation (`validateCustomSlots`):**
 ```js
 function validateCustomSlots(slots, errors) {
@@ -481,6 +513,25 @@ export async function exportDeckToPPTX(deck, options = {}) {
 ```
 
 The caller (useExport hook) provides render callbacks. The exporter stays testable — tests mock the callbacks. Native-text blocks never call them.
+
+### PPTX Raster Decision: Per-Block vs Per-Slide
+
+**Default: per-block image render.** Visual blocks (icons, callouts, styled cards) are individually captured as PNGs and placed at their grid coordinates. Text blocks are native PPTX text. This gives the best mix of editability and fidelity.
+
+**Whole-slide fallback:** If a slide has >3 visual blocks, or if any block capture fails, fall back to capturing the entire slide as one PNG. Rationale: many small PNGs at precise PPTX coordinates is fragile. One big PNG is guaranteed correct.
+
+```
+Decision tree per slide:
+  Count visual blocks (icon, callout, image-render types)
+  If count == 0 → all native text, no raster needed
+  If count <= 3 → per-block capture (precise placement)
+  If count > 3 or any capture fails → whole-slide PNG fallback
+```
+
+Users see this as the "export quality" dropdown:
+- **Editable** → all native text, visual blocks get simplified placeholders
+- **Balanced** (default) → native text + per-block capture for visual blocks
+- **Image** → every slide as a full PNG
 
 ### Off-Screen Rendering Pipeline
 
@@ -647,14 +698,20 @@ export const SYSTEM_PROMPT = `...existing prompt...
 
 ## LAYOUT SLIDES
 
-When the user asks for a custom layout, use type "layout" with a named layout.
+When the user asks for a custom or complex layout, use type "layout".
 
-Available layouts:
+If a named layout fits, set layout to its name:
 ${buildLayoutPromptSection()}
 
-Fill each slot with a block: { "slot": "name", "kind": "heading|list|metric|...", ...fields }
+If no named layout fits, use layout: "custom" and define 4-6 slots inline:
+{ "type": "layout", "layout": "custom",
+  "slots": [{ "name": "...", "position": { "col": 1, "row": 1, "colSpan": 6, "rowSpan": 6 } }, ...],
+  "blocks": [{ "slot": "...", "kind": "...", ... }, ...] }
 
-Use presets for standard slides. Use layouts only when content doesn't fit a preset.
+Rules:
+- Fill each slot with one block: { "slot": "name", "kind": "heading|list|metric|...", ...fields }
+- Custom slots: use the 12×6 grid, no overlaps, max 6 slots
+- Use presets for standard slides, named layouts for common patterns, custom only when neither fits
 `;
 ```
 
