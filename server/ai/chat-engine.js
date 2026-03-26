@@ -7,61 +7,28 @@
  *   2. Claude Agent SDK (no key) — uses local Claude Code OAuth session
  */
 
-import { existsSync, readFileSync } from 'fs';
-import { join } from 'path';
-import { homedir } from 'os';
 import { SYSTEM_PROMPT } from './system-prompt.js';
 import { validateSlide } from '../../shared/schema/slide-schema.js';
+import { findClaudeBinary } from './find-claude.js';
 import { DEFAULT_MODEL } from '../../shared/models.js';
 
 const MAX_TOKENS = 8192;
 
-/**
- * Read the OAuth access token from Claude's credentials file.
- */
-function getOAuthToken() {
-  const credPaths = [
-    join(process.env.CLAUDE_CONFIG_DIR || join(homedir(), '.claude'), '.credentials.json'),
-  ];
-  for (const p of credPaths) {
-    if (existsSync(p)) {
-      try {
-        const creds = JSON.parse(readFileSync(p, 'utf-8'));
-        const oauth = creds.claudeAiOauth;
-        if (oauth?.accessToken && oauth?.expiresAt > Date.now()) {
-          return oauth.accessToken;
-        }
-      } catch { /* corrupted file */ }
-    }
-  }
-  return null;
-}
-
-// Determine auth mode at startup — three paths:
-// 1. ANTHROPIC_API_KEY env var → direct API
-// 2. OAuth token from ~/.claude/.credentials.json → direct API with auth header
-// 3. Neither → AI not available
+// Determine auth mode at startup
 const HAS_API_KEY = !!process.env.ANTHROPIC_API_KEY;
 let directClient = null;
-let authMode = 'none';
+let claudePath = null;
 
 if (HAS_API_KEY) {
   const { default: Anthropic } = await import('@anthropic-ai/sdk');
   directClient = new Anthropic();
-  authMode = 'api_key';
   console.log('  AI ready (API key)');
 } else {
-  const oauthToken = getOAuthToken();
-  if (oauthToken) {
-    const { default: Anthropic } = await import('@anthropic-ai/sdk');
-    directClient = new Anthropic({
-      authToken: oauthToken,
-      apiKey: null,
-    });
-    authMode = 'oauth';
-    console.log('  AI ready (Claude account)');
+  claudePath = findClaudeBinary();
+  if (claudePath) {
+    console.log(`  AI ready (Claude Code at ${claudePath})`);
   } else {
-    console.log('  AI not available — sign in with Claude first');
+    console.log('  AI not available — Claude Code not found');
   }
 }
 
@@ -204,6 +171,51 @@ async function callDirectAPI(messages, model = DEFAULT_MODEL) {
   return text;
 }
 
+/**
+ * Call Claude via Agent SDK (uses local Claude Code binary with its own auth).
+ */
+async function callAgentSDK(messages, model = DEFAULT_MODEL) {
+  const { query } = await import('@anthropic-ai/claude-agent-sdk');
+
+  const lastMessage = messages[messages.length - 1];
+  const history = messages.slice(0, -1);
+  const historyContext = history.length > 0
+    ? '\n\n<conversation_history>\n' +
+      history.map(m => `${m.role === 'user' ? 'User' : 'Assistant'}: ${m.content}`).join('\n\n') +
+      '\n</conversation_history>\n\n'
+    : '';
+
+  const fullPrompt = historyContext + lastMessage.content;
+  let fullResponse = '';
+
+  const sdkOptions = {
+    model,
+    systemPrompt: SYSTEM_PROMPT,
+    allowedTools: ['WebSearch', 'WebFetch'],
+    maxTurns: 3,
+  };
+
+  if (claudePath) {
+    sdkOptions.pathToClaudeCodeExecutable = claudePath;
+  }
+
+  for await (const message of query({
+    prompt: fullPrompt,
+    options: sdkOptions,
+  })) {
+    if (message.type === 'assistant' && message.message?.content) {
+      for (const block of message.message.content) {
+        if (block.type === 'text') {
+          fullResponse += block.text;
+        }
+      }
+    }
+  }
+
+  if (!fullResponse) throw new Error('Claude Agent SDK returned an empty response');
+  return fullResponse;
+}
+
 
 /**
  * Send a message to Claude and return the parsed response.
@@ -220,18 +232,15 @@ export async function chat({ sessionId, message, deck, currentSlideIndex, model 
   try {
     if (!directClient) {
       // Try to pick up credentials that were written after startup (e.g. user just signed in)
-      const freshToken = getOAuthToken();
-      if (freshToken) {
-        const { default: Anthropic } = await import('@anthropic-ai/sdk');
-        directClient = new Anthropic({
-          authToken: freshToken,
-          apiKey: null,
-        });
-      } else {
+      // Try to find claude binary that may have been installed after startup
+      claudePath = findClaudeBinary({ skipCache: true });
+      if (!claudePath) {
         throw new Error('Not authenticated. Please sign in with Claude first.');
       }
     }
-    rawResponse = await callDirectAPI(session.messages, selectedModel);
+    rawResponse = directClient
+      ? await callDirectAPI(session.messages, selectedModel)
+      : await callAgentSDK(session.messages, selectedModel);
   } catch (apiError) {
     session.messages.pop();
     throw new Error(`Claude API call failed: ${apiError.message}`);

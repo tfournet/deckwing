@@ -140,31 +140,48 @@ try {
     Write-Fail "DeckWing installation failed. Check the error above and try again."
 }
 
-# ── Step 4: Claude Code (for AI features) ─────────────────────────────
+# ── Step 3: Claude Code (for AI features) ─────────────────────────────
 
 Write-Step "Step 3/3 - AI Setup (Claude)"
-Write-Detail "Claude Code powers the AI presentation builder."
 
-$hasClaude = $false
-try {
-    if (Get-Command claude -ErrorAction SilentlyContinue) { $hasClaude = $true }
-} catch {}
+$claudeDir = Join-Path $env:USERPROFILE ".deckwing" "claude"
+$claudeBin = Join-Path $claudeDir "claude.exe"
+$hasClaude = Test-Path $claudeBin
 
 if (-not $hasClaude) {
+    Write-Detail "Downloading Claude Code..."
     try {
-        Invoke-WithSpinner -Label "Installing Claude Code" -Command { irm https://claude.ai/install.ps1 | iex 2>&1 | Out-Null } | Out-Null
-        # Save the npm prefix so DeckWing can find claude
-        $npmPrefix = (npm config get prefix 2>$null)
-        $env:Path = [System.Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path", "User")
-        try { if (Get-Command claude -ErrorAction SilentlyContinue) { $hasClaude = $true } } catch {}
+        $gcsBucket = "https://storage.googleapis.com/claude-code-dist-86c565f3-f756-42ad-8dfa-d59b1c096819/claude-code-releases"
+        if ($env:PROCESSOR_ARCHITECTURE -eq "ARM64") { $plat = "win32-arm64" } else { $plat = "win32-x64" }
+
+        $latestVersion = Invoke-RestMethod -Uri "$gcsBucket/latest" -ErrorAction Stop
+        $manifest = Invoke-RestMethod -Uri "$gcsBucket/$latestVersion/manifest.json" -ErrorAction Stop
+        $checksum = $manifest.platforms.$plat.checksum
+
+        New-Item -ItemType Directory -Force -Path $claudeDir | Out-Null
+        $downloadUrl = "$gcsBucket/$latestVersion/$plat/claude.exe"
+
+        Invoke-WithSpinner -Label "Downloading Claude Code v$latestVersion" -Command ([scriptblock]::Create("Invoke-WebRequest -Uri '$downloadUrl' -OutFile '$claudeBin' -ErrorAction Stop")) | Out-Null
+
+        # Verify checksum
+        $actualHash = (Get-FileHash -Path $claudeBin -Algorithm SHA256).Hash.ToLower()
+        if ($checksum -and $actualHash -ne $checksum) {
+            Remove-Item -Force $claudeBin
+            Write-Warn "Claude Code download failed checksum verification"
+        } else {
+            # Run install to set up shell integration
+            & $claudeBin install 2>&1 | Out-Null
+            $hasClaude = $true
+            Write-Info "Claude Code v$latestVersion installed to $claudeDir"
+        }
     } catch {
-        Write-Warn "Claude Code installation failed - you can install it later"
+        Write-Warn "Claude Code download failed - the app will prompt you to install it"
     }
 }
 
 if ($hasClaude) {
     try {
-        $authJson = (claude auth status 2>$null) | ConvertFrom-Json
+        $authJson = (& $claudeBin auth status 2>$null) | ConvertFrom-Json
         if ($authJson.loggedIn -eq $true) {
             Write-Info "Claude - signed in and ready"
         } else {

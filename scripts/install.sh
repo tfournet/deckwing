@@ -132,23 +132,45 @@ fi
 
 step "Step 3/3 — AI Setup (Claude)"
 
-if command -v claude &>/dev/null; then
+CLAUDE_DIR="$HOME/.deckwing/claude"
+CLAUDE_BIN="$CLAUDE_DIR/claude"
+
+if [ -x "$CLAUDE_BIN" ]; then
   info "Claude Code — already installed"
 else
-  detail "Installing Claude Code..."
-  curl -fsSL https://claude.ai/install.sh | sh >/dev/null 2>&1
-  # Refresh PATH to pick up the new binary
-  export PATH="$HOME/.local/bin:$PATH"
-  if command -v claude &>/dev/null; then
-    info "Claude Code — installed"
+  detail "Downloading Claude Code..."
+  GCS_BUCKET="https://storage.googleapis.com/claude-code-dist-86c565f3-f756-42ad-8dfa-d59b1c096819/claude-code-releases"
+
+  # Detect platform
+  OS=$(uname -s | tr '[:upper:]' '[:lower:]')
+  ARCH=$(uname -m)
+  case "$OS" in
+    linux) PLAT="linux-x64" ;;
+    darwin)
+      if [ "$ARCH" = "arm64" ]; then PLAT="darwin-arm64"; else PLAT="darwin-x64"; fi ;;
+    *) PLAT="linux-x64" ;;
+  esac
+
+  LATEST_VERSION=$(curl -fsSL "$GCS_BUCKET/latest" 2>/dev/null || echo "")
+  if [ -n "$LATEST_VERSION" ]; then
+    mkdir -p "$CLAUDE_DIR"
+    DOWNLOAD_URL="$GCS_BUCKET/$LATEST_VERSION/$PLAT/claude"
+
+    if run_with_spinner "Downloading Claude Code v${LATEST_VERSION}" curl -fsSL "$DOWNLOAD_URL" -o "$CLAUDE_BIN"; then
+      chmod +x "$CLAUDE_BIN"
+      # Run install to set up shell integration
+      "$CLAUDE_BIN" install 2>/dev/null || true
+      info "Claude Code v${LATEST_VERSION} — installed to $CLAUDE_DIR"
+    else
+      warn "Claude Code download failed — the app will prompt you to install it"
+    fi
   else
-    warn "Claude Code installation needs a terminal restart"
-    detail "Close and reopen your terminal, then run: deckwing"
+    warn "Could not reach Claude Code download server"
   fi
 fi
 
-if command -v claude &>/dev/null; then
-  CLAUDE_AUTH=$(claude auth status 2>/dev/null | python3 -c "import sys,json; print(json.load(sys.stdin).get('loggedIn','false'))" 2>/dev/null || echo "false")
+if [ -x "$CLAUDE_BIN" ]; then
+  CLAUDE_AUTH=$("$CLAUDE_BIN" auth status 2>/dev/null | python3 -c "import sys,json; print(json.load(sys.stdin).get('loggedIn','false'))" 2>/dev/null || echo "false")
   if [ "$CLAUDE_AUTH" = "True" ] || [ "$CLAUDE_AUTH" = "true" ]; then
     info "Claude — signed in and ready"
   else

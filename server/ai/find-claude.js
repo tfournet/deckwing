@@ -46,8 +46,18 @@ export function findClaudeBinary({ skipCache = false } = {}) {
     }
   } catch { /* not in PATH */ }
 
-  // Common locations — native installer + npm global
   const home = homedir();
+
+  // Check DeckWing's own Claude installation first — always a known location
+  const deckwingClaude = process.platform === 'win32'
+    ? join(home, '.deckwing', 'claude', 'claude.exe')
+    : join(home, '.deckwing', 'claude', 'claude');
+  if (existsSync(deckwingClaude)) {
+    cached = deckwingClaude;
+    return cached;
+  }
+
+  // Common locations — native installer + npm global
   // On Windows, also check .claude/downloads for the latest native binary
   let nativeDownload = null;
   if (process.platform === 'win32') {
