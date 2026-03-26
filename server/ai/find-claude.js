@@ -33,8 +33,8 @@ export function checkClaudeVersion(binaryPath) {
   }
 }
 
-export function findClaudeBinary() {
-  if (cached !== undefined) return cached;
+export function findClaudeBinary({ skipCache = false } = {}) {
+  if (!skipCache && cached !== undefined) return cached;
 
   // Check PATH first
   try {

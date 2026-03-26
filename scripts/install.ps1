@@ -113,9 +113,14 @@ try {
     $deckwingPath = (Get-Command deckwing -ErrorAction SilentlyContinue)
     if ($deckwingPath) {
         $dwVersion = "?"
-        try { $dwVersion = (node -e "console.log(require('$npmPrefix/node_modules/deckwing/package.json').version)" 2>$null) } catch {}
+        try {
+            $pkgPath = Join-Path $npmPrefix "node_modules" "deckwing" "package.json"
+            if (Test-Path $pkgPath) {
+                $dwVersion = (node -e "console.log(JSON.parse(require('fs').readFileSync('$($pkgPath -replace '\\','/')','utf-8')).version)" 2>$null)
+            }
+        } catch {}
         if (-not $dwVersion) { $dwVersion = "?" }
-        Write-Info "DeckWing v$dwVersion - installed"
+        Write-Info "DeckWing v$dwVersion installed"
         Write-Detail "You can start it anytime by typing: deckwing"
     } else {
         $npmBin = (npm config get prefix 2>$null)

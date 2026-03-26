@@ -25,8 +25,8 @@ async function checkClaudeAuth() {
     return { authenticated: true, method: 'api_key' };
   }
 
-  // Try the CLI — use findClaudeBinary to locate it even if not in PATH
-  const claudeBin = findClaudeBinary();
+  // Try the CLI — skip cache so we detect newly-installed claude during polling
+  const claudeBin = findClaudeBinary({ skipCache: true });
   if (claudeBin) {
     try {
       const { stdout } = await execFileAsync(claudeBin, ['auth', 'status'], {
@@ -132,7 +132,7 @@ app.post('/api/auth/login', async (req, res) => {
   loginInProgress = true;
 
   // Spawn claude auth login — this opens the browser to Anthropic's login page
-  const claudeBinForLogin = findClaudeBinary();
+  const claudeBinForLogin = findClaudeBinary({ skipCache: true });
   if (!claudeBinForLogin) {
     loginInProgress = false;
     return res.status(500).json({
