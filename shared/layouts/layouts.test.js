@@ -111,6 +111,18 @@ describe('validateLayoutSlide', () => {
     expect(result.errors).toContain('Required slot "body" not filled');
   });
 
+  it('fails when required slots are empty', () => {
+    const result = validateLayoutSlide({
+      type: 'layout',
+      layout: 'single-center',
+      blocks: [],
+    });
+
+    expect(result.valid).toBe(false);
+    expect(result.errors).toContain('Required slot "title" not filled');
+    expect(result.errors).toContain('Required slot "body" not filled');
+  });
+
   it('passes for custom layout with valid slots', () => {
     const result = validateLayoutSlide({
       type: 'layout',
@@ -156,5 +168,19 @@ describe('validateLayoutSlide', () => {
     expect(result.valid).toBe(false);
     expect(result.errors).toContain('Slot "overflow": exceeds column bounds');
     expect(result.errors).toContain('Slot "overflow": exceeds row bounds');
+  });
+
+  it('fails for custom layout with non-positive spans', () => {
+    const result = validateLayoutSlide({
+      type: 'layout',
+      layout: 'custom',
+      slots: [
+        { name: 'zero-width', position: { col: 1, row: 1, colSpan: 0, rowSpan: 2 } },
+      ],
+      blocks: [],
+    });
+
+    expect(result.valid).toBe(false);
+    expect(result.errors).toContain('Slot "zero-width": position values must be positive integers');
   });
 });

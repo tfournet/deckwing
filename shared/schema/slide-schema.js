@@ -1,3 +1,5 @@
+import { validateLayoutSlide } from '../layouts/index.js';
+
 /**
  * Slide Schema - DeckWing
  *
@@ -105,7 +107,10 @@ export function createDeck(metadata = {}) {
  */
 export function migrateDeck(deck) {
   const version = deck.schemaVersion || 1;
-  let migrated = { ...deck };
+  let migrated = {
+    ...deck,
+    slides: Array.isArray(deck.slides) ? deck.slides.map(slide => ({ ...slide })) : deck.slides,
+  };
 
   if (version < 2) {
     migrated.schemaVersion = 2;
@@ -125,6 +130,10 @@ export function validateSlide(slide) {
   if (!slide.type) {
     errors.push('Slide missing required field: type');
     return { valid: false, errors };
+  }
+
+  if (slide.type === 'layout') {
+    return validateLayoutSlide(slide);
   }
 
   const schema = SLIDE_TYPES[slide.type];

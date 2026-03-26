@@ -382,6 +382,36 @@ describe('chat - block validation in updates', () => {
     expect(result.action).not.toBeNull();
     expect(result.action.type).toBe('update_slide');
   });
+  it('rejects layout block updates that fail layout validation', async () => {
+    stubClaudeResponse({
+      reply: 'Updated',
+      action: {
+        type: 'update_slide',
+        data: {
+          index: 0,
+          changes: {
+            layout: 'single-center',
+            blocks: [
+              { slot: 'title', kind: 'heading', text: 'Valid title' },
+              { slot: 'body', kind: 'heading', text: 'Wrong kind for body' },
+            ],
+          },
+        },
+      },
+    });
+
+    const result = await chat({
+      sessionId: 'test-session',
+      message: 'update layout blocks',
+      deck: null,
+      currentSlideIndex: 0,
+    });
+
+    expect(result.reply).toContain("didn't pass validation");
+    expect(result.reply).toContain('kind "heading" not allowed in slot "body"');
+    expect(result.action).toBeNull();
+  });
+
 });
 
 // --- Session management ---

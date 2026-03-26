@@ -25,6 +25,7 @@ function waitForNextPaint() {
 export function useOffscreenRenderer() {
   const containerRef = useRef(null);
   const rootRef = useRef(null);
+  const capturingRef = useRef(false);
 
   const cleanup = useCallback(() => {
     if (rootRef.current) {
@@ -63,27 +64,39 @@ export function useOffscreenRenderer() {
    * @returns {Promise<string>}
    */
   const captureSlide = useCallback(async (slide, defaultTheme) => {
-    const { container, root } = getContainer();
+    if (capturingRef.current) {
+      throw new Error('Capture already in progress');
+    }
 
-    root.render(
-      React.createElement(SlideFrame, {
-        slide,
-        defaultTheme,
-      }),
-    );
+    capturingRef.current = true;
 
-    await waitForNextPaint();
+    try {
+      const { container, root } = getContainer();
 
-    const canvas = await html2canvas(container, {
-      scale: 2,
-      useCORS: true,
-      allowTaint: true,
-      width: RENDER_WIDTH,
-      height: RENDER_HEIGHT,
-    });
+      root.render(
+        React.createElement(SlideFrame, {
+          slide,
+          defaultTheme,
+        }),
+      );
 
-    return canvas.toDataURL('image/png');
-  }, [getContainer]);
+      await waitForNextPaint();
+
+      const canvas = await html2canvas(container, {
+        scale: 2,
+        useCORS: true,
+        width: RENDER_WIDTH,
+        height: RENDER_HEIGHT,
+      });
+
+      return canvas.toDataURL('image/png');
+    } catch (error) {
+      cleanup();
+      throw error;
+    } finally {
+      capturingRef.current = false;
+    }
+  }, [cleanup, getContainer]);
 
   /**
    * Capture all slides in a deck sequentially.

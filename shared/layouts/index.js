@@ -1,23 +1,15 @@
-import { readFileSync } from 'fs';
-import { dirname, join } from 'path';
-import { fileURLToPath } from 'url';
+import { createRequire } from 'module';
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
-const LAYOUT_FILE_NAMES = [
-  'single-center.json',
-  'two-column.json',
-  'four-column.json',
-  'dashboard.json',
-  'comparison.json',
-  'image-left.json',
-];
+const require = createRequire(import.meta.url);
 
-function loadLayout(fileName) {
-  const filePath = join(__dirname, fileName);
-  return JSON.parse(readFileSync(filePath, 'utf8'));
-}
+const singleCenter = require('./single-center.json');
+const twoColumn = require('./two-column.json');
+const fourColumn = require('./four-column.json');
+const dashboard = require('./dashboard.json');
+const comparison = require('./comparison.json');
+const imageLeft = require('./image-left.json');
 
-const layouts = LAYOUT_FILE_NAMES.map(loadLayout);
+const layouts = [singleCenter, twoColumn, fourColumn, dashboard, comparison, imageLeft];
 const LAYOUTS = new Map(layouts.map(layout => [layout.id, layout]));
 
 export function getLayout(id) {
@@ -52,7 +44,7 @@ export function validateLayoutSlide(slide) {
   const blocks = slide.blocks || [];
   const usedSlots = new Set();
 
-  for (let i = 0; i < blocks.length; i++) {
+  for (let i = 0; i < blocks.length; i += 1) {
     const block = blocks[i];
 
     if (!block.slot) {
@@ -89,7 +81,7 @@ export function validateLayoutSlide(slide) {
   }
 
   if (isCustom && Array.isArray(slide.slots)) {
-    for (let i = 0; i < slide.slots.length; i++) {
+    for (let i = 0; i < slide.slots.length; i += 1) {
       const slot = slide.slots[i];
 
       if (!slot.name || !slot.position) {
@@ -98,6 +90,11 @@ export function validateLayoutSlide(slide) {
       }
 
       const position = slot.position;
+      if (!isValidGridPosition(position)) {
+        errors.push(`Slot "${slot.name}": position values must be positive integers`);
+        continue;
+      }
+
       if (position.col < 1 || position.col + position.colSpan - 1 > 12) {
         errors.push(`Slot "${slot.name}": exceeds column bounds`);
       }
@@ -105,9 +102,9 @@ export function validateLayoutSlide(slide) {
         errors.push(`Slot "${slot.name}": exceeds row bounds`);
       }
 
-      for (let j = i + 1; j < slide.slots.length; j++) {
+      for (let j = i + 1; j < slide.slots.length; j += 1) {
         const otherSlot = slide.slots[j];
-        if (!otherSlot?.position) continue;
+        if (!otherSlot?.position || !isValidGridPosition(otherSlot.position)) continue;
         if (slotsOverlap(position, otherSlot.position)) {
           errors.push(`Slots "${slot.name}" and "${otherSlot.name}" overlap`);
         }
@@ -116,6 +113,11 @@ export function validateLayoutSlide(slide) {
   }
 
   return { valid: errors.length === 0, errors };
+}
+
+function isValidGridPosition(position) {
+  const values = [position.col, position.row, position.colSpan, position.rowSpan];
+  return values.every(value => Number.isInteger(value) && value > 0);
 }
 
 function slotsOverlap(a, b) {

@@ -111,14 +111,21 @@ function validateActionSlides(action) {
     }
 
     if (Array.isArray(changes.blocks)) {
-      changes.blocks.forEach((block, i) => {
-        if (!block.kind) {
-          errors.push(`Block ${i}: missing required field "kind"`);
-        }
-        if (!block.slot) {
-          errors.push(`Block ${i}: missing required field "slot"`);
-        }
-      });
+      const candidateSlide = { type: 'layout', ...changes };
+
+      if (candidateSlide.layout) {
+        const result = validateSlide(candidateSlide);
+        result.errors.forEach(e => errors.push(`Update changes: ${e}`));
+      } else {
+        changes.blocks.forEach((block, i) => {
+          if (!block.kind) {
+            errors.push(`Block ${i}: missing required field "kind"`);
+          }
+          if (!block.slot) {
+            errors.push(`Block ${i}: missing required field "slot"`);
+          }
+        });
+      }
     }
 
     return errors;

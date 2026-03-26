@@ -95,6 +95,19 @@ describe('migrateDeck', () => {
     expect(old.schemaVersion).toBeUndefined();
     expect(migrated.schemaVersion).toBe(2);
   });
+
+  it('deep copies slides so migrated slide edits do not affect the original deck', () => {
+    const old = {
+      title: 'Old',
+      slides: [{ type: 'title', title: 'Original Title' }],
+    };
+
+    const migrated = migrateDeck(old);
+    migrated.slides[0].title = 'Changed After Migration';
+
+    expect(old.slides[0].title).toBe('Original Title');
+    expect(migrated.slides[0].title).toBe('Changed After Migration');
+  });
 });
 
 // --- createDeck ---
@@ -196,6 +209,34 @@ describe('validateSlide', () => {
   it('validates metric slide requires metrics', () => {
     expect(validateSlide({ type: 'metric' }).valid).toBe(false);
     expect(validateSlide({ type: 'metric', metrics: [] }).valid).toBe(true);
+  });
+
+  it('delegates layout slides to the layout validator', () => {
+    const result = validateSlide({
+      type: 'layout',
+      layout: 'single-center',
+      blocks: [
+        { slot: 'title', kind: 'heading', text: 'Quarterly Review' },
+        { slot: 'body', kind: 'text', text: 'Strong customer retention and margin growth.' },
+      ],
+    });
+
+    expect(result.valid).toBe(true);
+    expect(result.errors).toEqual([]);
+  });
+
+  it('rejects layout slide with wrong kind in slot', () => {
+    const result = validateSlide({
+      type: 'layout',
+      layout: 'single-center',
+      blocks: [
+        { slot: 'title', kind: 'heading', text: 'Quarterly Review' },
+        { slot: 'body', kind: 'heading', text: 'Not allowed here' },
+      ],
+    });
+
+    expect(result.valid).toBe(false);
+    expect(result.errors[0]).toContain('kind "heading" not allowed in slot "body"');
   });
 });
 
