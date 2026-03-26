@@ -20,10 +20,14 @@ This project is contributed to by people of all skill levels, many using AI assi
 - `scripts/` — Install scripts
 
 ### Safe to modify (design/content work):
-- `src/config/colors.js` — Color palette
-- `src/config/themes.js` — Theme definitions
-- `src/config/typography.js` — Font configuration
-- `src/config/tokens.js` — Design tokens
+- `src/config/design/colors.js` — Color palette (hex values)
+- `src/config/design/typography.js` — Fonts, sizes, weights
+- `src/config/design/borders.js` — Border radii, widths, shapes
+- `src/config/design/spacing.js` — Padding, margins, gaps, panel widths
+- `src/config/design/shadows.js` — Shadow and glow effects
+- `src/config/design/icons.js` — Available icon set and default sizes
+- `src/config/design/images.js` — Logo paths, display settings
+- `src/config/themes.js` — Theme definitions (uses values from design/)
 - `src/data/templates.js` — Starter deck templates
 - `server/ai/system-prompt.js` — AI behavior and voice rules
 - `shared/layouts/` — Slide layout definitions
