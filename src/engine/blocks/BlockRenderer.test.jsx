@@ -4,6 +4,7 @@
 import React from 'react';
 import { describe, expect, it } from 'vitest';
 import { render, screen } from '@testing-library/react';
+import { BLOCK_KINDS } from '../../../shared/schema/slide-schema.js';
 import { BlockRenderer, BLOCK_RENDERERS } from './BlockRenderer.jsx';
 
 const BLOCK_FIXTURES = {
@@ -22,6 +23,13 @@ const BLOCK_FIXTURES = {
 };
 
 describe('BlockRenderer', () => {
+  it('BLOCK_RENDERERS covers all BLOCK_KINDS', () => {
+    const schemaKinds = Object.keys(BLOCK_KINDS).sort();
+    const rendererKinds = Object.keys(BLOCK_RENDERERS).sort();
+
+    expect(rendererKinds).toEqual(schemaKinds);
+  });
+
   it('has renderers registered for all 12 block kinds', () => {
     expect(Object.keys(BLOCK_RENDERERS)).toEqual([
       'heading',
@@ -63,6 +71,18 @@ describe('BlockRenderer', () => {
 
     expect(screen.getByText('42%')).toBeTruthy();
     expect(screen.getByText('Efficiency')).toBeTruthy();
+  });
+
+  it('sanitizes metric colors', () => {
+    render(<BlockRenderer block={{ kind: 'metric', value: '7', label: 'Safe', color: 'javascript:alert(1)' }} />);
+
+    expect(screen.getByText('7').style.color).toBe('var(--block-accent)');
+  });
+
+  it('sanitizes image urls', () => {
+    render(<BlockRenderer block={{ kind: 'image', src: 'javascript:alert(1)', alt: 'Unsafe' }} />);
+
+    expect(screen.getByAltText('Unsafe').getAttribute('src')).toBe('');
   });
 
   it('shows an error message for an unknown kind', () => {

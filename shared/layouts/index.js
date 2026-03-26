@@ -61,24 +61,39 @@ export function getAllLayouts() {
   return [...LAYOUTS.values()];
 }
 
-export function validateLayoutSlide(slide) {
-  const errors = [];
+export function validateCustomSlots(slots, errors) {
+  for (let i = 0; i < slots.length; i += 1) {
+    const slot = slots[i];
 
-  if (!slide.layout) {
-    errors.push('Layout slide missing "layout" field');
-    return { valid: false, errors };
+    if (!slot.name || !slot.position) {
+      errors.push(`Custom slot ${i}: missing name or position`);
+      continue;
+    }
+
+    const position = slot.position;
+    if (!isValidGridPosition(position)) {
+      errors.push(`Slot "${slot.name}": position values must be positive integers`);
+      continue;
+    }
+
+    if (position.col < 1 || position.col + position.colSpan - 1 > 12) {
+      errors.push(`Slot "${slot.name}": exceeds column bounds`);
+    }
+    if (position.row < 1 || position.row + position.rowSpan - 1 > 6) {
+      errors.push(`Slot "${slot.name}": exceeds row bounds`);
+    }
+
+    for (let j = i + 1; j < slots.length; j += 1) {
+      const otherSlot = slots[j];
+      if (!otherSlot?.position || !isValidGridPosition(otherSlot.position)) continue;
+      if (slotsOverlap(position, otherSlot.position)) {
+        errors.push(`Slots "${slot.name}" and "${otherSlot.name}" overlap`);
+      }
+    }
   }
+}
 
-  const isCustom = slide.layout === 'custom';
-  const layoutDef = isCustom ? null : getLayout(slide.layout);
-
-  if (!isCustom && !layoutDef) {
-    errors.push(`Unknown layout: "${slide.layout}"`);
-    return { valid: false, errors };
-  }
-
-  const slots = isCustom ? (slide.slots || []) : layoutDef.slots;
-  const blocks = slide.blocks || [];
+export function validateBlockSlotAssignment(blocks, slots, errors) {
   const usedSlots = new Set();
 
   for (let i = 0; i < blocks.length; i += 1) {
@@ -109,44 +124,43 @@ export function validateLayoutSlide(slide) {
     }
   }
 
-  if (!isCustom && layoutDef) {
-    for (const slot of layoutDef.slots) {
-      if (slot.required && !usedSlots.has(slot.name)) {
-        errors.push(`Required slot "${slot.name}" not filled`);
-      }
+  return usedSlots;
+}
+
+export function validateRequiredSlots(slots, usedSlots, errors) {
+  for (const slot of slots) {
+    if (slot.required && !usedSlots.has(slot.name)) {
+      errors.push(`Required slot "${slot.name}" not filled`);
     }
+  }
+}
+
+export function validateLayoutSlide(slide) {
+  const errors = [];
+
+  if (!slide.layout) {
+    errors.push('Layout slide missing "layout" field');
+    return { valid: false, errors };
+  }
+
+  const isCustom = slide.layout === 'custom';
+  const layoutDef = isCustom ? null : getLayout(slide.layout);
+
+  if (!isCustom && !layoutDef) {
+    errors.push(`Unknown layout: "${slide.layout}"`);
+    return { valid: false, errors };
+  }
+
+  const slots = isCustom ? (slide.slots || []) : layoutDef.slots;
+  const blocks = slide.blocks || [];
+  const usedSlots = validateBlockSlotAssignment(blocks, slots, errors);
+
+  if (!isCustom && layoutDef) {
+    validateRequiredSlots(layoutDef.slots, usedSlots, errors);
   }
 
   if (isCustom && Array.isArray(slide.slots)) {
-    for (let i = 0; i < slide.slots.length; i += 1) {
-      const slot = slide.slots[i];
-
-      if (!slot.name || !slot.position) {
-        errors.push(`Custom slot ${i}: missing name or position`);
-        continue;
-      }
-
-      const position = slot.position;
-      if (!isValidGridPosition(position)) {
-        errors.push(`Slot "${slot.name}": position values must be positive integers`);
-        continue;
-      }
-
-      if (position.col < 1 || position.col + position.colSpan - 1 > 12) {
-        errors.push(`Slot "${slot.name}": exceeds column bounds`);
-      }
-      if (position.row < 1 || position.row + position.rowSpan - 1 > 6) {
-        errors.push(`Slot "${slot.name}": exceeds row bounds`);
-      }
-
-      for (let j = i + 1; j < slide.slots.length; j += 1) {
-        const otherSlot = slide.slots[j];
-        if (!otherSlot?.position || !isValidGridPosition(otherSlot.position)) continue;
-        if (slotsOverlap(position, otherSlot.position)) {
-          errors.push(`Slots "${slot.name}" and "${otherSlot.name}" overlap`);
-        }
-      }
-    }
+    validateCustomSlots(slide.slots, errors);
   }
 
   return { valid: errors.length === 0, errors };

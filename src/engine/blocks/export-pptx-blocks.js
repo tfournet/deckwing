@@ -1,4 +1,5 @@
-import { THEME_COLORS } from '../../../shared/theme-colors.js';
+import { getLayout } from '../../../shared/layouts/index.js';
+import { resolveTheme } from '../../../shared/theme-colors.js';
 
 // Grid-to-inches conversion (13.333" x 7.5" slide with 0.5" padding)
 const PAD = 0.5;
@@ -14,10 +15,6 @@ export function slotToInches(position) {
   };
 }
 
-function resolveTheme(slide, deckDefaultTheme) {
-  const themeName = slide?.theme || deckDefaultTheme || 'rewst';
-  return THEME_COLORS[themeName] || THEME_COLORS.rewst;
-}
 
 export function exportHeading(block, pptxSlide, pos, theme) {
   pptxSlide.addText(block.text || '', {
@@ -174,7 +171,7 @@ export async function exportImageRenderBlock(block, pptxSlide, pos, renderBlockT
   pptxSlide.addImage({ data: png, x: pos.x, y: pos.y, w: pos.w, h: pos.h });
 }
 
-const NATIVE_EXPORTERS = {
+export const NATIVE_EXPORTERS = {
   heading: exportHeading,
   text: exportText,
   list: exportList,
@@ -194,7 +191,7 @@ const NATIVE_EXPORTERS = {
   spacer: () => {},
 };
 
-const IMAGE_RENDER_KINDS = new Set(['icon', 'callout', 'chart', 'table']);
+export const IMAGE_RENDER_KINDS = new Set(['icon', 'callout', 'chart', 'table']);
 
 export async function exportLayoutSlide(slide, pres, deckDefaultTheme, options = {}) {
   const theme = resolveTheme(slide, deckDefaultTheme);
@@ -206,7 +203,6 @@ export async function exportLayoutSlide(slide, pres, deckDefaultTheme, options =
   if (isCustom) {
     slots = slide.slots || [];
   } else {
-    const { getLayout } = await import('../../../shared/layouts/index.js');
     const layoutDef = getLayout(slide.layout);
     slots = layoutDef?.slots || [];
   }

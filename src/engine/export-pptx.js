@@ -1,5 +1,5 @@
 import PptxGenJS from 'pptxgenjs';
-import { THEME_COLORS } from '../../shared/theme-colors.js';
+import { THEME_COLORS, resolveTheme } from '../../shared/theme-colors.js';
 import { exportLayoutSlide } from './blocks/export-pptx-blocks.js';
 
 export { THEME_COLORS };
@@ -22,17 +22,6 @@ const MARGINS = {
   bottom: 0.55,
 };
 
-function resolveTheme(slideTheme, defaultTheme) {
-  if (slideTheme && THEME_COLORS[slideTheme]) {
-    return THEME_COLORS[slideTheme];
-  }
-
-  if (defaultTheme && THEME_COLORS[defaultTheme]) {
-    return THEME_COLORS[defaultTheme];
-  }
-
-  return THEME_COLORS.rewst;
-}
 
 function normalizeHexColor(color, fallback) {
   if (typeof color !== 'string') {
@@ -413,7 +402,7 @@ export async function exportDeckToPPTX(deck, options = {}) {
     }
 
     const slide = pres.addSlide();
-    const theme = resolveTheme(slideData?.theme, deck?.defaultTheme);
+    const theme = resolveTheme(slideData, deck?.defaultTheme);
 
     applyTheme(slide, theme);
     await renderSlide(slide, slideData, theme);

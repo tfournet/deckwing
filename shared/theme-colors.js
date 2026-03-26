@@ -7,3 +7,8 @@ export const THEME_COLORS = {
 };
 
 export default THEME_COLORS;
+
+export function resolveTheme(slide, deckDefaultTheme) {
+  const themeName = slide?.theme || deckDefaultTheme || 'rewst';
+  return THEME_COLORS[themeName] || THEME_COLORS.rewst;
+}

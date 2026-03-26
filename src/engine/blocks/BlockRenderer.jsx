@@ -1,6 +1,18 @@
 import React from 'react';
 import * as Icons from 'lucide-react';
 
+function sanitizeColor(color) {
+  if (!color) return undefined;
+  if (/^(#[0-9a-fA-F]{3,8}|rgb|hsl|var\()/.test(color)) return color;
+  return undefined;
+}
+
+function sanitizeUrl(url) {
+  if (!url) return '';
+  if (/^(https?:\/\/|data:|\/|\.\/|\.\.\/)/.test(url)) return url;
+  return '';
+}
+
 function HeadingBlock({ block }) {
   const sizes = { sm: '24px', md: '36px', lg: '52px', xl: '72px' };
 
@@ -75,7 +87,7 @@ function MetricBlock({ block }) {
         style={{
           fontSize: '64px',
           fontWeight: 900,
-          color: block.color || 'var(--block-accent)',
+          color: sanitizeColor(block.color) || 'var(--block-accent)',
           lineHeight: 1.1,
         }}
       >
@@ -97,7 +109,7 @@ function MetricBlock({ block }) {
 function ImageBlock({ block }) {
   return (
     <img
-      src={block.src}
+      src={sanitizeUrl(block.src)}
       alt={block.alt || ''}
       style={{
         width: '100%',

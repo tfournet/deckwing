@@ -1,10 +1,13 @@
 import { describe, expect, it, vi } from 'vitest';
+import { BLOCK_KINDS } from '../../../shared/schema/slide-schema.js';
 import {
   slotToInches,
   exportHeading,
   exportList,
   exportMetric,
   exportLayoutSlide,
+  NATIVE_EXPORTERS,
+  IMAGE_RENDER_KINDS,
 } from './export-pptx-blocks.js';
 
 function createPptxSlide() {
@@ -23,6 +26,16 @@ function createPresentation(slide = createPptxSlide()) {
 }
 
 describe('export-pptx-blocks', () => {
+  it('PPTX exporters cover all BLOCK_KINDS', () => {
+    const schemaKinds = Object.keys(BLOCK_KINDS).sort();
+    const exporterKinds = [...new Set([
+      ...Object.keys(NATIVE_EXPORTERS),
+      ...IMAGE_RENDER_KINDS,
+    ])].sort();
+
+    expect(exporterKinds).toEqual(schemaKinds);
+  });
+
   it('slotToInches converts grid position to inches', () => {
     const pos = slotToInches({ col: 2, row: 3, colSpan: 4, rowSpan: 2 });
 

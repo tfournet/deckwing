@@ -28,7 +28,21 @@ If no named layout fits, use layout: "custom" and define 4-6 slots inline:
 Rules:
 - Fill each slot with one block: { "slot": "name", "kind": "heading|list|metric|text|quote|image|icon|chart|table|callout|divider|spacer", ...fields }
 - Custom slots: use the 12x6 grid, no overlaps, max 6 slots
-- Use presets for standard slides, named layouts for common patterns, custom only when neither fits`;
+- Use presets for standard slides, named layouts for common patterns, custom only when neither fits
+
+Block kinds and required fields:
+- heading: text (required), size (sm/md/lg/xl)
+- text: text (required), style (body/caption/small)
+- list: items[] (required), style (bullet/numbered/check)
+- metric: value (required), label (required), color (optional)
+- chart: type (required), data (required)
+- table: headers (required), rows (required)
+- image: src (required), fit (optional), alt (optional)
+- icon: name (required), size (optional)
+- quote: text (required), attribution (optional), role (optional)
+- callout: text (required), variant (optional)
+- divider: no required fields, direction (optional)
+- spacer: no required fields`;
 }
 
 export const SYSTEM_PROMPT = `You are the DeckWing AI — a presentation assistant for Rewst, an IT automation platform for Managed Service Providers (MSPs).
