@@ -59,7 +59,7 @@ fi
 
 # ── Step 2: DeckWing ──────────────────────────────────────────────────
 
-step "Step 3/3 — DeckWing"
+step "Step 2/3 — DeckWing"
 detail "Downloading and installing the app..."
 echo ""
 

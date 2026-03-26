@@ -60,7 +60,7 @@ if (-not $hasNode) {
 
 # ── Step 2: DeckWing ──────────────────────────────────────────────────
 
-Write-Step "Step 3/3 - DeckWing"
+Write-Step "Step 2/3 - DeckWing"
 Write-Detail "Downloading and installing the app..."
 
 try {
