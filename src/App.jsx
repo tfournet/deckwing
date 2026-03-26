@@ -1,8 +1,7 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { EXAMPLE_DECK, createSlide } from './schema/slide-schema';
 import { SlideFrame } from './engine/renderer';
-import { ChevronLeft, ChevronRight, MessageSquare, Play, Save, AlertTriangle, FolderOpen, Download, Palette } from 'lucide-react';
-import { getThemeNames, themes } from './config/themes';
+import { ChevronLeft, ChevronRight, MessageSquare, Play, Save, AlertTriangle, FolderOpen, Download } from 'lucide-react';
 import { ChatPanel } from './components/chat/ChatPanel';
 import { useChat } from './hooks/useChat';
 import { SlideEditor } from './components/editor/SlideEditor';
@@ -314,19 +313,6 @@ export default function App() {
           value={deck.title}
           onChange={(e) => setDeck(prev => ({ ...prev, title: e.target.value }))}
         />
-        {/* Deck theme picker */}
-        <div className="flex items-center gap-1.5">
-          <Palette size={14} className="text-cloud-gray-500" />
-          <select
-            value={deck.defaultTheme || 'rewst'}
-            onChange={(e) => setDeck(prev => ({ ...prev, defaultTheme: e.target.value }))}
-            className="bg-ops-indigo-800 border border-ops-indigo-600/50 rounded px-2 py-1 text-xs text-cloud-gray-200 cursor-pointer focus:outline-none focus:border-bot-teal-400/50"
-          >
-            {getThemeNames().map(t => (
-              <option key={t} value={t}>{themes[t].name}</option>
-            ))}
-          </select>
-        </div>
         {/* Save indicator */}
         {saveStatus === 'saving' && (
           <span className="text-cloud-gray-500 text-xs flex items-center gap-1">
