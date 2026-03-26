@@ -54,7 +54,7 @@ export function AuthGate({ children }) {
       setPolling(true);
 
       // Open the sign-in page automatically
-      window.open(data.oauthUrl, '_blank');
+      window.open(data.oauthUrl, '_blank', 'noopener,noreferrer');
 
       authPollIntervalRef.current = setInterval(async () => {
         try {
