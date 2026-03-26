@@ -20,6 +20,8 @@
  * section:  Section divider between topics
  * blank:    Empty slide for custom content
  */
+export const CURRENT_SCHEMA_VERSION = 2;
+
 export const SLIDE_TYPES = {
   title: {
     required: ['title'],
@@ -84,6 +86,7 @@ export function createDeck(metadata = {}) {
   const now = new Date().toISOString();
   return {
     id: generateId(),
+    schemaVersion: CURRENT_SCHEMA_VERSION,
     title: metadata.title || 'Untitled Presentation',
     author: metadata.author || '',
     createdAt: now,
@@ -93,6 +96,22 @@ export function createDeck(metadata = {}) {
       createSlide('title', { title: metadata.title || 'Untitled Presentation' }),
     ],
   };
+}
+
+/**
+ * Migrate old decks to the current schema version
+ * @param {object} deck - Deck to migrate
+ * @returns {object} Migrated deck object
+ */
+export function migrateDeck(deck) {
+  const version = deck.schemaVersion || 1;
+  let migrated = { ...deck };
+
+  if (version < 2) {
+    migrated.schemaVersion = 2;
+  }
+
+  return migrated;
 }
 
 /**

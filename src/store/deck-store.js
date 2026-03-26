@@ -1,3 +1,5 @@
+import { migrateDeck } from '../../shared/schema/slide-schema.js';
+
 /**
  * Deck Store - localStorage persistence layer
  *
@@ -33,7 +35,8 @@ export function loadDeck(id) {
   const raw = localStorage.getItem(KEY_PREFIX + id);
   if (!raw) return null;
   try {
-    return JSON.parse(raw);
+    const deck = JSON.parse(raw);
+    return migrateDeck(deck);
   } catch {
     return null;
   }

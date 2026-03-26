@@ -123,6 +123,16 @@ describe('loadDeck', () => {
     expect(loaded.slides).toHaveLength(2);
     expect(loaded.slides[1].points).toEqual(['a', 'b']);
   });
+
+  it('migrates old decks on load', async () => {
+    const { loadDeck } = await loadStore();
+    // Save a v1 deck (no schemaVersion)
+    const oldDeck = { id: 'old-1', title: 'Old', slides: [{ type: 'title', title: 'Hi' }] };
+    localStorage.setItem('rewst-deck-' + oldDeck.id, JSON.stringify(oldDeck));
+
+    const loaded = loadDeck('old-1');
+    expect(loaded.schemaVersion).toBe(2);
+  });
 });
 
 // --- listDecks ---

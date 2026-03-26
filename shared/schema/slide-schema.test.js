@@ -1,8 +1,10 @@
 import { describe, it, expect } from 'vitest';
 import {
   SLIDE_TYPES,
+  CURRENT_SCHEMA_VERSION,
   createSlide,
   createDeck,
+  migrateDeck,
   validateSlide,
   validateDeck,
   EXAMPLE_DECK,
@@ -74,6 +76,27 @@ describe('createSlide', () => {
   });
 });
 
+describe('migrateDeck', () => {
+  it('adds schemaVersion 2 to decks without a version', () => {
+    const old = { title: 'Old', slides: [{ type: 'title', title: 'Hi' }] };
+    const migrated = migrateDeck(old);
+    expect(migrated.schemaVersion).toBe(2);
+  });
+
+  it('preserves schemaVersion on already-migrated decks', () => {
+    const deck = { schemaVersion: 2, title: 'New', slides: [] };
+    const migrated = migrateDeck(deck);
+    expect(migrated.schemaVersion).toBe(2);
+  });
+
+  it('does not mutate the original deck', () => {
+    const old = { title: 'Old', slides: [] };
+    const migrated = migrateDeck(old);
+    expect(old.schemaVersion).toBeUndefined();
+    expect(migrated.schemaVersion).toBe(2);
+  });
+});
+
 // --- createDeck ---
 
 describe('createDeck', () => {
@@ -105,6 +128,11 @@ describe('createDeck', () => {
     expect(deck.slides).toHaveLength(2);
     expect(deck.slides[0].title).toBe('A');
     expect(deck.slides[1].title).toBe('B');
+  });
+
+  it('stamps schemaVersion on new decks', () => {
+    const deck = createDeck({ title: 'Test' });
+    expect(deck.schemaVersion).toBe(CURRENT_SCHEMA_VERSION);
   });
 });
 
