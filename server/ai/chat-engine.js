@@ -104,10 +104,23 @@ function validateActionSlides(action) {
     slidesToCheck.push({ slide: action.data.slide, label: 'New slide' });
   } else if (action.type === 'update_slide' && action.data.changes) {
     const changes = action.data.changes;
+
     if (changes.type) {
       const result = validateSlide({ ...changes });
       result.errors.forEach(e => errors.push(`Update changes: ${e}`));
     }
+
+    if (Array.isArray(changes.blocks)) {
+      changes.blocks.forEach((block, i) => {
+        if (!block.kind) {
+          errors.push(`Block ${i}: missing required field "kind"`);
+        }
+        if (!block.slot) {
+          errors.push(`Block ${i}: missing required field "slot"`);
+        }
+      });
+    }
+
     return errors;
   }
 
