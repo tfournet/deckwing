@@ -11,10 +11,24 @@ import { startOAuthFlow, getOAuthStatus, cleanupOAuthSessions } from './ai/claud
 import { findClaudeBinary, checkClaudeVersion } from './ai/find-claude.js';
 
 const execFileAsync = promisify(execFile);
+const ALLOWED_ORIGINS = new Set([
+  'http://localhost:3000',
+  'http://127.0.0.1:3000',
+  'http://localhost:3001',
+  'http://127.0.0.1:3001',
+]);
 
 const app = express();
 
-app.use(cors());
+app.use(cors({
+  origin(origin, callback) {
+    if (!origin || ALLOWED_ORIGINS.has(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('CORS: origin not allowed'));
+    }
+  },
+}));
 app.use(express.json({ limit: '10mb' }));
 
 /**
@@ -192,6 +206,14 @@ app.post('/api/deck/review', (req, res) => {
 app.get('/api/decks', (req, res) => {
   // TODO: Implement deck persistence
   res.json({ decks: [] });
+});
+
+app.use((err, req, res, next) => {
+  if (err?.message === 'CORS: origin not allowed') {
+    return res.status(403).json({ error: err.message });
+  }
+
+  return next(err);
 });
 
 export default app;
