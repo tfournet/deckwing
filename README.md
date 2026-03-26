@@ -6,12 +6,12 @@ AI-powered presentation builder for Rewst. Describe what you want, get on-brand 
 
 **Mac/Linux:**
 ```bash
-curl -fsSL https://raw.githubusercontent.com/tfournet/deckwing/main/scripts/install.sh | bash
+curl -fsSL https://github.com/tfournet/deckwing/releases/latest/download/install.sh | bash
 ```
 
 **Windows (PowerShell):**
 ```powershell
-irm https://raw.githubusercontent.com/tfournet/deckwing/main/scripts/install.ps1 | iex
+irm https://github.com/tfournet/deckwing/releases/latest/download/install.ps1 | iex
 ```
 
 **Or with npm directly:**

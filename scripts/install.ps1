@@ -99,14 +99,33 @@ Write-Detail "Downloading and installing the app..."
 
 try {
     npm install -g "github:$GithubRepo" 2>&1 | Out-Null
-    # Verify it actually installed
+
+    # Refresh PATH to pick up npm global bin
+    $env:Path = [System.Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path", "User")
+
+    # Also add npm global bin explicitly (npm config get prefix)/bin
+    $npmPrefix = (npm config get prefix 2>$null)
+    if ($npmPrefix -and (Test-Path $npmPrefix)) {
+        $env:Path = "$env:Path;$npmPrefix"
+    }
+
     $deckwingPath = (Get-Command deckwing -ErrorAction SilentlyContinue)
     if ($deckwingPath) {
         Write-Info "DeckWing - installed"
         Write-Detail "You can start it anytime by typing: deckwing"
     } else {
-        Write-Warn "DeckWing installed but command not found yet"
-        Write-Detail "You may need to restart your terminal."
+        # Find where npm put it
+        $npmBin = (npm config get prefix 2>$null)
+        Write-Warn "DeckWing installed but not in PATH"
+        Write-Host ""
+        if ($npmBin) {
+            Write-Detail "It was installed to: $npmBin"
+            Write-Detail "Add this to your PATH, or run it directly:"
+            Write-Host ""
+            Write-Host "    node `"$npmBin\node_modules\deckwing\bin\deckwing.js`"" -ForegroundColor Green
+        } else {
+            Write-Detail "Close this terminal, reopen, and try: deckwing"
+        }
     }
 } catch {
     Write-Host ""
@@ -172,5 +191,17 @@ Write-Host ""
 $launchNow = Read-Host "  Launch DeckWing now? [Y/n]"
 if ($launchNow -eq "" -or $launchNow -match "^[Yy]") {
     Write-Host ""
-    deckwing
+    $dw = (Get-Command deckwing -ErrorAction SilentlyContinue)
+    if ($dw) {
+        & deckwing
+    } else {
+        # Fall back to direct node invocation
+        $npmPrefix = (npm config get prefix 2>$null)
+        $directPath = "$npmPrefix\node_modules\deckwing\bin\deckwing.js"
+        if (Test-Path $directPath) {
+            node $directPath
+        } else {
+            Write-Warn "Couldn't find deckwing. Restart your terminal and type: deckwing"
+        }
+    }
 }
