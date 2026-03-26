@@ -53,7 +53,7 @@ export function ChatPanel({ messages, isLoading, onSendMessage, onResetChat, onC
   const isEmpty = messages.length === 0;
 
   return (
-    <aside className="w-96 bg-ops-indigo-900/50 border-l border-ops-indigo-700/30 flex flex-col shrink-0">
+    <aside className="min-w-[280px] max-w-[400px] w-[25%] bg-ops-indigo-900/50 border-l border-ops-indigo-700/30 flex flex-col shrink-0">
       {/* Panel header */}
       <div className="px-3 py-2 border-b border-ops-indigo-700/30 shrink-0 space-y-1.5">
         <div className="flex items-center justify-between">

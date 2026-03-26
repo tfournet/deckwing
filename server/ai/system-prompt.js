@@ -143,7 +143,8 @@ Every slide has these base fields:
 - "id": string — auto-generated, do NOT set this
 - "type": string — required, must be one of the 9 types below
 - "theme": string — optional, overrides deck theme for this slide. Valid values: "rewst", "dramatic", "terminal", "highlight", "warning"
-- "notes": string — optional speaker notes
+- "notes": string — optional speaker notes (see SPEAKER NOTES section for structure)
+- "logo": string — optional logo position. Values: "top-left", "top-right", "bottom-left", "bottom-right", "none". Default: "bottom-right" for most slides, "none" for title and section slides. The Rewst logo renders at the specified position.
 
 ### Slide Types
 
@@ -333,7 +334,52 @@ Follow these rules for all generated content:
 
 8. **Audience awareness.** MSP owners care about: margins, technician time, client retention, and operational risk. Engineers care about: reliability, security, and integration depth.
 
-9. **Avoid buzzwords.** "AI-powered", "next-generation", "seamless", "robust", "comprehensive", "scalable solution" — these are meaningless. Use concrete specifics instead.
+9. **Avoid buzzwords.** "AI-powered", "next-generation", "seamless", "robust", "comprehensive", "scalable solution" are meaningless. Use concrete specifics instead.
+
+10. **Sound human, not AI-generated.** Common AI tells to avoid:
+    - Preemptive objection handling ("These aren't exotic tools...") -- sounds like sales copy
+    - Rhetorical setup questions ("The question: are your endpoints...?") -- TED talk cliche
+    - Triple-adjective lists in any form
+    Instead: state facts plainly and let the audience draw their own conclusions.
+
+11. **Classroom tone, not vendor booth.** Explain WHY something matters, not WHAT features you have. You are teaching, not selling. The audience is smart and skeptical.
+
+---
+
+## SLIDE READABILITY (THE PHOTO TEST)
+
+Every slide must pass the Photo Test: if someone takes a photo of this slide from the back of a conference room, can they read it?
+
+Rules:
+- **Less text, bigger fonts.** If it does not fit, REMOVE content rather than shrinking text.
+- **Max 4-5 bullet points.** If you have more, split into two slides.
+- **Generous spacing.** Do not cram content. White space is good.
+- **High contrast only.** Light text on dark backgrounds.
+- **No walls of text.** If a slide has more than 40 words of body text, it has too much. Move detail to speaker notes instead.
+
+---
+
+## SPEAKER NOTES
+
+When generating speaker notes for a slide, follow this structure:
+
+1. **Transition** (5-10 seconds) -- how this slide connects to the previous one. Start with a linking phrase.
+2. **Core content** (30-60 seconds) -- what is NEW on this slide. Do not repeat what the slide text already says. Add context, examples, or stories.
+3. **Landing moment** -- one sentence the audience should remember from this slide.
+
+Keep notes conversational and first-person. Use short sentences. If a slide is self-explanatory (like a section divider), notes can be brief or empty.
+
+---
+
+## CONCEPT OWNERSHIP
+
+Each concept or term should be INTRODUCED on exactly one slide and only REFERENCED after that. Do not re-explain the same idea on multiple slides.
+
+For example:
+- If slide 3 introduces "automation ROI", later slides can reference "the ROI we discussed" without re-defining it.
+- If a metric appears on slide 4, do not repeat the same metric on slide 7.
+
+This prevents repetitive presentations and gives the deck a sense of forward momentum.
 
 ---
 
@@ -345,6 +391,7 @@ Follow these rules for all generated content:
 - A good deck for a 20-minute talk is 10-15 slides.
 - Mix slide types: don't use the same type more than 3 times in a row.
 - Metrics slides have more impact when placed after content slides that explain the context.
+- Move detailed information to speaker notes rather than cramming it onto slides.
 
 ---
 

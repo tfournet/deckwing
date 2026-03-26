@@ -57,7 +57,7 @@ function TitleSlide({ slide, theme: t }) {
         <p className={`text-[28px] ${t.textMuted} mt-10`}>{slide.author}</p>
       )}
       {slide.date && (
-        <p className={`text-[24px] ${t.textMuted} mt-3`}>{slide.date}</p>
+        <p className={`text-[28px] ${t.textMuted} mt-3`}>{slide.date}</p>
       )}
     </div>
   );
@@ -117,7 +117,7 @@ function GridSlide({ slide, theme: t }) {
             )}
             <h3 className={`text-[32px] font-bold ${t.textPrimary} mb-3`}>{item.title}</h3>
             {item.description && (
-              <p className={`text-[22px] ${t.textSecondary} leading-relaxed`}>{item.description}</p>
+              <p className={`text-[28px] ${t.textSecondary} leading-relaxed`}>{item.description}</p>
             )}
           </div>
         ))}
@@ -156,7 +156,7 @@ function QuoteSlide({ slide, theme: t }) {
         <div>
           <p className={`text-[30px] font-bold ${t.accentColor}`}>{slide.attribution}</p>
           {slide.role && (
-            <p className={`text-[24px] ${t.textMuted} mt-2`}>{slide.role}</p>
+            <p className={`text-[28px] ${t.textMuted} mt-2`}>{slide.role}</p>
           )}
         </div>
       )}
@@ -185,7 +185,7 @@ function MetricSlide({ slide, theme: t }) {
             <div className={`text-[72px] font-black mb-4 ${m.color || t.accentColor}`}>
               {m.value}
             </div>
-            <div className={`text-[24px] ${t.textSecondary}`}>{m.label}</div>
+            <div className={`text-[28px] ${t.textSecondary}`}>{m.label}</div>
           </div>
         ))}
       </div>
@@ -274,6 +274,17 @@ export function SlideFrame({ slide, defaultTheme = 'rewst', children }) {
     return () => observer.disconnect();
   }, []);
 
+  // Logo defaults: title/section slides get none, everything else gets bottom-right
+  const logoDefault = (slide.type === 'title' || slide.type === 'section') ? 'none' : 'bottom-right';
+  const logoPosition = slide.logo || logoDefault;
+
+  const logoPositionClass = {
+    'top-left': 'top-6 left-6',
+    'top-right': 'top-6 right-6',
+    'bottom-left': 'bottom-6 left-6',
+    'bottom-right': 'bottom-6 right-6',
+  }[logoPosition];
+
   return (
     <div
       ref={containerRef}
@@ -287,9 +298,17 @@ export function SlideFrame({ slide, defaultTheme = 'rewst', children }) {
           transform: `scale(${scale})`,
           transformOrigin: 'top left',
         }}
-        className="p-16"
+        className="p-16 relative"
       >
         {children || renderSlide(slide, defaultTheme)}
+        {/* Logo overlay */}
+        {logoPosition !== 'none' && logoPositionClass && (
+          <img
+            src="/images/rewst-logo.png"
+            alt=""
+            className={`absolute ${logoPositionClass} h-8 opacity-60`}
+          />
+        )}
       </div>
       {/* Overflow fade indicator */}
       <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-black/20 to-transparent pointer-events-none" />

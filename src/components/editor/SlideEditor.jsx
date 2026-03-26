@@ -423,7 +423,7 @@ export function EditorContent({ slide, jsonMode, handleJsonChange, handleTypeCha
     <JsonEditor value={slide} onChange={handleJsonChange} mode="slide" />
   ) : (
     <>
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-3 gap-3">
         <Field label="Slide Type">
           <select
             value={slide.type}
@@ -444,6 +444,19 @@ export function EditorContent({ slide, jsonMode, handleJsonChange, handleTypeCha
             {themeNames.map((t) => (
               <option key={t} value={t}>{t}</option>
             ))}
+          </select>
+        </Field>
+        <Field label="Logo">
+          <select
+            value={slide.logo || (slide.type === 'title' || slide.type === 'section' ? 'none' : 'bottom-right')}
+            onChange={(e) => update({ logo: e.target.value })}
+            className={`${INPUT_CLS} cursor-pointer`}
+          >
+            <option value="none">None</option>
+            <option value="top-left">Top Left</option>
+            <option value="top-right">Top Right</option>
+            <option value="bottom-left">Bottom Left</option>
+            <option value="bottom-right">Bottom Right</option>
           </select>
         </Field>
       </div>

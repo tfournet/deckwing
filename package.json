@@ -1,6 +1,6 @@
 {
   "name": "deckwing",
-  "version": "0.7.1",
+  "version": "0.8.0",
   "description": "AI-powered presentation builder for Rewst",
   "type": "module",
   "engines": { "node": ">=22" },
@@ -53,6 +53,7 @@
     "clsx": "^2.0.0",
     "cors": "^2.8.6",
     "dotenv": "^16.6.1",
+    "electron-updater": "^6.8.3",
     "express": "^4.22.1",
     "html2canvas": "^1.4.1",
     "jspdf": "^4.2.1",
@@ -93,6 +94,11 @@
       "package.json"
     ],
     "extraResources": [],
+    "publish": {
+      "provider": "github",
+      "owner": "tfournet",
+      "repo": "deckwing"
+    },
     "win": {
       "target": [
         "nsis"

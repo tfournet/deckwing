@@ -14,6 +14,12 @@ AI-powered presentation builder for Rewst. Describe what you want, get on-brand 
 
 Double-click to install. Everything is bundled — no Node.js, no terminal, no setup.
 
+**Mac note:** macOS blocks unsigned apps. After installing, run this once in Terminal:
+```bash
+xattr -cr /Applications/DeckWing.app
+```
+Then double-click to open normally. (This is only needed until we add code signing.)
+
 ### Command Line
 
 **Mac/Linux:**

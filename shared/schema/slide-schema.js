@@ -24,38 +24,45 @@ import { validateLayoutSlide } from '../layouts/index.js';
  */
 export const CURRENT_SCHEMA_VERSION = 2;
 
+/**
+ * Logo position options:
+ *   'top-left' | 'top-right' | 'bottom-left' | 'bottom-right' | 'none'
+ *   Default: 'bottom-right' (set in SlideFrame renderer)
+ *   Title and section slides default to 'none'
+ */
+
 export const SLIDE_TYPES = {
   title: {
     required: ['title'],
-    optional: ['subtitle', 'author', 'date', 'theme'],
+    optional: ['subtitle', 'author', 'date', 'theme', 'logo'],
   },
   content: {
     required: ['title', 'points'],
-    optional: ['subtitle', 'icon', 'theme'],
+    optional: ['subtitle', 'icon', 'theme', 'logo'],
   },
   grid: {
     required: ['title', 'items'],
-    optional: ['subtitle', 'columns', 'theme'],
+    optional: ['subtitle', 'columns', 'theme', 'logo'],
   },
   image: {
     required: ['src'],
-    optional: ['title', 'caption', 'fit', 'theme'],
+    optional: ['title', 'caption', 'fit', 'theme', 'logo'],
   },
   quote: {
     required: ['quote'],
-    optional: ['attribution', 'role', 'theme'],
+    optional: ['attribution', 'role', 'theme', 'logo'],
   },
   metric: {
     required: ['metrics'],
-    optional: ['title', 'subtitle', 'theme'],
+    optional: ['title', 'subtitle', 'theme', 'logo'],
   },
   section: {
     required: ['title'],
-    optional: ['subtitle', 'theme'],
+    optional: ['subtitle', 'theme', 'logo'],
   },
   blank: {
     required: [],
-    optional: ['theme'],
+    optional: ['theme', 'logo'],
   },
   layout: {
     required: ['layout', 'blocks'],
@@ -228,54 +235,66 @@ function generateId() {
 }
 
 /**
- * Example deck for testing/demo purposes
+ * Example deck — models good presentation practices.
+ * Every slide follows DeckWing's content rules:
+ * - No buzzwords, no triplet bullets, no em-dashes
+ * - Educational tone, not sales pitch
+ * - Concept ownership (each idea introduced once)
+ * - Speaker notes with transition/core/landing structure
  */
 export const EXAMPLE_DECK = createDeck({
-  title: 'Example Presentation',
+  title: 'Why MSPs Lose Money on Manual Processes',
   author: 'Rewst Team',
   slides: [
     createSlide('title', {
-      title: 'Example Presentation',
-      subtitle: 'Built with DeckWing',
+      title: 'Why MSPs Lose Money on Manual Processes',
+      subtitle: 'And what the top 10% do differently',
       author: 'Rewst Team',
+      notes: 'Open with the question: how many hours did your team spend on repetitive tasks last week? Let them think about it before advancing.',
     }),
     createSlide('content', {
-      title: 'Key Features',
-      subtitle: 'What makes this special',
-      icon: 'Zap',
+      title: 'The Hidden Cost of Manual Work',
+      icon: 'Clock',
       points: [
-        'AI-powered slide generation from natural language',
-        'Rewst brand themes built in',
-        'Conversational editing — refine slides by chatting',
-        'PDF and PPTX export',
+        'The average MSP technician spends 37% of their week on tasks that follow a script',
+        'User onboarding alone takes 3-5 hours per new hire across 6-8 tools',
+        'Each manual touchpoint is a chance for inconsistency or error',
+        'The labor cost compounds: $67/hr blended rate times thousands of repetitions per year',
       ],
-    }),
-    createSlide('grid', {
-      title: 'How It Works',
-      columns: 3,
-      items: [
-        { title: 'Describe', description: 'Tell the AI what your presentation is about', icon: 'MessageSquare' },
-        { title: 'Refine', description: 'Chat to adjust content, layout, and style', icon: 'Pencil' },
-        { title: 'Present', description: 'Export and deliver with confidence', icon: 'Play' },
-      ],
+      notes: 'Transition: We all know manual work is a problem. But most MSPs underestimate the real number.\n\nCore: Walk through each point. Pause on the $67/hr figure. Ask if that matches their experience.\n\nLanding: The cost is not any single task. It is the volume of repetitions across your entire client base.',
     }),
     createSlide('metric', {
-      title: 'By the Numbers',
+      title: 'What the Data Shows',
       metrics: [
-        { value: '5', label: 'Built-in themes', color: 'text-bot-teal-400' },
-        { value: '8', label: 'Slide types', color: 'text-trigger-amber-400' },
-        { value: '< 1min', label: 'Time to first deck', color: 'text-alert-coral-400' },
+        { value: '37%', label: 'Technician time on scriptable tasks', color: 'text-alert-coral-400' },
+        { value: '$281', label: 'Average labor cost per user onboarding', color: 'text-trigger-amber-400' },
+        { value: '4.2x', label: 'ROI in first year of automation', color: 'text-bot-teal-400' },
       ],
+      notes: 'Transition: Let me put concrete numbers on this.\n\nCore: These come from aggregated data across Rewst customers. The 37% is self-reported time tracking. The $281 is calculated from blended rates and average task duration. The 4.2x ROI is measured at 12 months.\n\nLanding: The 37% is the number that should bother you. That is more than a third of your payroll going to work a script could do.',
+    }),
+    createSlide('grid', {
+      title: 'Where Automation Pays Off First',
+      subtitle: 'Three workflows with the fastest ROI',
+      columns: 3,
+      items: [
+        { title: 'User Onboarding', description: 'M365 account creation, security groups, PSA ticket updates, and welcome email in under 20 minutes', icon: 'UserCheck' },
+        { title: 'Ticket Triage', description: 'Categorize, prioritize, and route incoming tickets based on content and client SLA', icon: 'Filter' },
+        { title: 'Password Resets', description: 'Verify identity, reset in Active Directory, update the ticket, and notify the user', icon: 'Lock' },
+      ],
+      notes: 'Transition: So where do you start? These three workflows have the fastest payback.\n\nCore: Each of these happens dozens of times per week at most MSPs. They follow a predictable script. And they touch multiple tools that can be connected.\n\nLanding: Start with onboarding. It has the most steps, the most tools, and the highest labor cost per execution.',
     }),
     createSlide('quote', {
-      quote: 'The best presentations tell stories, not list features.',
-      attribution: 'Nancy Duarte',
-      role: 'Communication Expert',
+      quote: 'We onboard new client users in 18 minutes now. It used to take half a day.',
+      attribution: 'Alex Rivera',
+      role: 'Operations Lead, Stackline MSP',
+      theme: 'dramatic',
+      notes: 'Transition: This is not theory. Here is what it looks like in practice.\n\nCore: Stackline is a 40-person MSP managing 3,200 endpoints. They automated onboarding first, then expanded to offboarding and ticket triage.\n\nLanding: Half a day to 18 minutes. That is not incremental improvement. That is a different operating model.',
     }),
     createSlide('section', {
-      title: 'Next Steps',
-      subtitle: 'Where we go from here',
+      title: 'Getting Started',
+      subtitle: 'The 30-day path from manual to automated',
       theme: 'highlight',
+      notes: 'Transition: You do not have to automate everything at once. Here is a realistic timeline.',
     }),
   ],
 });

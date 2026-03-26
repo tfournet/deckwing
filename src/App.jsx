@@ -125,7 +125,7 @@ function MainLayout() {
       )}
 
       <div className="flex-1 flex overflow-hidden">
-        <aside className="w-56 bg-ops-indigo-900/50 border-r border-ops-indigo-700/30 flex flex-col shrink-0">
+        <aside className="min-w-[180px] max-w-[240px] w-[15%] bg-ops-indigo-900/50 border-r border-ops-indigo-700/30 flex flex-col shrink-0">
           <SlideOutline
             slides={deck.slides}
             currentIndex={currentSlideIndex}

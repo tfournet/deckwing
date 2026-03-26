@@ -1,8 +1,9 @@
-const { app, BrowserWindow, Tray, Menu, nativeImage } = require('electron');
+const { app, BrowserWindow, Tray, Menu, nativeImage, dialog } = require('electron');
 const path = require('path');
 const { existsSync } = require('fs');
 const { pathToFileURL } = require('url');
 const { ensureClaude } = require('./claude-manager');
+const { autoUpdater } = require('electron-updater');
 
 const ROOT = path.resolve(__dirname, '..');
 const DIST_DIR = path.join(ROOT, 'dist');
@@ -206,6 +207,47 @@ function stopServer() {
   }
 }
 
+// ── Auto-update ──────────────────────────────────────────────────────
+
+function checkForUpdates() {
+  autoUpdater.autoDownload = true;
+  autoUpdater.autoInstallOnAppQuit = true;
+
+  autoUpdater.on('update-available', (info) => {
+    console.log(`[update] New version available: ${info.version}`);
+  });
+
+  autoUpdater.on('update-downloaded', (info) => {
+    console.log(`[update] Update downloaded: ${info.version}`);
+    // Show a non-intrusive dialog
+    dialog.showMessageBox(mainWindow, {
+      type: 'info',
+      title: 'Update Ready',
+      message: `DeckWing ${info.version} is ready to install.`,
+      detail: 'The update will be applied when you restart the app.',
+      buttons: ['Restart Now', 'Later'],
+      defaultId: 1,
+    }).then(({ response }) => {
+      if (response === 0) {
+        isQuitting = true;
+        autoUpdater.quitAndInstall();
+      }
+    });
+  });
+
+  autoUpdater.on('error', (err) => {
+    console.log('[update] Auto-update error:', err.message);
+    // Silent — don't bother the user if update check fails
+  });
+
+  // Check after a short delay so the app feels responsive on startup
+  setTimeout(() => {
+    autoUpdater.checkForUpdates().catch(() => {});
+  }, 5000);
+}
+
+// ── App lifecycle ────────────────────────────────────────────────────
+
 const gotLock = app.requestSingleInstanceLock();
 if (!gotLock) {
   app.quit();
@@ -239,6 +281,7 @@ if (!gotLock) {
     await startServer();
     createTray();
     showWindow();
+    checkForUpdates();
   }).catch((error) => {
     console.error('[electron] Failed to start DeckWing:', error);
     app.quit();
