@@ -4,6 +4,7 @@
 #
 
 $ErrorActionPreference = "Stop"
+$GithubRepo = "tfournet/rewst-deck-builder"
 
 function Write-Info($msg)  { Write-Host "  [OK] " -ForegroundColor Green -NoNewline; Write-Host $msg }
 function Write-Warn($msg)  { Write-Host "  [!!] " -ForegroundColor Yellow -NoNewline; Write-Host $msg }
@@ -50,9 +51,8 @@ if (-not $hasNode) {
 
 # ── DeckWing ──────────────────────────────────────────────────────────
 
-# TODO: Update org name when repo is published
 Write-Step "Installing DeckWing..."
-npm install -g github:rewst-io/deckwing
+npm install -g "github:$GithubRepo"
 Write-Info "DeckWing installed"
 
 # ── Claude Code (for AI chat) ────────────────────────────────────────
