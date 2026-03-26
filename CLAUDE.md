@@ -1,47 +1,33 @@
-# Claude Code Instructions - Rewst Deck Builder
+# Claude Code Instructions — DeckWing
 
-## Project Overview
+Read CONTRIBUTING.md first. It has the full project guide. This file adds AI-specific rules.
 
-AI-powered presentation builder for Rewst internal team. Generates on-brand slide decks through a conversational interface.
+## Protected Files — Do NOT Modify Without Approval
 
-### Architecture
+- `server/ai/chat-engine.js` — AI API integration
+- `server/ai/claude-oauth.js` — OAuth authentication flow
+- `server/ai/find-claude.js` — Claude binary discovery
+- `server/app.js` — Express routes and auth
+- `shared/schema/slide-schema.js` — Schema validation (createSlide, validateSlide, etc.)
+- `src/engine/` — Renderer and all export pipelines
+- `src/hooks/` — React hooks
+- `src/store/` — Data persistence
+- `electron/` — Desktop app packaging
+- `.github/` — CI/CD pipelines
+- `bin/`, `scripts/` — CLI and install scripts
 
-- **Frontend:** React 18 + Vite + Tailwind CSS
-- **Backend:** Express.js API + Anthropic Claude SDK
-- **Data model:** JSON slide schema (see `src/schema/slide-schema.js`)
-- **Rendering:** Schema-driven renderer maps JSON to React components (see `src/engine/renderer.jsx`)
-
-### Key Directories
-
-- `src/schema/` - Slide data model and validation
-- `src/engine/` - Schema-to-component renderer
-- `src/config/` - Themes, colors, tokens, typography (ported from Rewst brand guidelines)
-- `src/components/ui/` - Reusable UI components (Card, Badge, CodeBlock, etc.)
-- `src/components/editor/` - Editor UI components (TODO)
-- `src/components/chat/` - AI chat interface components (TODO)
-- `server/` - Express API backend
-
-### Design System
-
-All visual design follows Rewst brand guidelines:
-- **Bot Teal (#1EAFAF):** Primary accent - 50% usage
-- **Ops Indigo (#141121):** Dark backgrounds - 15%
-- **Trigger Amber (#F9A100):** Highlights - 10%
-- **Alert Coral (#F15B5B):** Warnings - 5%
-- **Cloud Gray (#E6E6E6):** Neutrals - 20%
-
-Typography: Goldplay (display) + Montserrat (body)
-
-### Slide Types
-
-Supported: `title`, `content`, `grid`, `image`, `quote`, `metric`, `section`, `blank`
-
-Each type has required/optional fields defined in the schema. The AI generates JSON conforming to this schema.
-
-### Running
+## Before Committing
 
 ```bash
-npm run dev       # Frontend (port 3000)
-npm run server    # Backend (port 3001)
-npm run dev:full  # Both concurrently
+npm test        # Must pass
+npm run build   # Must succeed
 ```
+
+If either fails, fix or revert. Do not commit broken code.
+
+## Rules for AI Assistants
+
+- Don't add npm packages without asking — they affect bundle size and Electron builds.
+- Don't rename files or change exported function signatures without checking all importers.
+- Don't modify `dist/` or `package-lock.json` — both are auto-generated.
+- Don't tag releases without being asked. Tags trigger CI builds and Electron releases.
