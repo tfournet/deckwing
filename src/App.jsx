@@ -39,19 +39,50 @@ export default function App() {
   const [exporting, setExporting] = useState(false);
   const [authState, setAuthState] = useState(null); // null = loading, object = result
   const [loginMessage, setLoginMessage] = useState(null);
+  const [oauthUrl, setOauthUrl] = useState(null);
   const [polling, setPolling] = useState(false);
   const saveTimerRef = useRef(null);
   const slideContainerRef = useRef(null);
+  const authPollIntervalRef = useRef(null);
+  const authPollTimeoutRef = useRef(null);
 
   const currentSlide = deck.slides[currentSlideIndex];
 
+  const refreshHealth = useCallback(async () => {
+    try {
+      const response = await fetch('/api/health');
+      const data = await response.json();
+      setAuthState(data.auth);
+      return data.auth;
+    } catch {
+      const fallback = { authenticated: false, error: 'Cannot reach server' };
+      setAuthState(fallback);
+      return fallback;
+    }
+  }, []);
+
+  const stopAuthPolling = useCallback(() => {
+    if (authPollIntervalRef.current) {
+      clearInterval(authPollIntervalRef.current);
+      authPollIntervalRef.current = null;
+    }
+
+    if (authPollTimeoutRef.current) {
+      clearTimeout(authPollTimeoutRef.current);
+      authPollTimeoutRef.current = null;
+    }
+
+    setPolling(false);
+  }, []);
+
   // Check auth on mount
   useEffect(() => {
-    fetch('/api/health')
-      .then(r => r.json())
-      .then(data => setAuthState(data.auth))
-      .catch(() => setAuthState({ authenticated: false, error: 'Cannot reach server' }));
-  }, []);
+    refreshHealth();
+  }, [refreshHealth]);
+
+  useEffect(() => () => {
+    stopAuthPolling();
+  }, [stopAuthPolling]);
 
   // Auto-save with debounce
   useEffect(() => {
@@ -241,43 +272,80 @@ export default function App() {
     }
   }, [deck, exporting]);
 
+  const startLogin = useCallback(async () => {
+    stopAuthPolling();
+    setLoginMessage('Preparing Claude sign-in...');
+    setOauthUrl(null);
+
+    try {
+      const response = await fetch('/api/auth/start', { method: 'POST' });
+      const data = await response.json();
+
+      if (!response.ok || !data.ok || !data.state || !data.oauthUrl) {
+        setLoginMessage(data.error || 'Could not start login. Is the server running?');
+        return;
+      }
+
+      setOauthUrl(data.oauthUrl);
+      setLoginMessage('Open the Claude sign-in page, then complete sign-in in your browser.');
+      setPolling(true);
+
+      authPollIntervalRef.current = setInterval(async () => {
+        try {
+          const statusResponse = await fetch(`/api/auth/status/${encodeURIComponent(data.state)}`);
+          const statusData = await statusResponse.json();
+
+          if (!statusData.ok) {
+            stopAuthPolling();
+            setOauthUrl(null);
+            setLoginMessage(statusData.error || 'Could not check Claude sign-in status.');
+            return;
+          }
+
+          if (statusData.status === 'pending') {
+            return;
+          }
+
+          stopAuthPolling();
+
+          if (statusData.status === 'error') {
+            setOauthUrl(null);
+            setLoginMessage(statusData.error || 'Claude sign-in did not complete.');
+            return;
+          }
+
+          setLoginMessage('Claude sign-in completed. Verifying session...');
+          const auth = await refreshHealth();
+          if (auth && auth.authenticated) {
+            setOauthUrl(null);
+            setLoginMessage(null);
+            return;
+          }
+
+          setOauthUrl(null);
+          setLoginMessage('Claude sign-in completed, but DeckWing could not verify the local session yet. Click Check Again.');
+        } catch {
+          stopAuthPolling();
+          setOauthUrl(null);
+          setLoginMessage('Lost connection while checking Claude sign-in status.');
+        }
+      }, 2000);
+
+      authPollTimeoutRef.current = setTimeout(() => {
+        stopAuthPolling();
+        setOauthUrl(null);
+        setLoginMessage('Claude sign-in timed out. Please try again.');
+      }, 125000);
+    } catch {
+      stopAuthPolling();
+      setOauthUrl(null);
+      setLoginMessage('Could not start login. Is the server running?');
+    }
+  }, [refreshHealth, stopAuthPolling]);
+
   // ── Auth gate ───────────────────────────────────────────────────────
 
   if (authState && !authState.authenticated) {
-    const startLogin = async () => {
-      setLoginMessage('Connecting to Claude...');
-      try {
-        const res = await fetch('/api/auth/login', { method: 'POST' });
-        const data = await res.json();
-
-        if (data.oauthUrl) {
-          setLoginMessage(data.oauthUrl);
-        } else {
-          setLoginMessage(data.message);
-        }
-
-        setPolling(true);
-
-        // Poll until authenticated
-        const poll = setInterval(async () => {
-          try {
-            const healthRes = await fetch('/api/health');
-            const healthData = await healthRes.json();
-            if (healthData.auth?.authenticated) {
-              clearInterval(poll);
-              setPolling(false);
-              setAuthState(healthData.auth);
-            }
-          } catch {}
-        }, 2000);
-
-        // Stop polling after 2 minutes
-        setTimeout(() => { clearInterval(poll); setPolling(false); }, 120000);
-      } catch {
-        setLoginMessage('Could not start login. Is the server running?');
-      }
-    };
-
     const hasClaude = authState.claudeInstalled || !authState.error?.includes('not found');
 
     return (
@@ -290,17 +358,10 @@ export default function App() {
 
           {hasClaude ? (
             <>
-              {!polling ? (
-                <button
-                  className="btn-primary text-sm px-8 py-3 w-full"
-                  onClick={startLogin}
-                >
-                  Sign in with Claude
-                </button>
-              ) : loginMessage?.startsWith('https://') ? (
+              {oauthUrl ? (
                 <>
                   <a
-                    href={loginMessage}
+                    href={oauthUrl}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="btn-primary text-sm px-8 py-3 w-full block text-center"
@@ -311,7 +372,7 @@ export default function App() {
                     Sign in on the Claude page. This screen will update automatically when you're done.
                   </p>
                 </>
-              ) : (
+              ) : polling ? (
                 <>
                   <button className="btn-primary text-sm px-8 py-3 w-full opacity-80" disabled>
                     Waiting for sign in...
@@ -320,7 +381,18 @@ export default function App() {
                     Complete the sign-in in your browser, then come back here.
                   </p>
                 </>
+              ) : (
+                <button
+                  className="btn-primary text-sm px-8 py-3 w-full"
+                  onClick={startLogin}
+                >
+                  Sign in with Claude
+                </button>
               )}
+
+              {loginMessage ? (
+                <p className="text-cloud-gray-300 text-xs">{loginMessage}</p>
+              ) : null}
             </>
           ) : (
             <>
@@ -332,12 +404,12 @@ export default function App() {
               </div>
               <button
                 className="btn-primary text-sm px-6 py-2"
-                onClick={() => {
+                onClick={async () => {
+                  stopAuthPolling();
+                  setLoginMessage(null);
+                  setOauthUrl(null);
                   setAuthState(null);
-                  fetch('/api/health')
-                    .then(r => r.json())
-                    .then(data => setAuthState(data.auth))
-                    .catch(() => setAuthState({ authenticated: false, error: 'Cannot reach server' }));
+                  await refreshHealth();
                 }}
               >
                 Check Again

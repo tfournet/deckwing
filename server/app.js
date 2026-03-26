@@ -6,6 +6,7 @@ import { existsSync, readFileSync } from 'fs';
 import { join } from 'path';
 import { homedir } from 'os';
 import { chat, resetSession } from './ai/chat-engine.js';
+import { startOAuthFlow, getOAuthStatus, cleanupOAuthSessions } from './ai/claude-oauth.js';
 import { findClaudeBinary, checkClaudeVersion } from './ai/find-claude.js';
 
 const execFileAsync = promisify(execFile);
@@ -106,81 +107,24 @@ app.get('/api/health', async (req, res) => {
   res.json({ status: 'ok', service: 'deckwing', auth });
 });
 
-/**
- * Trigger Claude Code login flow.
- * Spawns `claude auth login` which opens the Anthropic OAuth page
- * in the user's default browser. The frontend polls /api/health
- * until auth succeeds.
- */
-let loginInProgress = false;
-
-app.post('/api/auth/login', async (req, res) => {
-  if (process.env.ANTHROPIC_API_KEY) {
-    return res.json({ ok: true, message: 'Already authenticated via API key' });
-  }
-
-  // Check if already logged in
-  const current = await checkClaudeAuth();
-  if (current.authenticated) {
-    return res.json({ ok: true, message: 'Already authenticated' });
-  }
-
-  if (loginInProgress) {
-    return res.json({ ok: true, message: 'Login already in progress — complete it in your browser' });
-  }
-
-  loginInProgress = true;
-
-  // Spawn claude auth login — this opens the browser to Anthropic's login page
-  const claudeBinForLogin = findClaudeBinary({ skipCache: true });
-  if (!claudeBinForLogin) {
-    loginInProgress = false;
-    return res.status(500).json({
-      ok: false,
-      error: 'Claude Code not found. Install it with: curl -fsSL https://claude.ai/install.sh | sh',
-    });
-  }
-
+// Claude OAuth start + status endpoints
+app.post('/api/auth/start', async (req, res) => {
   try {
-    // Capture the OAuth URL from claude's stdout so the frontend can open it
-    const child = execFile(claudeBinForLogin, ['auth', 'login'], {
-      timeout: 120000,
-    }, () => {
-      loginInProgress = false;
-    });
-
-    // Wait briefly for claude to output the OAuth URL
-    let oauthUrl = null;
-    await new Promise((resolve) => {
-      let output = '';
-      child.stdout?.on('data', (chunk) => {
-        output += chunk.toString();
-        const match = output.match(/https:\/\/claude\.com\/[^\s]+/);
-        if (match) {
-          oauthUrl = match[0];
-          resolve();
-        }
-      });
-      // Don't wait forever — resolve after 5s even without URL
-      setTimeout(resolve, 5000);
-    });
-
-    child.unref();
-
-    res.json({
-      ok: true,
-      oauthUrl,
-      message: oauthUrl
-        ? 'Sign in with your Claude account to continue.'
-        : 'Login started — check your browser for the sign-in page.',
-    });
+    cleanupOAuthSessions();
+    const result = await startOAuthFlow();
+    res.json({ ok: true, state: result.state, oauthUrl: result.oauthUrl });
   } catch (err) {
-    loginInProgress = false;
     res.status(500).json({
       ok: false,
-      error: 'Could not start login flow. Is Claude Code installed?',
+      error: err instanceof Error ? err.message : 'Could not start Claude sign-in.',
     });
   }
+});
+
+app.get('/api/auth/status/:state', (req, res) => {
+  cleanupOAuthSessions();
+  const result = getOAuthStatus(req.params.state);
+  res.json({ ok: true, status: result.status, error: result.error });
 });
 
 // AI chat endpoint — generates and modifies slide decks via conversation
@@ -199,7 +143,7 @@ app.post('/api/chat', async (req, res) => {
     const result = await chat({
       sessionId,
       message: message.trim(),
-      deck: deck ?? null,
+      deck: deck == null ? null : deck,
       currentSlideIndex: Number.isFinite(currentSlideIndex) && currentSlideIndex >= 0
         ? Math.floor(currentSlideIndex)
         : 0,
