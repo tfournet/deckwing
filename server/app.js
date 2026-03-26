@@ -6,6 +6,7 @@ import { existsSync, readFileSync } from 'fs';
 import { join } from 'path';
 import { homedir } from 'os';
 import { chat, resetSession } from './ai/chat-engine.js';
+import { findClaudeBinary } from './ai/find-claude.js';
 
 const execFileAsync = promisify(execFile);
 
@@ -24,20 +25,24 @@ async function checkClaudeAuth() {
     return { authenticated: true, method: 'api_key' };
   }
 
-  // First, try the CLI (works when claude is in PATH)
-  try {
-    const { stdout } = await execFileAsync('claude', ['auth', 'status'], {
-      timeout: 5000,
-    });
-    const status = JSON.parse(stdout);
-    return {
-      authenticated: !!status.loggedIn,
-      method: status.authMethod || null,
-      email: status.email || null,
-      loginCommand: status.loggedIn ? null : 'claude auth login',
-    };
-  } catch {
-    // CLI not in PATH — fall back to checking credentials file directly
+  // Try the CLI — use findClaudeBinary to locate it even if not in PATH
+  const claudeBin = findClaudeBinary();
+  if (claudeBin) {
+    try {
+      const { stdout } = await execFileAsync(claudeBin, ['auth', 'status'], {
+        timeout: 5000,
+      });
+      const status = JSON.parse(stdout);
+      return {
+        authenticated: !!status.loggedIn,
+        method: status.authMethod || null,
+        email: status.email || null,
+        claudeInstalled: true,
+        loginCommand: status.loggedIn ? null : 'claude auth login',
+      };
+    } catch {
+      // CLI found but auth check failed — fall through to credentials file
+    }
   }
 
   // Check the credentials file — works even when claude isn't in PATH
@@ -114,8 +119,17 @@ app.post('/api/auth/login', async (req, res) => {
   loginInProgress = true;
 
   // Spawn claude auth login — this opens the browser to Anthropic's login page
+  const claudeBinForLogin = findClaudeBinary();
+  if (!claudeBinForLogin) {
+    loginInProgress = false;
+    return res.status(500).json({
+      ok: false,
+      error: 'Claude Code not found. Install it with: npm install -g @anthropic-ai/claude-code',
+    });
+  }
+
   try {
-    const child = execFile('claude', ['auth', 'login'], {
+    const child = execFile(claudeBinForLogin, ['auth', 'login'], {
       timeout: 120000, // 2 minute timeout
     }, () => {
       loginInProgress = false;

@@ -9,6 +9,7 @@
 
 import { SYSTEM_PROMPT } from './system-prompt.js';
 import { validateSlide } from '../../shared/schema/slide-schema.js';
+import { findClaudeBinary } from './find-claude.js';
 
 const MODEL = 'claude-sonnet-4-6-20250514';
 const MAX_TOKENS = 8192;
@@ -16,13 +17,19 @@ const MAX_TOKENS = 8192;
 // Determine auth mode at startup
 const HAS_API_KEY = !!process.env.ANTHROPIC_API_KEY;
 let directClient = null;
+let claudePath = null;
 
 if (HAS_API_KEY) {
   const { default: Anthropic } = await import('@anthropic-ai/sdk');
   directClient = new Anthropic();
   console.log('  AI ready (API key)');
 } else {
-  console.log('  AI ready (using your Claude account)');
+  claudePath = findClaudeBinary();
+  if (claudePath) {
+    console.log(`  AI ready (using your Claude account)`);
+  } else {
+    console.log('  AI not available — Claude Code not found');
+  }
 }
 
 /**
@@ -183,13 +190,20 @@ async function callAgentSDK(messages) {
 
   let fullResponse = '';
 
+  const sdkOptions = {
+    systemPrompt: SYSTEM_PROMPT,
+    allowedTools: ['WebSearch', 'WebFetch'],
+    maxTurns: 3,
+  };
+
+  // Tell the SDK where to find claude if it's not in PATH
+  if (claudePath) {
+    sdkOptions.pathToClaudeCodeExecutable = claudePath;
+  }
+
   for await (const message of query({
     prompt: fullPrompt,
-    options: {
-      systemPrompt: SYSTEM_PROMPT,
-      allowedTools: ['WebSearch', 'WebFetch'],
-      maxTurns: 3,
-    },
+    options: sdkOptions,
   })) {
     if (message.type === 'assistant' && message.message?.content) {
       for (const block of message.message.content) {
