@@ -18,7 +18,7 @@ const SCOPES = [
 ].join(' ');
 const CALLBACK_HOST = 'localhost';
 const CALLBACK_PATH = '/callback';
-const CALLBACK_TIMEOUT_MS = 2 * 60 * 1000;
+const CALLBACK_TIMEOUT_MS = 5 * 60 * 1000; // 5 minutes — users may be slow
 const SESSION_RETENTION_MS = 10 * 60 * 1000;
 
 const oauthSessions = new Map();
@@ -174,6 +174,7 @@ function createCallbackServer(state) {
   }
 
   const server = http.createServer(async (req, res) => {
+    console.log(`  [oauth] Callback received: ${req.url}`);
     const requestUrl = new URL(req.url || '/', `http://${CALLBACK_HOST}`);
 
     if (requestUrl.pathname !== CALLBACK_PATH) {
@@ -284,7 +285,10 @@ async function startOAuthFlow() {
 
   session.server = server;
   session.redirectUri = authInfo.redirectUri;
+  console.log(`  [oauth] Callback server listening on port ${port}`);
+
   session.timeoutHandle = setTimeout(() => {
+    console.log(`  [oauth] Callback timed out after ${CALLBACK_TIMEOUT_MS / 1000}s`);
     finalizeSession(state, {
       status: 'error',
       error: 'Claude sign-in timed out before completion.',
