@@ -17,7 +17,7 @@ import { ChatMessage, TypingIndicator } from './ChatMessage';
  * @param {function} props.onResetChat - Called to reset conversation
  * @param {function} props.onClose - Called when close button clicked
  */
-export function ChatPanel({ messages, isLoading, onSendMessage, onResetChat, onClose }) {
+export function ChatPanel({ messages, isLoading, onSendMessage, onResetChat, onClose, models, selectedModel, onModelChange }) {
   const [inputValue, setInputValue] = useState('');
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
@@ -62,6 +62,18 @@ export function ChatPanel({ messages, isLoading, onSendMessage, onResetChat, onC
           </span>
           {isLoading && (
             <Loader2 size={11} className="text-bot-teal-400 animate-spin" />
+          )}
+          {models && models.length > 0 && (
+            <select
+              className="bg-ops-indigo-800 border border-ops-indigo-600/50 rounded px-1.5 py-0.5 text-[10px] text-cloud-gray-300 cursor-pointer focus:outline-none focus:border-bot-teal-400/50 ml-2"
+              value={selectedModel}
+              onChange={(e) => onModelChange(e.target.value)}
+              title="AI model"
+            >
+              {models.map(m => (
+                <option key={m.id} value={m.id}>{m.label}</option>
+              ))}
+            </select>
           )}
         </div>
         <div className="flex items-center gap-1">

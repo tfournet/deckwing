@@ -72,17 +72,6 @@ function MainLayout() {
         </button>
         <span className="text-cloud-gray-500 text-sm">|</span>
         <input className="bg-transparent text-cloud-gray-200 text-sm font-medium focus:outline-none focus:text-white flex-1 max-w-md" value={deck.title} onChange={(e) => setDeck(prev => ({ ...prev, title: e.target.value }))} />
-        {/* Model selector */}
-        <select
-          className="bg-ops-indigo-800 border border-ops-indigo-600/50 rounded px-2 py-1.5 text-xs text-cloud-gray-200 cursor-pointer focus:outline-none focus:border-bot-teal-400/50"
-          value={selectedModel}
-          onChange={(e) => setSelectedModel(e.target.value)}
-          title="AI model"
-        >
-          {MODELS.map(m => (
-            <option key={m.id} value={m.id}>{m.label}</option>
-          ))}
-        </select>
         <div className="flex-1" />
         {/* Export dropdown */}
         <div className="relative">
@@ -181,6 +170,9 @@ function MainLayout() {
             onSendMessage={sendMessage}
             onResetChat={resetChat}
             onClose={() => setChatOpen(false)}
+            models={MODELS}
+            selectedModel={selectedModel}
+            onModelChange={setSelectedModel}
           />
         )}
       </div>
