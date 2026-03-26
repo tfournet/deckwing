@@ -6,6 +6,7 @@ import { existsSync, readFileSync } from 'fs';
 import { join } from 'path';
 import { homedir } from 'os';
 import { chat, resetSession } from './ai/chat-engine.js';
+import { reviewDeck } from './ai/review-agent.js';
 import { startOAuthFlow, getOAuthStatus, cleanupOAuthSessions } from './ai/claude-oauth.js';
 import { findClaudeBinary, checkClaudeVersion } from './ai/find-claude.js';
 
@@ -171,6 +172,18 @@ app.post('/api/chat/reset', (req, res) => {
 
   resetSession(sessionId);
   res.json({ ok: true });
+});
+
+// Deck review — local schema analysis, no AI call
+app.post('/api/deck/review', (req, res) => {
+  const { deck } = req.body;
+
+  if (!deck || !Array.isArray(deck.slides)) {
+    return res.status(400).json({ error: 'deck with slides array is required' });
+  }
+
+  const result = reviewDeck(deck);
+  res.json(result);
 });
 
 // Deck CRUD (localStorage for MVP, DB later)
