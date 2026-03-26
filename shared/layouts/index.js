@@ -1,28 +1,24 @@
-import { createRequire } from 'module';
-
-const require = createRequire(import.meta.url);
-
-const singleCenter = require('./single-center.json');
-const twoColumn = require('./two-column.json');
-const fourColumn = require('./four-column.json');
-const dashboard = require('./dashboard.json');
-const comparison = require('./comparison.json');
-const imageLeft = require('./image-left.json');
-const twoColumnWideLeft = require('./two-column-wide-left.json');
-const twoColumnWideRight = require('./two-column-wide-right.json');
-const threeColumn = require('./three-column.json');
-const topBottom = require('./top-bottom.json');
-const imageRight = require('./image-right.json');
-const timeline4 = require('./timeline-4.json');
-const timeline6 = require('./timeline-6.json');
-const quoteContext = require('./quote-context.json');
-const featureGrid2x2 = require('./feature-grid-2x2.json');
-const featureGrid2x3 = require('./feature-grid-2x3.json');
-const heroSidebar = require('./hero-sidebar.json');
-const comparisonTable = require('./comparison-table.json');
-const logoWall = require('./logo-wall.json');
-const annotatedImage = require('./annotated-image.json');
-const quadrant = require('./quadrant.json');
+import singleCenter from './single-center.json' with { type: 'json' };
+import twoColumn from './two-column.json' with { type: 'json' };
+import fourColumn from './four-column.json' with { type: 'json' };
+import dashboard from './dashboard.json' with { type: 'json' };
+import comparison from './comparison.json' with { type: 'json' };
+import imageLeft from './image-left.json' with { type: 'json' };
+import twoColumnWideLeft from './two-column-wide-left.json' with { type: 'json' };
+import twoColumnWideRight from './two-column-wide-right.json' with { type: 'json' };
+import threeColumn from './three-column.json' with { type: 'json' };
+import topBottom from './top-bottom.json' with { type: 'json' };
+import imageRight from './image-right.json' with { type: 'json' };
+import timeline4 from './timeline-4.json' with { type: 'json' };
+import timeline6 from './timeline-6.json' with { type: 'json' };
+import quoteContext from './quote-context.json' with { type: 'json' };
+import featureGrid2x2 from './feature-grid-2x2.json' with { type: 'json' };
+import featureGrid2x3 from './feature-grid-2x3.json' with { type: 'json' };
+import heroSidebar from './hero-sidebar.json' with { type: 'json' };
+import comparisonTable from './comparison-table.json' with { type: 'json' };
+import logoWall from './logo-wall.json' with { type: 'json' };
+import annotatedImage from './annotated-image.json' with { type: 'json' };
+import quadrant from './quadrant.json' with { type: 'json' };
 
 const layouts = [
   singleCenter,
