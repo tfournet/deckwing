@@ -1,6 +1,6 @@
 {
   "name": "deckwing",
-  "version": "0.5.1",
+  "version": "0.6.0",
   "description": "AI-powered presentation builder for Rewst",
   "type": "module",
   "bin": {
@@ -96,19 +96,22 @@
       "target": [
         "nsis"
       ],
-      "icon": null
+      "icon": null,
+      "artifactName": "DeckWing-Setup.${ext}"
     },
     "mac": {
       "target": [
         "dmg"
       ],
-      "category": "public.app-category.productivity"
+      "category": "public.app-category.productivity",
+      "artifactName": "DeckWing.${ext}"
     },
     "linux": {
       "target": [
         "AppImage"
       ],
-      "category": "Office"
+      "category": "Office",
+      "artifactName": "DeckWing.${ext}"
     },
     "nsis": {
       "oneClick": true,

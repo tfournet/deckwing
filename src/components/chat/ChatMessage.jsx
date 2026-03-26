@@ -72,7 +72,7 @@ export function TypingIndicator() {
       <div className="flex flex-col gap-1 min-w-0">
         <div className="flex items-center gap-1.5 mb-0.5">
           <Bot size={11} className="text-bot-teal-400 shrink-0" />
-          <span className="text-cloud-gray-500 text-xs font-medium">AI Assistant</span>
+          <span className="text-cloud-gray-500 text-xs font-medium">Deckster</span>
         </div>
         <div className="bg-ops-indigo-800/60 border border-ops-indigo-600/30 rounded-lg px-3 py-2.5 inline-flex items-center gap-1">
           <span
@@ -127,7 +127,7 @@ export function ChatMessage({ message }) {
       <div className="flex flex-col gap-1 min-w-0 flex-1">
         <div className="flex items-center gap-1.5 mb-0.5">
           <Bot size={11} className="text-bot-teal-400 shrink-0" />
-          <span className="text-cloud-gray-500 text-xs font-medium">AI Assistant</span>
+          <span className="text-cloud-gray-500 text-xs font-medium">Deckster</span>
           <span className="text-cloud-gray-700 text-xs tabular-nums ml-auto">
             {formatRelativeTime(message.timestamp)}
           </span>

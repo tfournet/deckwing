@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { DEFAULT_MODEL } from '../../shared/models.js';
+import { DEFAULT_MODEL, resolveModelId } from '../../shared/models.js';
 
 // Must set API key before chat-engine.js evaluates its top-level code
 const { mockCreate } = vi.hoisted(() => {
@@ -143,7 +143,7 @@ describe('chat', () => {
     });
 
     expect(mockCreate).toHaveBeenCalledWith(expect.objectContaining({
-      model: DEFAULT_MODEL,
+      model: resolveModelId(DEFAULT_MODEL),
     }));
   });
 });

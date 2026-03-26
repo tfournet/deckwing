@@ -12,7 +12,7 @@ import { join } from 'path';
 import { SYSTEM_PROMPT } from './system-prompt.js';
 import { validateSlide } from '../../shared/schema/slide-schema.js';
 import { findClaudeBinary } from './find-claude.js';
-import { DEFAULT_MODEL } from '../../shared/models.js';
+import { DEFAULT_MODEL, resolveModelId } from '../../shared/models.js';
 
 /**
  * Find Git Bash on Windows — required by Claude Code.
@@ -187,7 +187,7 @@ function buildUserMessage(message, deck, currentSlideIndex) {
  */
 async function callDirectAPI(messages, model = DEFAULT_MODEL) {
   const response = await directClient.messages.create({
-    model,
+    model: resolveModelId(model),
     max_tokens: MAX_TOKENS,
     system: SYSTEM_PROMPT,
     messages,

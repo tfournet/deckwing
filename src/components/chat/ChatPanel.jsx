@@ -55,28 +55,17 @@ export function ChatPanel({ messages, isLoading, onSendMessage, onResetChat, onC
   return (
     <aside className="w-96 bg-ops-indigo-900/50 border-l border-ops-indigo-700/30 flex flex-col shrink-0">
       {/* Panel header */}
-      <div className="h-10 px-3 border-b border-ops-indigo-700/30 flex items-center justify-between shrink-0">
-        <div className="flex items-center gap-2">
-          <span className="text-cloud-gray-400 text-xs font-bold uppercase tracking-wider">
-            AI Assistant
-          </span>
-          {isLoading && (
-            <Loader2 size={11} className="text-bot-teal-400 animate-spin" />
-          )}
-          {models && models.length > 0 && (
-            <select
-              className="bg-ops-indigo-800 border border-ops-indigo-600/50 rounded px-1.5 py-0.5 text-[10px] text-cloud-gray-300 cursor-pointer focus:outline-none focus:border-bot-teal-400/50 ml-2"
-              value={selectedModel}
-              onChange={(e) => onModelChange(e.target.value)}
-              title="AI model"
-            >
-              {models.map(m => (
-                <option key={m.id} value={m.id}>{m.label}</option>
-              ))}
-            </select>
-          )}
-        </div>
-        <div className="flex items-center gap-1">
+      <div className="px-3 py-2 border-b border-ops-indigo-700/30 shrink-0 space-y-1.5">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span className="text-cloud-gray-400 text-xs font-bold uppercase tracking-wider">
+              Deckster
+            </span>
+            {isLoading && (
+              <Loader2 size={11} className="text-bot-teal-400 animate-spin" />
+            )}
+          </div>
+          <div className="flex items-center gap-1">
           {!isEmpty && (
             <button
               className="text-cloud-gray-600 hover:text-cloud-gray-300 transition-colors p-1 rounded"
@@ -93,7 +82,22 @@ export function ChatPanel({ messages, isLoading, onSendMessage, onResetChat, onC
           >
             <span className="text-base leading-none">&times;</span>
           </button>
+          </div>
         </div>
+        {models && models.length > 0 && (
+          <div className="flex items-center justify-end gap-2">
+            <span className="text-cloud-gray-500 text-xs">Model</span>
+            <select
+              className="bg-ops-indigo-800 border border-ops-indigo-600/50 rounded px-2 py-1 text-xs text-cloud-gray-200 cursor-pointer focus:outline-none focus:border-bot-teal-400/50 flex-1"
+              value={selectedModel}
+              onChange={(e) => onModelChange(e.target.value)}
+            >
+              {models.map(m => (
+                <option key={m.id} value={m.id}>{m.label} — {m.description}</option>
+              ))}
+            </select>
+          </div>
+        )}
       </div>
 
       {/* Message list */}

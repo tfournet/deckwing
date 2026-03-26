@@ -109,7 +109,7 @@ function MainLayout() {
         </div>
         <button className="btn-secondary text-sm flex items-center gap-2" onClick={() => setChatOpen(!chatOpen)}>
           <MessageSquare size={16} />
-          AI Chat
+          Deckster
         </button>
         <button className="btn-primary text-sm flex items-center gap-2" onClick={() => setPresentMode(true)}>
           <Play size={16} />

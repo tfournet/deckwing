@@ -2,7 +2,19 @@
 
 AI-powered presentation builder for Rewst. Describe what you want, get on-brand slides instantly, refine through conversation, present anywhere.
 
-## Quick Install
+## Install
+
+### Desktop App (recommended)
+
+| Platform | Download |
+|----------|----------|
+| Windows | [DeckWing-Setup.exe](https://github.com/tfournet/deckwing/releases/latest/download/DeckWing-Setup.exe) |
+| Mac | [DeckWing.dmg](https://github.com/tfournet/deckwing/releases/latest/download/DeckWing.dmg) |
+| Linux | [DeckWing.AppImage](https://github.com/tfournet/deckwing/releases/latest/download/DeckWing.AppImage) |
+
+Double-click to install. Everything is bundled — no Node.js, no terminal, no setup.
+
+### Command Line
 
 **Mac/Linux:**
 ```bash
@@ -14,13 +26,7 @@ curl -fsSL https://github.com/tfournet/deckwing/releases/latest/download/install
 irm https://github.com/tfournet/deckwing/releases/latest/download/install.ps1 | iex
 ```
 
-**Or with npm directly (no Git required):**
-```bash
-npm install -g https://github.com/tfournet/deckwing/releases/latest/download/deckwing-0.1.0.tgz
-deckwing
-```
-
-The install scripts handle everything: Node.js, Claude Code, and the app itself.
+The install scripts handle Node.js, Claude Code, and the app.
 
 ## What It Does
 

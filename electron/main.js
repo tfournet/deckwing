@@ -83,7 +83,6 @@ function showWindow() {
 
     mainWindow.once('ready-to-show', () => {
       if (mainWindow && !mainWindow.isDestroyed()) {
-        mainWindow.maximize();
         mainWindow.show();
         mainWindow.focus();
       }
