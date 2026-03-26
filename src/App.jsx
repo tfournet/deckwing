@@ -38,6 +38,8 @@ export default function App() {
   const [deckListOpen, setDeckListOpen] = useState(false);
   const [exporting, setExporting] = useState(false);
   const [authState, setAuthState] = useState(null); // null = loading, object = result
+  const [loginMessage, setLoginMessage] = useState(null);
+  const [polling, setPolling] = useState(false);
   const saveTimerRef = useRef(null);
   const slideContainerRef = useRef(null);
 
@@ -242,37 +244,84 @@ export default function App() {
   // ── Auth gate ───────────────────────────────────────────────────────
 
   if (authState && !authState.authenticated) {
+    const startLogin = async () => {
+      setLoginMessage('Opening login page...');
+      try {
+        const res = await fetch('/api/auth/login', { method: 'POST' });
+        const data = await res.json();
+        setLoginMessage(data.message);
+        setPolling(true);
+
+        // Poll until authenticated
+        const poll = setInterval(async () => {
+          try {
+            const healthRes = await fetch('/api/health');
+            const healthData = await healthRes.json();
+            if (healthData.auth?.authenticated) {
+              clearInterval(poll);
+              setPolling(false);
+              setAuthState(healthData.auth);
+            }
+          } catch {}
+        }, 2000);
+
+        // Stop polling after 2 minutes
+        setTimeout(() => { clearInterval(poll); setPolling(false); }, 120000);
+      } catch {
+        setLoginMessage('Could not start login. Is the server running?');
+      }
+    };
+
+    const hasClaude = !authState.error?.includes('not found');
+
     return (
       <div className="w-screen h-screen bg-ops-indigo-950 flex items-center justify-center">
-        <div className="bg-ops-indigo-900 border border-ops-indigo-700/50 rounded-xl p-8 max-w-md text-center space-y-4">
-          <h1 className="font-display font-bold text-white text-xl">DeckWing</h1>
-          <div className="w-12 h-12 mx-auto rounded-full bg-trigger-amber-400/20 flex items-center justify-center">
-            <AlertTriangle size={24} className="text-trigger-amber-400" />
-          </div>
+        <div className="bg-ops-indigo-900 border border-ops-indigo-700/50 rounded-xl p-8 max-w-md text-center space-y-5">
+          <h1 className="font-display font-bold text-white text-2xl">DeckWing</h1>
           <p className="text-cloud-gray-300 text-sm">
-            {authState.error || 'Claude authentication required to use AI features.'}
+            Sign in with your Claude account to start building presentations.
           </p>
-          <div className="bg-ops-indigo-950 rounded-lg p-4">
-            <p className="text-cloud-gray-400 text-xs mb-2">Run this in your terminal:</p>
-            <code className="text-bot-teal-400 text-sm font-mono">
-              {authState.loginCommand || 'claude auth login'}
-            </code>
-          </div>
-          <p className="text-cloud-gray-500 text-xs">
-            Then refresh this page.
-          </p>
-          <button
-            className="btn-primary text-sm px-6 py-2"
-            onClick={() => {
-              setAuthState(null);
-              fetch('/api/health')
-                .then(r => r.json())
-                .then(data => setAuthState(data.auth))
-                .catch(() => setAuthState({ authenticated: false, error: 'Cannot reach server' }));
-            }}
-          >
-            Check Again
-          </button>
+
+          {hasClaude ? (
+            <>
+              <button
+                className="btn-primary text-sm px-8 py-3 w-full"
+                onClick={startLogin}
+                disabled={polling}
+              >
+                {polling ? 'Waiting for sign in...' : 'Sign in with Claude'}
+              </button>
+              {polling && (
+                <p className="text-bot-teal-400 text-xs animate-pulse">
+                  Complete the sign-in in your browser, then come back here.
+                </p>
+              )}
+              {loginMessage && !polling && (
+                <p className="text-cloud-gray-400 text-xs">{loginMessage}</p>
+              )}
+            </>
+          ) : (
+            <>
+              <div className="bg-ops-indigo-950 rounded-lg p-4 text-left space-y-2">
+                <p className="text-cloud-gray-400 text-xs">Claude Code is required. Install it first:</p>
+                <code className="text-bot-teal-400 text-sm font-mono block">
+                  npm install -g @anthropic-ai/claude-code
+                </code>
+              </div>
+              <button
+                className="btn-primary text-sm px-6 py-2"
+                onClick={() => {
+                  setAuthState(null);
+                  fetch('/api/health')
+                    .then(r => r.json())
+                    .then(data => setAuthState(data.auth))
+                    .catch(() => setAuthState({ authenticated: false, error: 'Cannot reach server' }));
+                }}
+              >
+                Check Again
+              </button>
+            </>
+          )}
         </div>
       </div>
     );

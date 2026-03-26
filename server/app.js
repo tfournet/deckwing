@@ -48,6 +48,55 @@ app.get('/api/health', async (req, res) => {
   res.json({ status: 'ok', service: 'deckwing', auth });
 });
 
+/**
+ * Trigger Claude Code login flow.
+ * Spawns `claude auth login` which opens the Anthropic OAuth page
+ * in the user's default browser. The frontend polls /api/health
+ * until auth succeeds.
+ */
+let loginInProgress = false;
+
+app.post('/api/auth/login', async (req, res) => {
+  if (process.env.ANTHROPIC_API_KEY) {
+    return res.json({ ok: true, message: 'Already authenticated via API key' });
+  }
+
+  // Check if already logged in
+  const current = await checkClaudeAuth();
+  if (current.authenticated) {
+    return res.json({ ok: true, message: 'Already authenticated' });
+  }
+
+  if (loginInProgress) {
+    return res.json({ ok: true, message: 'Login already in progress — complete it in your browser' });
+  }
+
+  loginInProgress = true;
+
+  // Spawn claude auth login — this opens the browser to Anthropic's login page
+  try {
+    const child = execFile('claude', ['auth', 'login'], {
+      timeout: 120000, // 2 minute timeout
+    }, () => {
+      loginInProgress = false;
+    });
+
+    // Don't wait for it to finish — it's interactive (waits for browser callback)
+    child.unref();
+
+    res.json({
+      ok: true,
+      message: 'Login page opened in your browser. Sign in with your Claude account, then come back here.',
+    });
+  } catch (err) {
+    loginInProgress = false;
+    res.status(500).json({
+      ok: false,
+      error: 'Could not start login flow. Is Claude Code installed?',
+    });
+  }
+});
+
 // AI chat endpoint — generates and modifies slide decks via conversation
 app.post('/api/chat', async (req, res) => {
   const { message, deck, currentSlideIndex, sessionId } = req.body;
