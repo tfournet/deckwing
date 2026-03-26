@@ -1,8 +1,23 @@
 {
   "name": "deckwing",
-  "private": true,
   "version": "0.1.0",
+  "description": "AI-powered presentation builder for Rewst",
   "type": "module",
+  "bin": {
+    "deckwing": "./bin/deckwing.js"
+  },
+  "files": [
+    "bin/",
+    "dist/",
+    "server/",
+    "shared/",
+    "src/",
+    "index.html",
+    "vite.config.js",
+    "tailwind.config.js",
+    "postcss.config.js",
+    "package.json"
+  ],
   "scripts": {
     "dev": "vite",
     "dev:full": "concurrently \"npm run server\" \"npm run dev\"",
@@ -10,8 +25,12 @@
     "build": "vite build",
     "preview": "vite preview",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "start": "node bin/deckwing.js",
+    "prepublishOnly": "npm test && npm run build"
   },
+  "keywords": ["presentation", "slides", "ai", "claude", "rewst", "msp"],
+  "license": "MIT",
   "dependencies": {
     "@anthropic-ai/claude-agent-sdk": "^0.2.84",
     "@anthropic-ai/sdk": "^0.71.2",
