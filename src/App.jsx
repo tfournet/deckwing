@@ -1,42 +1,76 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { EXAMPLE_DECK, createSlide } from './schema/slide-schema';
-import { renderSlide, SlideFrame } from './engine/renderer';
-import { getTheme, getThemeNames } from './config/themes';
-import { ChevronLeft, ChevronRight, Plus, Trash2, MessageSquare, Play, Settings } from 'lucide-react';
+import { SlideFrame } from './engine/renderer';
+import { ChevronLeft, ChevronRight, MessageSquare, Play, Save, AlertTriangle, FolderOpen, Download } from 'lucide-react';
 import { ChatPanel } from './components/chat/ChatPanel';
 import { useChat } from './hooks/useChat';
 import { SlideEditor } from './components/editor/SlideEditor';
+import { SlideOutline } from './components/editor/SlideOutline';
+import { DeckListModal } from './components/editor/DeckListModal';
+import { PresenterMode } from './components/presenter/PresenterMode';
+import { saveDeck, loadDeck } from './store/deck-store';
+import { exportDeckToPDF, downloadBlob } from './engine/export-pdf';
+
+const SAVE_DEBOUNCE_MS = 500;
 
 /**
  * Rewst Deck Builder - Main Application
  *
  * Three-panel layout:
- * - Left: Slide list / outline
- * - Center: Slide preview (live rendered)
+ * - Left: Slide outline (drag reorder, add, duplicate, delete)
+ * - Center: Slide preview (live rendered) + inline editor
  * - Right: AI chat panel (conversational builder)
  */
 export default function App() {
-  const [deck, setDeck] = useState(EXAMPLE_DECK);
+  // Load saved deck or fall back to example
+  const [deck, setDeck] = useState(() => {
+    const params = new URLSearchParams(window.location.search);
+    const deckId = params.get('deck');
+    if (deckId) {
+      const loaded = loadDeck(deckId);
+      if (loaded) return loaded;
+    }
+    return EXAMPLE_DECK;
+  });
   const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
   const [chatOpen, setChatOpen] = useState(true);
   const [presentMode, setPresentMode] = useState(false);
+  const [saveStatus, setSaveStatus] = useState('new');
+  const [deckListOpen, setDeckListOpen] = useState(false);
+  const [exporting, setExporting] = useState(false);
+  const saveTimerRef = useRef(null);
+  const slideContainerRef = useRef(null);
 
   const currentSlide = deck.slides[currentSlideIndex];
+
+  // Auto-save with debounce
+  useEffect(() => {
+    setSaveStatus('saving');
+    if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+
+    saveTimerRef.current = setTimeout(() => {
+      const deckToSave = { ...deck, updatedAt: new Date().toISOString() };
+      const result = saveDeck(deckToSave);
+      setSaveStatus(result.ok ? 'saved' : 'error');
+    }, SAVE_DEBOUNCE_MS);
+
+    return () => {
+      if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+    };
+  }, [deck]);
 
   const goToSlide = useCallback((index) => {
     setCurrentSlideIndex(Math.max(0, Math.min(index, deck.slides.length - 1)));
   }, [deck.slides.length]);
 
-  const addSlide = useCallback(() => {
-    const newSlide = createSlide('content', {
-      title: 'New Slide',
-      points: ['Add your content here'],
-    });
+  // ── Slide management callbacks for SlideOutline ────────────────────
+
+  const addSlide = useCallback((slide) => {
     setDeck(prev => ({
       ...prev,
       slides: [
         ...prev.slides.slice(0, currentSlideIndex + 1),
-        newSlide,
+        slide,
         ...prev.slides.slice(currentSlideIndex + 1),
       ],
       updatedAt: new Date().toISOString(),
@@ -44,15 +78,45 @@ export default function App() {
     setCurrentSlideIndex(prev => prev + 1);
   }, [currentSlideIndex]);
 
-  const removeSlide = useCallback(() => {
-    if (deck.slides.length <= 1) return;
+  const removeSlide = useCallback((index) => {
+    setDeck(prev => {
+      if (prev.slides.length <= 1) return prev;
+      return {
+        ...prev,
+        slides: prev.slides.filter((_, i) => i !== index),
+        updatedAt: new Date().toISOString(),
+      };
+    });
+    setCurrentSlideIndex(prev =>
+      prev >= deck.slides.length - 1 ? Math.max(0, prev - 1) : prev
+    );
+  }, [deck.slides.length]);
+
+  const duplicateSlide = useCallback((index) => {
+    setDeck(prev => {
+      const source = prev.slides[index];
+      if (!source) return prev;
+      const copy = createSlide(source.type, { ...source, id: undefined });
+      return {
+        ...prev,
+        slides: [
+          ...prev.slides.slice(0, index + 1),
+          copy,
+          ...prev.slides.slice(index + 1),
+        ],
+        updatedAt: new Date().toISOString(),
+      };
+    });
+    setCurrentSlideIndex(index + 1);
+  }, []);
+
+  const reorderSlides = useCallback((newSlides) => {
     setDeck(prev => ({
       ...prev,
-      slides: prev.slides.filter((_, i) => i !== currentSlideIndex),
+      slides: newSlides,
       updatedAt: new Date().toISOString(),
     }));
-    setCurrentSlideIndex(prev => Math.min(prev, deck.slides.length - 2));
-  }, [currentSlideIndex, deck.slides.length]);
+  }, []);
 
   const updateSlide = useCallback((index, changes) => {
     setDeck(prev => ({
@@ -64,10 +128,8 @@ export default function App() {
     }));
   }, []);
 
-  /**
-   * Apply an AI action to the deck state.
-   * @param {object} action - Action object from AI response
-   */
+  // ── AI action handler ──────────────────────────────────────────────
+
   const applyAction = useCallback((action) => {
     if (!action) return;
 
@@ -134,7 +196,6 @@ export default function App() {
       }
     });
 
-    // After deck-modifying actions, navigate sensibly
     if (action.type === 'create_deck') {
       setCurrentSlideIndex(0);
     }
@@ -150,43 +211,88 @@ export default function App() {
     onAction: applyAction,
   });
 
-  // Present mode - fullscreen single slide
+  // ── PDF export ─────────────────────────────────────────────────────
+
+  const handleExportPDF = useCallback(async () => {
+    const container = slideContainerRef.current;
+    if (!container || exporting) return;
+
+    setExporting(true);
+    try {
+      const blob = await exportDeckToPDF({
+        slideContainer: container,
+        deck,
+        defaultTheme: deck.defaultTheme,
+        onProgress: () => {},
+      });
+      downloadBlob(blob, `${deck.title || 'presentation'}.pdf`);
+    } catch (err) {
+      console.error('PDF export failed:', err);
+    } finally {
+      setExporting(false);
+    }
+  }, [deck, exporting]);
+
+  // ── Present mode ───────────────────────────────────────────────────
+
   if (presentMode) {
     return (
-      <div
-        className="w-screen h-screen cursor-none"
-        onClick={() => goToSlide(currentSlideIndex + 1)}
-        onKeyDown={(e) => {
-          if (e.key === 'ArrowRight' || e.key === ' ') goToSlide(currentSlideIndex + 1);
-          if (e.key === 'ArrowLeft') goToSlide(currentSlideIndex - 1);
-          if (e.key === 'Escape') setPresentMode(false);
-        }}
-        tabIndex={0}
-      >
-        <SlideFrame slide={currentSlide} defaultTheme={deck.defaultTheme} />
-        {/* Progress bar */}
-        <div className="fixed bottom-0 left-0 right-0 h-1 bg-black/50">
-          <div
-            className="h-full bg-bot-teal-400 transition-all duration-300"
-            style={{ width: `${((currentSlideIndex + 1) / deck.slides.length) * 100}%` }}
-          />
-        </div>
-      </div>
+      <PresenterMode
+        deck={deck}
+        initialSlideIndex={currentSlideIndex}
+        onExit={() => setPresentMode(false)}
+      />
     );
   }
+
+  // ── Main layout ────────────────────────────────────────────────────
 
   return (
     <div className="w-screen h-screen bg-ops-indigo-950 flex flex-col overflow-hidden">
       {/* Top bar */}
       <header className="h-14 bg-ops-indigo-900 border-b border-ops-indigo-700/50 flex items-center px-4 gap-4 shrink-0">
         <h1 className="font-display font-bold text-white text-lg">Rewst Deck Builder</h1>
+        <button
+          className="text-cloud-gray-400 hover:text-bot-teal-400 transition-colors p-1"
+          onClick={() => setDeckListOpen(true)}
+          title="Open / New deck"
+        >
+          <FolderOpen size={18} />
+        </button>
         <span className="text-cloud-gray-500 text-sm">|</span>
         <input
           className="bg-transparent text-cloud-gray-200 text-sm font-medium focus:outline-none focus:text-white flex-1 max-w-md"
           value={deck.title}
           onChange={(e) => setDeck(prev => ({ ...prev, title: e.target.value }))}
         />
+        {/* Save indicator */}
+        {saveStatus === 'saving' && (
+          <span className="text-cloud-gray-500 text-xs flex items-center gap-1">
+            <Save size={12} className="animate-pulse" />
+            Saving...
+          </span>
+        )}
+        {saveStatus === 'saved' && (
+          <span className="text-cloud-gray-600 text-xs flex items-center gap-1">
+            <Save size={12} />
+            Saved
+          </span>
+        )}
+        {saveStatus === 'error' && (
+          <span className="text-alert-coral-400 text-xs flex items-center gap-1">
+            <AlertTriangle size={12} />
+            Save failed
+          </span>
+        )}
         <div className="flex-1" />
+        <button
+          className="btn-secondary text-sm flex items-center gap-2"
+          onClick={handleExportPDF}
+          disabled={exporting}
+        >
+          <Download size={16} />
+          {exporting ? 'Exporting...' : 'Export PDF'}
+        </button>
         <button
           className="btn-secondary text-sm flex items-center gap-2"
           onClick={() => setChatOpen(!chatOpen)}
@@ -206,43 +312,15 @@ export default function App() {
       <div className="flex-1 flex overflow-hidden">
         {/* Left panel - Slide outline */}
         <aside className="w-56 bg-ops-indigo-900/50 border-r border-ops-indigo-700/30 flex flex-col shrink-0">
-          <div className="p-3 border-b border-ops-indigo-700/30 flex items-center justify-between">
-            <span className="text-cloud-gray-400 text-xs font-bold uppercase tracking-wider">Slides</span>
-            <button
-              className="text-cloud-gray-400 hover:text-bot-teal-400 transition-colors"
-              onClick={addSlide}
-              title="Add slide"
-            >
-              <Plus size={18} />
-            </button>
-          </div>
-          <div className="flex-1 overflow-y-auto p-2 space-y-1">
-            {deck.slides.map((slide, i) => (
-              <button
-                key={slide.id}
-                className={`w-full text-left p-2 rounded-lg text-sm transition-colors ${
-                  i === currentSlideIndex
-                    ? 'bg-bot-teal-400/20 text-bot-teal-400 border border-bot-teal-400/30'
-                    : 'text-cloud-gray-300 hover:bg-ops-indigo-800/50 border border-transparent'
-                }`}
-                onClick={() => goToSlide(i)}
-              >
-                <span className="text-xs text-cloud-gray-500 mr-2">{i + 1}</span>
-                <span className="font-medium">{slide.title || slide.type}</span>
-                <span className="block text-xs text-cloud-gray-500 ml-5 mt-0.5">{slide.type}</span>
-              </button>
-            ))}
-          </div>
-          <div className="p-2 border-t border-ops-indigo-700/30">
-            <button
-              className="w-full text-cloud-gray-500 hover:text-alert-coral-400 text-xs flex items-center justify-center gap-1 py-1 transition-colors"
-              onClick={removeSlide}
-              disabled={deck.slides.length <= 1}
-            >
-              <Trash2 size={14} />
-              Remove slide
-            </button>
-          </div>
+          <SlideOutline
+            slides={deck.slides}
+            currentIndex={currentSlideIndex}
+            onSelectSlide={goToSlide}
+            onReorderSlides={reorderSlides}
+            onAddSlide={addSlide}
+            onDuplicateSlide={duplicateSlide}
+            onRemoveSlide={removeSlide}
+          />
         </aside>
 
         {/* Center - Slide preview */}
@@ -270,7 +348,10 @@ export default function App() {
 
           {/* Slide render area */}
           <div className="flex-1 flex items-center justify-center p-8">
-            <div className="w-full max-w-5xl aspect-video rounded-xl overflow-hidden shadow-2xl shadow-black/50 border border-ops-indigo-700/30">
+            <div
+              ref={slideContainerRef}
+              className="w-full max-w-5xl aspect-video rounded-xl overflow-hidden shadow-2xl shadow-black/50 border border-ops-indigo-700/30"
+            >
               <SlideFrame slide={currentSlide} defaultTheme={deck.defaultTheme} />
             </div>
           </div>
@@ -294,6 +375,26 @@ export default function App() {
           />
         )}
       </div>
+
+      {/* Deck list modal */}
+      {deckListOpen && (
+        <DeckListModal
+          onOpenDeck={(id) => {
+            const loaded = loadDeck(id);
+            if (loaded) {
+              setDeck(loaded);
+              setCurrentSlideIndex(0);
+              setSaveStatus('saved');
+            }
+          }}
+          onNewDeck={(newDeck) => {
+            setDeck(newDeck);
+            setCurrentSlideIndex(0);
+            setSaveStatus('new');
+          }}
+          onClose={() => setDeckListOpen(false)}
+        />
+      )}
     </div>
   );
 }

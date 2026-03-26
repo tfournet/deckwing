@@ -2,28 +2,35 @@
  * Chat Engine - Rewst Deck Builder AI
  *
  * Manages Claude API calls and per-session conversation history.
- * Parses and validates AI responses before returning to the caller.
+ * Supports two auth modes:
+ *   1. Direct API (ANTHROPIC_API_KEY set) — fastest, standard
+ *   2. Claude Agent SDK (no key) — uses local Claude Code OAuth session
  */
 
-import Anthropic from '@anthropic-ai/sdk';
 import { SYSTEM_PROMPT } from './system-prompt.js';
-import { validateSlide } from '../../src/schema/slide-schema.js';
+import { validateSlide } from '../../shared/schema/slide-schema.js';
 
-const client = new Anthropic();
 const MODEL = 'claude-sonnet-4-6-20250514';
 const MAX_TOKENS = 8192;
 
+// Determine auth mode at startup
+const HAS_API_KEY = !!process.env.ANTHROPIC_API_KEY;
+let directClient = null;
+
+if (HAS_API_KEY) {
+  const { default: Anthropic } = await import('@anthropic-ai/sdk');
+  directClient = new Anthropic();
+  console.log('Chat engine: using direct Anthropic API');
+} else {
+  console.log('Chat engine: no ANTHROPIC_API_KEY found, using Claude Agent SDK (local OAuth)');
+}
+
 /**
  * In-memory conversation history keyed by session ID.
- * Each value: { messages: [...], lastActivity: Date }
  */
 const sessions = new Map();
+const SESSION_TTL_MS = 60 * 60 * 1000;
 
-const SESSION_TTL_MS = 60 * 60 * 1000; // 1 hour
-
-/**
- * Get or create a session's message history.
- */
 function getSession(sessionId) {
   if (!sessions.has(sessionId)) {
     sessions.set(sessionId, { messages: [], lastActivity: new Date() });
@@ -33,9 +40,6 @@ function getSession(sessionId) {
   return session;
 }
 
-/**
- * Remove sessions that have been idle longer than SESSION_TTL_MS.
- */
 export function cleanStaleSessions() {
   const cutoff = Date.now() - SESSION_TTL_MS;
   for (const [id, session] of sessions.entries()) {
@@ -45,20 +49,15 @@ export function cleanStaleSessions() {
   }
 }
 
-/**
- * Reset a session's conversation history.
- */
 export function resetSession(sessionId) {
   sessions.delete(sessionId);
 }
 
 /**
- * Validate all slides in an action's data, if applicable.
- * Returns an array of validation error strings. Empty array means all valid.
+ * Validate slides in an action's data.
  */
 function validateActionSlides(action) {
   const errors = [];
-
   if (!action?.data) return errors;
 
   const slidesToCheck = [];
@@ -70,8 +69,6 @@ function validateActionSlides(action) {
   } else if (action.type === 'add_slide' && action.data.slide) {
     slidesToCheck.push({ slide: action.data.slide, label: 'New slide' });
   } else if (action.type === 'update_slide' && action.data.changes) {
-    // For updates, we can only validate the changed fields partially.
-    // Require the type field to be valid if present.
     const changes = action.data.changes;
     if (changes.type) {
       const result = validateSlide({ ...changes });
@@ -89,15 +86,32 @@ function validateActionSlides(action) {
 }
 
 /**
- * Extract and parse the JSON response from Claude.
- * Claude is instructed to return raw JSON, but may occasionally wrap it.
- *
- * Returns { reply, action } or throws on unrecoverable parse failure.
+ * Extract the first balanced JSON object from a string.
+ */
+function extractJsonObject(text) {
+  const start = text.indexOf('{');
+  if (start < 0) return null;
+  let depth = 0;
+  let inString = false;
+  let escape = false;
+  for (let i = start; i < text.length; i++) {
+    const ch = text[i];
+    if (escape) { escape = false; continue; }
+    if (ch === '\\' && inString) { escape = true; continue; }
+    if (ch === '"') { inString = !inString; continue; }
+    if (inString) continue;
+    if (ch === '{') depth++;
+    if (ch === '}') { depth--; if (depth === 0) return text.substring(start, i + 1); }
+  }
+  return null;
+}
+
+/**
+ * Parse Claude's response text into { reply, action }.
  */
 function parseClaudeResponse(rawText) {
   let text = rawText.trim();
 
-  // Strip markdown code fences if Claude includes them despite instructions
   if (text.startsWith('```')) {
     text = text.replace(/^```(?:json)?\n?/, '').replace(/\n?```$/, '').trim();
   }
@@ -106,11 +120,10 @@ function parseClaudeResponse(rawText) {
   try {
     parsed = JSON.parse(text);
   } catch (parseError) {
-    // Attempt to extract the first JSON object from a mixed response
-    const jsonMatch = text.match(/\{[\s\S]*\}/);
-    if (jsonMatch) {
+    const extracted = extractJsonObject(text);
+    if (extracted) {
       try {
-        parsed = JSON.parse(jsonMatch[0]);
+        parsed = JSON.parse(extracted);
       } catch {
         throw new Error(`Claude returned malformed JSON: ${parseError.message}`);
       }
@@ -129,31 +142,65 @@ function parseClaudeResponse(rawText) {
   };
 }
 
-/**
- * Build the user message content that includes deck context.
- */
 function buildUserMessage(message, deck, currentSlideIndex) {
-  if (!deck) {
-    return message;
-  }
-
-  const context = {
-    currentDeck: deck,
-    currentSlideIndex: currentSlideIndex ?? 0,
-  };
-
+  if (!deck) return message;
+  const context = { currentDeck: deck, currentSlideIndex: currentSlideIndex ?? 0 };
   return `${message}\n\n<deck_state>\n${JSON.stringify(context, null, 2)}\n</deck_state>`;
 }
 
 /**
+ * Call Claude via direct API (fast path when API key is available).
+ */
+async function callDirectAPI(messages) {
+  const response = await directClient.messages.create({
+    model: MODEL,
+    max_tokens: MAX_TOKENS,
+    system: SYSTEM_PROMPT,
+    messages,
+  });
+
+  const text = response.content[0]?.text;
+  if (!text) throw new Error('Claude returned an empty response');
+  return text;
+}
+
+/**
+ * Call Claude via Agent SDK (uses local Claude Code OAuth session).
+ */
+async function callAgentSDK(messages) {
+  const { query } = await import('@anthropic-ai/claude-agent-sdk');
+
+  // Build a single prompt that includes conversation history
+  const historyText = messages.map(m => {
+    const role = m.role === 'user' ? 'User' : 'Assistant';
+    return `${role}: ${m.content}`;
+  }).join('\n\n');
+
+  let fullResponse = '';
+
+  for await (const message of query({
+    prompt: historyText,
+    options: {
+      systemPrompt: SYSTEM_PROMPT,
+      allowedTools: [],
+      maxTurns: 1,
+    },
+  })) {
+    if (message.type === 'assistant' && message.message?.content) {
+      for (const block of message.message.content) {
+        if (block.type === 'text') {
+          fullResponse += block.text;
+        }
+      }
+    }
+  }
+
+  if (!fullResponse) throw new Error('Claude Agent SDK returned an empty response');
+  return fullResponse;
+}
+
+/**
  * Send a message to Claude and return the parsed response.
- *
- * @param {object} params
- * @param {string} params.sessionId - Unique session identifier
- * @param {string} params.message - User's message
- * @param {object|null} params.deck - Current deck state (may be null for new sessions)
- * @param {number} params.currentSlideIndex - Currently selected slide index
- * @returns {Promise<{ reply: string, action: object|null }>}
  */
 export async function chat({ sessionId, message, deck, currentSlideIndex }) {
   const session = getSession(sessionId);
@@ -163,41 +210,26 @@ export async function chat({ sessionId, message, deck, currentSlideIndex }) {
 
   let rawResponse;
   try {
-    const response = await client.messages.create({
-      model: MODEL,
-      max_tokens: MAX_TOKENS,
-      system: SYSTEM_PROMPT,
-      messages: session.messages,
-    });
-
-    rawResponse = response.content[0]?.text;
-    if (!rawResponse) {
-      throw new Error('Claude returned an empty response');
-    }
+    rawResponse = HAS_API_KEY
+      ? await callDirectAPI(session.messages)
+      : await callAgentSDK(session.messages);
   } catch (apiError) {
-    // Remove the message we added so the session stays consistent
     session.messages.pop();
     throw new Error(`Claude API call failed: ${apiError.message}`);
   }
-
-  // Add Claude's raw response to history before parsing,
-  // so conversation continuity is preserved even if parsing fails.
-  session.messages.push({ role: 'assistant', content: rawResponse });
 
   let parsed;
   try {
     parsed = parseClaudeResponse(rawResponse);
   } catch (parseError) {
     console.error('Failed to parse Claude response:', parseError.message);
-    console.error('Raw response:', rawResponse);
-    // Return a graceful error reply with no action
-    return {
-      reply: "I had trouble formatting my response. Could you try rephrasing your request?",
-      action: null,
-    };
+    const fallbackReply = "I had trouble formatting my response. Could you try rephrasing your request?";
+    session.messages.push({ role: 'assistant', content: JSON.stringify({ reply: fallbackReply, action: null }) });
+    return { reply: fallbackReply, action: null };
   }
 
-  // Validate any slides in the action before returning
+  session.messages.push({ role: 'assistant', content: rawResponse });
+
   if (parsed.action) {
     const validationErrors = validateActionSlides(parsed.action);
     if (validationErrors.length > 0) {

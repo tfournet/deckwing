@@ -1,10 +1,11 @@
 import { useState } from 'react';
-import { ChevronDown, ChevronUp, Pencil } from 'lucide-react';
+import { ChevronDown, ChevronUp, Pencil, Code, Eye } from 'lucide-react';
 import { SLIDE_TYPES } from '../../schema/slide-schema';
 import { getThemeNames } from '../../config/themes';
 import { PointsEditor } from './PointsEditor';
 import { GridItemEditor } from './GridItemEditor';
 import { MetricsEditor } from './MetricsEditor';
+import JsonEditor from './JsonEditor';
 
 /* ── shared style tokens ───────────────────────────────────────────── */
 const INPUT_CLS =
@@ -210,8 +211,13 @@ const TYPE_FIELDS = {
  */
 export function SlideEditor({ slide, index, onUpdateSlide }) {
   const [open, setOpen] = useState(false);
+  const [jsonMode, setJsonMode] = useState(false);
 
   const update = (changes) => onUpdateSlide(index, changes);
+  const handleJsonChange = (parsed) => {
+    const { id, ...rest } = parsed;
+    onUpdateSlide(index, rest);
+  };
 
   const TypeFields = TYPE_FIELDS[slide?.type] || null;
   const themeNames = getThemeNames();
@@ -235,6 +241,17 @@ export function SlideEditor({ slide, index, onUpdateSlide }) {
         <div className="flex items-center gap-2 text-cloud-gray-300 text-sm font-display font-semibold">
           <Pencil size={14} className="text-bot-teal-400" />
           Edit Slide
+          {open && (
+            <button
+              type="button"
+              onClick={(e) => { e.stopPropagation(); setJsonMode(v => !v); }}
+              className="ml-3 flex items-center gap-1 px-2 py-0.5 rounded text-xs bg-ops-indigo-800 hover:bg-ops-indigo-700 text-cloud-gray-400 hover:text-white transition-colors"
+              title={jsonMode ? 'Visual editor' : 'JSON editor'}
+            >
+              {jsonMode ? <Eye size={12} /> : <Code size={12} />}
+              {jsonMode ? 'Visual' : 'JSON'}
+            </button>
+          )}
         </div>
         {open ? (
           <ChevronUp size={16} className="text-cloud-gray-500" />
@@ -246,6 +263,10 @@ export function SlideEditor({ slide, index, onUpdateSlide }) {
       {/* Editor body */}
       {open && (
         <div className="bg-ops-indigo-900/40 px-4 py-4 space-y-4 overflow-y-auto max-h-80">
+          {jsonMode ? (
+            <JsonEditor value={slide} onChange={handleJsonChange} mode="slide" />
+          ) : (
+          <>
           {/* Slide meta controls */}
           <div className="grid grid-cols-2 gap-3">
             <Field label="Slide Type">
@@ -293,8 +314,11 @@ export function SlideEditor({ slide, index, onUpdateSlide }) {
               className={TEXTAREA_CLS}
             />
           </Field>
+          </>
+          )}
         </div>
       )}
     </div>
   );
 }
+
