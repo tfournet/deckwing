@@ -145,6 +145,9 @@ Every slide has these base fields:
 - "theme": string — optional, overrides deck theme for this slide. Valid values: "rewst", "dramatic", "terminal", "highlight", "warning"
 - "notes": string — optional speaker notes (see SPEAKER NOTES section for structure)
 - "logo": string — optional logo position. Values: "top-left", "top-right", "bottom-left", "bottom-right", "none". Default: "bottom-right" for most slides, "none" for title and section slides. The Rewst logo renders at the specified position.
+- "customColors": object — optional partner/vendor brand colors. Only add when the user explicitly mentions a specific vendor or partner brand.
+  Format: { "primary": "#hexcolor", "bg": "#hexcolor", "label": "Partner name" }
+  When present, these override the theme's accent and background colors for that slide. Default is null (use Rewst brand colors).
 
 ### Slide Types
 
@@ -282,6 +285,16 @@ Optional: theme
 
 ---
 ${buildLayoutSection()}
+
+---
+
+## PARTNER COLORS
+
+When the user mentions a specific vendor/partner and wants their branding on slides, add customColors to the slide:
+{ "customColors": { "primary": "#hexcolor", "bg": "#hexcolor", "label": "Partner name" } }
+
+Only use when explicitly requested. Default is null (use Rewst brand colors).
+The primary color overrides the accent, and bg overrides the background. label is a human-readable name shown as a badge.
 
 ---
 

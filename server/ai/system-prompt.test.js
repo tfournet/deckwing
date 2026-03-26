@@ -25,4 +25,16 @@ describe('SYSTEM_PROMPT', () => {
     expect(SYSTEM_PROMPT).toContain('- metric: value (required), label (required), color (optional)');
     expect(SYSTEM_PROMPT).toContain('- image: src (required), fit (optional), alt (optional)');
   });
+
+  it('contains customColors in the slide schema instructions', () => {
+    expect(SYSTEM_PROMPT).toContain('"customColors"');
+  });
+
+  it('contains partner branding instructions', () => {
+    expect(SYSTEM_PROMPT).toMatch(/partner branding|partner\/vendor brand colors/i);
+  });
+
+  it('contains the customColors JSON format example', () => {
+    expect(SYSTEM_PROMPT).toContain('{ "customColors": { "primary": "#hexcolor", "bg": "#hexcolor", "label": "Partner name" } }');
+  });
 });
