@@ -1,6 +1,6 @@
 {
   "name": "deckwing",
-  "version": "0.4.1",
+  "version": "0.4.2",
   "description": "AI-powered presentation builder for Rewst",
   "type": "module",
   "bin": {

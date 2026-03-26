@@ -142,57 +142,45 @@ try {
 
 # ── Step 3: Claude Code (for AI features) ─────────────────────────────
 
-Write-Step "Step 3/3 - AI Setup (Claude)"
+Write-Step "Step 3/3 - AI Setup"
 
 $claudeDir = Join-Path $env:USERPROFILE ".deckwing" "claude"
 $claudeBin = Join-Path $claudeDir "claude.exe"
 $hasClaude = Test-Path $claudeBin
 
 if (-not $hasClaude) {
-    Write-Detail "Downloading Claude Code..."
     try {
         $gcsBucket = "https://storage.googleapis.com/claude-code-dist-86c565f3-f756-42ad-8dfa-d59b1c096819/claude-code-releases"
         if ($env:PROCESSOR_ARCHITECTURE -eq "ARM64") { $plat = "win32-arm64" } else { $plat = "win32-x64" }
 
         $latestVersion = Invoke-RestMethod -Uri "$gcsBucket/latest" -ErrorAction Stop
+        Write-Detail "Downloading Claude Code v$latestVersion..."
+
         $manifest = Invoke-RestMethod -Uri "$gcsBucket/$latestVersion/manifest.json" -ErrorAction Stop
         $checksum = $manifest.platforms.$plat.checksum
 
         New-Item -ItemType Directory -Force -Path $claudeDir | Out-Null
         $downloadUrl = "$gcsBucket/$latestVersion/$plat/claude.exe"
 
-        Invoke-WithSpinner -Label "Downloading Claude Code v$latestVersion" -Command ([scriptblock]::Create("Invoke-WebRequest -Uri '$downloadUrl' -OutFile '$claudeBin' -ErrorAction Stop")) | Out-Null
+        $ProgressPreference = 'SilentlyContinue'
+        Invoke-WebRequest -Uri $downloadUrl -OutFile $claudeBin -ErrorAction Stop
 
-        # Verify checksum
         $actualHash = (Get-FileHash -Path $claudeBin -Algorithm SHA256).Hash.ToLower()
         if ($checksum -and $actualHash -ne $checksum) {
             Remove-Item -Force $claudeBin
-            Write-Warn "Claude Code download failed checksum verification"
+            Write-Warn "Download failed checksum verification"
         } else {
-            # Run install to set up shell integration
-            Start-Process -FilePath $claudeBin -ArgumentList "install" -Wait -NoNewWindow -RedirectStandardOutput ([System.IO.Path]::GetTempFileName()) -RedirectStandardError ([System.IO.Path]::GetTempFileName()) -ErrorAction SilentlyContinue
             $hasClaude = $true
-            Write-Info "Claude Code v$latestVersion installed to $claudeDir"
+            Write-Info "Claude Code v$latestVersion installed"
         }
     } catch {
-        Write-Warn "Claude Code download failed - the app will prompt you to install it"
+        Write-Warn "Claude Code download failed - DeckWing will prompt you to install it"
     }
 }
 
 if ($hasClaude) {
-    try {
-        $authJson = (Start-Process -FilePath $claudeBin -ArgumentList "auth","status" -Wait -NoNewWindow -RedirectStandardOutput "$env:TEMP\claude-auth.json" -RedirectStandardError "$env:TEMP\claude-auth-err.txt" -PassThru -ErrorAction SilentlyContinue) | Out-Null
-        $authJson = (Get-Content "$env:TEMP\claude-auth.json" -Raw -ErrorAction SilentlyContinue) | ConvertFrom-Json
-        if ($authJson.loggedIn -eq $true) {
-            Write-Info "Claude - signed in and ready"
-        } else {
-            Write-Info "Claude - installed, sign-in needed"
-            Write-Detail "DeckWing will walk you through signing in when you open it."
-        }
-    } catch {
-        Write-Info "Claude Code - installed"
-        Write-Detail "DeckWing will walk you through signing in when you open it."
-    }
+    Write-Info "Claude Code ready"
+    Write-Detail "DeckWing will walk you through signing in when you open it."
 } else {
     Write-Warn "Claude Code not available right now"
     Write-Detail "You can install it later: npm install -g @anthropic-ai/claude-code"
