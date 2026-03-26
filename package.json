@@ -49,7 +49,7 @@
   "license": "MIT",
   "dependencies": {
     "@anthropic-ai/claude-agent-sdk": "^0.2.84",
-    "@anthropic-ai/sdk": "^0.71.2",
+    "@anthropic-ai/sdk": "^0.80.0",
     "clsx": "^2.0.0",
     "cors": "^2.8.6",
     "dotenv": "^16.6.1",
