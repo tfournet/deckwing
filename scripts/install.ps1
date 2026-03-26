@@ -112,7 +112,9 @@ try {
 
     $deckwingPath = (Get-Command deckwing -ErrorAction SilentlyContinue)
     if ($deckwingPath) {
-        $dwVersion = (node -e "console.log(require('$npmPrefix/node_modules/deckwing/package.json').version)" 2>$null) ?? "?"
+        $dwVersion = "?"
+        try { $dwVersion = (node -e "console.log(require('$npmPrefix/node_modules/deckwing/package.json').version)" 2>$null) } catch {}
+        if (-not $dwVersion) { $dwVersion = "?" }
         Write-Info "DeckWing v$dwVersion - installed"
         Write-Detail "You can start it anytime by typing: deckwing"
     } else {
