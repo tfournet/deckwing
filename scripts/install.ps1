@@ -170,7 +170,7 @@ if (-not $hasClaude) {
             Write-Warn "Claude Code download failed checksum verification"
         } else {
             # Run install to set up shell integration
-            & $claudeBin install 2>&1 | Out-Null
+            Start-Process -FilePath $claudeBin -ArgumentList "install" -Wait -NoNewWindow -RedirectStandardOutput ([System.IO.Path]::GetTempFileName()) -RedirectStandardError ([System.IO.Path]::GetTempFileName()) -ErrorAction SilentlyContinue
             $hasClaude = $true
             Write-Info "Claude Code v$latestVersion installed to $claudeDir"
         }
@@ -181,7 +181,8 @@ if (-not $hasClaude) {
 
 if ($hasClaude) {
     try {
-        $authJson = (& $claudeBin auth status 2>$null) | ConvertFrom-Json
+        $authJson = (Start-Process -FilePath $claudeBin -ArgumentList "auth","status" -Wait -NoNewWindow -RedirectStandardOutput "$env:TEMP\claude-auth.json" -RedirectStandardError "$env:TEMP\claude-auth-err.txt" -PassThru -ErrorAction SilentlyContinue) | Out-Null
+        $authJson = (Get-Content "$env:TEMP\claude-auth.json" -Raw -ErrorAction SilentlyContinue) | ConvertFrom-Json
         if ($authJson.loggedIn -eq $true) {
             Write-Info "Claude - signed in and ready"
         } else {
