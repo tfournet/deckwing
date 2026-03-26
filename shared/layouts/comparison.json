@@ -1,0 +1,54 @@
+{
+  "id": "comparison",
+  "name": "Comparison",
+  "description": "Two labeled columns for side-by-side comparison.",
+  "promptDescription": "Use for before/after, option A vs option B, or pros and cons with explicit headers.",
+  "editorLabel": "Comparison",
+  "editorIcon": "SplitSquareHorizontal",
+  "thumbnail": "comparison.svg",
+  "slots": [
+    {
+      "name": "title",
+      "label": "Title",
+      "kinds": ["heading"],
+      "required": true,
+      "position": { "col": 1, "row": 1, "colSpan": 12, "rowSpan": 1 },
+      "maxContent": { "text": 80 }
+    },
+    {
+      "name": "left-header",
+      "label": "Left Header",
+      "kinds": ["heading"],
+      "required": true,
+      "position": { "col": 1, "row": 2, "colSpan": 6, "rowSpan": 1 },
+      "maxContent": { "text": 50 }
+    },
+    {
+      "name": "right-header",
+      "label": "Right Header",
+      "kinds": ["heading"],
+      "required": true,
+      "position": { "col": 7, "row": 2, "colSpan": 6, "rowSpan": 1 },
+      "maxContent": { "text": 50 }
+    },
+    {
+      "name": "left-body",
+      "label": "Left Body",
+      "kinds": ["text", "list", "metric", "chart", "image"],
+      "required": true,
+      "position": { "col": 1, "row": 3, "colSpan": 6, "rowSpan": 4 },
+      "maxContent": { "list": 6, "text": 260 }
+    },
+    {
+      "name": "right-body",
+      "label": "Right Body",
+      "kinds": ["text", "list", "metric", "chart", "image"],
+      "required": true,
+      "position": { "col": 7, "row": 3, "colSpan": 6, "rowSpan": 4 },
+      "maxContent": { "list": 6, "text": 260 }
+    }
+  ],
+  "pptx": {
+    "slotOverrides": {}
+  }
+}
