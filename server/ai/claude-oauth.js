@@ -219,6 +219,7 @@ function createCallbackServer(state) {
     }
 
     try {
+      console.log('  [oauth] Exchanging authorization code for tokens...');
       const tokenJson = await exchangeAuthorizationCode(session, code, returnedState);
       await writeClaudeCredentials(tokenJson);
       finalizeSession(state, {
@@ -228,12 +229,14 @@ function createCallbackServer(state) {
       res.writeHead(302, { Location: SUCCESS_URL });
       res.end();
     } catch (err) {
+      const errMsg = err instanceof Error ? err.message : 'Token exchange failed.';
+      console.error('  [oauth] Token exchange error:', errMsg);
       finalizeSession(state, {
         status: 'error',
-        error: err instanceof Error ? err.message : 'Token exchange failed.',
+        error: errMsg,
       });
       res.writeHead(500, { 'Content-Type': 'text/plain; charset=utf-8' });
-      res.end('Claude sign-in failed. You can close this tab and try again.');
+      res.end('Claude sign-in failed. You can close this tab and try again.\n\n' + errMsg);
     }
   });
 
