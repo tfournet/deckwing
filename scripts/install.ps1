@@ -81,6 +81,16 @@ if (-not $hasNode) {
 
 Write-Step "Step 2/3 - DeckWing"
 
+# Stop any running DeckWing instance first
+$running = Get-Process -Name "node" -ErrorAction SilentlyContinue | Where-Object {
+    try { $_.CommandLine -match "deckwing" } catch { $false }
+}
+if ($running) {
+    Write-Detail "Stopping running DeckWing..."
+    $running | Stop-Process -Force -ErrorAction SilentlyContinue
+    Start-Sleep -Seconds 1
+}
+
 try {
     # Download tarball from latest release — no Git needed
     $latestUrl = "https://api.github.com/repos/$GithubRepo/releases/latest"

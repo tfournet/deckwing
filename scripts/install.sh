@@ -85,6 +85,13 @@ fi
 
 step "Step 2/3 — DeckWing"
 
+# Stop any running DeckWing instance first
+if pgrep -f "deckwing" >/dev/null 2>&1; then
+  detail "Stopping running DeckWing..."
+  pkill -f "deckwing" 2>/dev/null || true
+  sleep 1
+fi
+
 # Download the tarball from the latest release — no Git needed
 TARBALL_URL="https://github.com/${GITHUB_REPO}/releases/latest/download/deckwing-0.1.0.tgz"
 
