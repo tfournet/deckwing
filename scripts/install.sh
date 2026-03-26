@@ -32,7 +32,7 @@ echo -e "  ${DIM}─────────────────────
 
 # ── Step 1: Node.js ───────────────────────────────────────────────────
 
-step "Step 1/4 — Node.js"
+step "Step 1/3 — Node.js"
 
 if command -v node &>/dev/null; then
   NODE_MAJOR=$(node -v | sed 's/v\([0-9]*\).*/\1/')
@@ -57,34 +57,23 @@ else
   info "Node.js $(node -v) — installed"
 fi
 
-# ── Step 2: Git ───────────────────────────────────────────────────────
+# ── Step 2: DeckWing ──────────────────────────────────────────────────
 
-step "Step 2/4 — Git"
-
-if command -v git &>/dev/null; then
-  info "Git — already installed"
-else
-  detail "Git is needed to download DeckWing. Installing..."
-  echo ""
-  if [[ "$(uname)" == "Darwin" ]] && command -v brew &>/dev/null; then
-    brew install git
-  elif command -v apt-get &>/dev/null; then
-    sudo apt-get install -y git
-  elif command -v dnf &>/dev/null; then
-    sudo dnf install -y git
-  else
-    fail "Couldn't install Git automatically.\n\n    Download it from ${BOLD}https://git-scm.com${NC}${RED} and re-run this script."
-  fi
-  info "Git — installed"
-fi
-
-# ── Step 3: DeckWing ──────────────────────────────────────────────────
-
-step "Step 3/4 — DeckWing"
+step "Step 3/3 — DeckWing"
 detail "Downloading and installing the app..."
 echo ""
 
-if npm install -g "github:${GITHUB_REPO}" 2>&1 | tail -3; then
+# Download the tarball from the latest release — no Git needed
+TARBALL_URL="https://github.com/${GITHUB_REPO}/releases/latest/download/deckwing-0.1.0.tgz"
+
+# Try to get the actual latest tarball name via GitHub API
+LATEST_TAG=$(curl -fsSL "https://api.github.com/repos/${GITHUB_REPO}/releases/latest" 2>/dev/null | grep '"tag_name"' | sed 's/.*"tag_name": *"\([^"]*\)".*/\1/' || echo "")
+if [ -n "$LATEST_TAG" ]; then
+  VERSION="${LATEST_TAG#v}"
+  TARBALL_URL="https://github.com/${GITHUB_REPO}/releases/latest/download/deckwing-${VERSION}.tgz"
+fi
+
+if npm install -g "$TARBALL_URL" 2>&1 | tail -3; then
   # Refresh PATH — npm global bin may not be in current session
   NPM_BIN=$(npm config get prefix 2>/dev/null)/bin
   if [ -d "$NPM_BIN" ] && [[ ":$PATH:" != *":$NPM_BIN:"* ]]; then
@@ -111,7 +100,7 @@ fi
 
 # ── Step 3: Claude Code (for AI features) ─────────────────────────────
 
-step "Step 4/4 — AI Setup (Claude)"
+step "Step 3/3 — AI Setup (Claude)"
 detail "Claude Code powers the AI presentation builder."
 echo ""
 

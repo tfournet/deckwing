@@ -14,9 +14,9 @@ curl -fsSL https://github.com/tfournet/deckwing/releases/latest/download/install
 irm https://github.com/tfournet/deckwing/releases/latest/download/install.ps1 | iex
 ```
 
-**Or with npm directly:**
+**Or with npm directly (no Git required):**
 ```bash
-npm install -g github:tfournet/deckwing
+npm install -g https://github.com/tfournet/deckwing/releases/latest/download/deckwing-0.1.0.tgz
 deckwing
 ```
 

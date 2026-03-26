@@ -25,7 +25,7 @@ Write-Host "  ──────────────────────
 
 # ── Step 1: Node.js ───────────────────────────────────────────────────
 
-Write-Step "Step 1/4 - Node.js"
+Write-Step "Step 1/3 - Node.js"
 
 $hasNode = $false
 try {
@@ -58,52 +58,25 @@ if (-not $hasNode) {
     }
 }
 
-# ── Step 2: Git ───────────────────────────────────────────────────────
+# ── Step 2: DeckWing ──────────────────────────────────────────────────
 
-Write-Step "Step 2/4 - Git"
-
-$hasGit = $false
-try {
-    $gitVersion = (git --version 2>$null)
-    if ($gitVersion) {
-        Write-Info "Git - already installed"
-        $hasGit = $true
-    }
-} catch {}
-
-if (-not $hasGit) {
-    Write-Detail "Git is needed to download DeckWing. Installing..."
-    try {
-        winget install Git.Git --accept-source-agreements --accept-package-agreements 2>&1 | Out-Null
-        $env:Path = [System.Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path", "User")
-        $gitCheck = (git --version 2>$null)
-        if ($gitCheck) {
-            Write-Info "Git - installed"
-            $hasGit = $true
-        } else {
-            Write-Warn "Git installed but needs a terminal restart"
-            Write-Detail "Close this window, reopen PowerShell, and run the installer again."
-            Read-Host "  Press Enter to exit"
-            exit 0
-        }
-    } catch {
-        Write-Host ""
-        Write-Fail "Could not install Git. Download from https://git-scm.com and re-run."
-    }
-}
-
-# ── Step 3: DeckWing ──────────────────────────────────────────────────
-
-Write-Step "Step 3/4 - DeckWing"
+Write-Step "Step 3/3 - DeckWing"
 Write-Detail "Downloading and installing the app..."
 
 try {
-    npm install -g "github:$GithubRepo" 2>&1 | Out-Null
+    # Download tarball from latest release — no Git needed
+    $latestUrl = "https://api.github.com/repos/$GithubRepo/releases/latest"
+    $version = "0.1.0"
+    try {
+        $releaseInfo = Invoke-RestMethod -Uri $latestUrl -ErrorAction SilentlyContinue
+        $version = $releaseInfo.tag_name -replace '^v', ''
+    } catch {}
+    $tarballUrl = "https://github.com/$GithubRepo/releases/latest/download/deckwing-$version.tgz"
+
+    npm install -g $tarballUrl 2>&1 | Out-Null
 
     # Refresh PATH to pick up npm global bin
     $env:Path = [System.Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path", "User")
-
-    # Also add npm global bin explicitly (npm config get prefix)/bin
     $npmPrefix = (npm config get prefix 2>$null)
     if ($npmPrefix -and (Test-Path $npmPrefix)) {
         $env:Path = "$env:Path;$npmPrefix"
@@ -114,15 +87,14 @@ try {
         Write-Info "DeckWing - installed"
         Write-Detail "You can start it anytime by typing: deckwing"
     } else {
-        # Find where npm put it
         $npmBin = (npm config get prefix 2>$null)
         Write-Warn "DeckWing installed but not in PATH"
         Write-Host ""
         if ($npmBin) {
-            Write-Detail "It was installed to: $npmBin"
-            Write-Detail "Add this to your PATH, or run it directly:"
+            Write-Detail "Run it directly:"
             Write-Host ""
             Write-Host "    node `"$npmBin\node_modules\deckwing\bin\deckwing.js`"" -ForegroundColor Green
+            Write-Detail "Or restart your terminal and type: deckwing"
         } else {
             Write-Detail "Close this terminal, reopen, and try: deckwing"
         }
@@ -134,7 +106,7 @@ try {
 
 # ── Step 4: Claude Code (for AI features) ─────────────────────────────
 
-Write-Step "Step 4/4 - AI Setup (Claude)"
+Write-Step "Step 3/3 - AI Setup (Claude)"
 Write-Detail "Claude Code powers the AI presentation builder."
 
 $hasClaude = $false
