@@ -170,20 +170,25 @@ async function callDirectAPI(messages) {
 async function callAgentSDK(messages) {
   const { query } = await import('@anthropic-ai/claude-agent-sdk');
 
-  // Build a single prompt that includes conversation history
-  const historyText = messages.map(m => {
-    const role = m.role === 'user' ? 'User' : 'Assistant';
-    return `${role}: ${m.content}`;
-  }).join('\n\n');
+  // Build a single prompt that includes conversation history for context
+  const lastMessage = messages[messages.length - 1];
+  const history = messages.slice(0, -1);
+  const historyContext = history.length > 0
+    ? '\n\n<conversation_history>\n' +
+      history.map(m => `${m.role === 'user' ? 'User' : 'Assistant'}: ${m.content}`).join('\n\n') +
+      '\n</conversation_history>\n\n'
+    : '';
+
+  const fullPrompt = historyContext + lastMessage.content;
 
   let fullResponse = '';
 
   for await (const message of query({
-    prompt: historyText,
+    prompt: fullPrompt,
     options: {
       systemPrompt: SYSTEM_PROMPT,
-      allowedTools: [],
-      maxTurns: 1,
+      allowedTools: ['WebSearch', 'WebFetch'],
+      maxTurns: 3,
     },
   })) {
     if (message.type === 'assistant' && message.message?.content) {
