@@ -4,6 +4,57 @@
 
 This project is contributed to by people of all skill levels, many using AI assistants. Follow these rules strictly to prevent breaking things.
 
+## Git Workflow — ALWAYS Follow This
+
+**NEVER commit directly to `main`.** All changes go through branches and Pull Requests.
+
+### Before starting any work:
+```bash
+git checkout main
+git pull origin main
+git checkout -b <descriptive-branch-name>
+```
+
+Branch naming: `design/darker-teal`, `content/new-qbr-template`, `prompt/concise-bullets`, etc.
+
+### Before committing, understand the contributor's intent:
+1. **Ask what they want to change and WHY** — not just "what file"
+2. **Confirm the scope** — "So you want to change just the teal color, not the whole palette?"
+3. **Check if it's in the safe-to-edit list** — if not, explain why and suggest alternatives
+4. **Test first** — `npm test` must pass, `npm run dev` should look right
+
+### Writing commit messages:
+Commit messages must explain WHAT changed and WHY. Interview the contributor if needed.
+
+Good: `design: darken Bot Teal from #1EAFAF to #1A9E9E for better contrast on projectors`
+Good: `content: add Security Incident Response template for IR team presentations`
+Good: `prompt: reduce max bullet points from 5 to 4 — slides were too crowded`
+
+Bad: `updated colors`
+Bad: `fixed stuff`
+Bad: `changes`
+
+### Creating Pull Requests:
+```bash
+git add .
+git commit -m "descriptive message explaining what and why"
+git push origin <branch-name>
+```
+Then create a PR on GitHub. The PR description should include:
+- What was changed
+- Why it was changed
+- How to verify (e.g., "switch to dramatic theme and check the accent color")
+
+### If tests fail:
+DO NOT force-push or skip tests. Fix the issue or revert. Ask for help in `#proj-deckwing` on Slack.
+
+### Communication:
+- **Slack:** `#proj-deckwing` for questions, discussions, and review requests
+- **PR reviews:** Tag `@tfournet` or ask in Slack
+- **If the contributor is unsure about something:** ASK before making changes. It's better to clarify than to guess wrong.
+
+---
+
 ## Safety Rules
 
 ### NEVER modify these without developer approval:
@@ -20,13 +71,8 @@ This project is contributed to by people of all skill levels, many using AI assi
 - `scripts/` — Install scripts
 
 ### Safe to modify (design/content work):
-- `src/config/design/colors.js` — Color palette (hex values)
-- `src/config/design/typography.js` — Fonts, sizes, weights
-- `src/config/design/borders.js` — Border radii, widths, shapes
-- `src/config/design/spacing.js` — Padding, margins, gaps, panel widths
-- `src/config/design/shadows.js` — Shadow and glow effects
-- `src/config/design/icons.js` — Available icon set and default sizes
-- `src/config/design/images.js` — Logo paths, display settings
+- `src/config/design/*.json` — All design tokens (colors, typography, borders, spacing, shadows, icons, images). Pure JSON data files — no code, safe to edit.
+- `src/config/design/README.md` — Guide for design contributors
 - `src/config/themes.js` — Theme definitions (uses values from design/)
 - `src/data/templates.js` — Starter deck templates
 - `server/ai/system-prompt.js` — AI behavior and voice rules
@@ -135,16 +181,38 @@ npx electron .    # Desktop app (local dev)
 ## How to Make Changes
 
 ### Changing colors
-1. Edit the hex values in `src/config/colors.js`
-2. If adding a new color, add Tailwind classes in `tailwind.config.js`
-3. Test contrast with `checkContrast()` from `src/config/contrast.js` — minimum 4.5:1 ratio
-4. Run `npm test -- src/config/` to verify
+1. Edit hex values in `src/config/design/colors.json`
+2. Values must be valid hex codes (`#1EAFAF`, not `teal`)
+3. If adding a new color, also add Tailwind classes in `tailwind.config.js`
+4. Test contrast with `checkContrast()` from `src/config/contrast.js` — minimum 4.5:1 ratio
+5. Run `npm test` to verify
+
+### Changing typography
+1. Edit `src/config/design/typography.json`
+2. Slide font sizes must meet the minimum (28px) — see the Photo Test rule
+3. Run `npm test` and visually check with `npm run dev`
+
+### Changing borders, spacing, shadows
+1. Edit the corresponding `.json` file in `src/config/design/`
+2. All sizes must include units (`16px`, not `16`)
+3. Run `npm test` to verify
+
+### Changing icons
+1. Edit `src/config/design/icons.json`
+2. Icon names are case-sensitive Lucide names — check https://lucide.dev
+3. Run `npm test` to verify
+
+### Changing logos and images
+1. Drop image files in `public/images/`
+2. Update paths in `src/config/design/images.json`
+3. Adjust logo display settings (position, opacity, size) in the same file
 
 ### Changing themes
 1. Edit theme tokens in `src/config/themes.js`
-2. Each theme needs: bg, cardBg, cardBorder, textPrimary, textSecondary, textMuted, accent colors, gradient, hex section
-3. Run `npm test -- src/config/themes` to verify
-4. Visually check: `npm run dev`, switch themes in the editor
+2. Themes reference colors from `src/config/design/colors.json` via the `hex` section
+3. Each theme needs: bg, cardBg, cardBorder, textPrimary, textSecondary, textMuted, accent colors, gradient, hex section
+4. Run `npm test -- src/config/themes` to verify
+5. Visually check: `npm run dev`, switch themes in the editor
 
 ### Adding a template
 1. Add a new deck in `src/data/templates.js` using `createSlide()` and `createDeck()`

@@ -1,0 +1,72 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "definitions": {
+    "hexColor": {
+      "type": "string",
+      "pattern": "^#[0-9A-Fa-f]{6}$",
+      "description": "A hex color value like #1EAFAF"
+    },
+    "cssSize": {
+      "type": "string",
+      "pattern": "^[0-9]+(px|rem|em|%)$",
+      "description": "A CSS size value like 16px or 1rem"
+    },
+    "colorGroup": {
+      "type": "object",
+      "description": "A color with light/dark variants",
+      "required": ["primary"],
+      "properties": {
+        "primary": { "$ref": "#/definitions/hexColor", "description": "The main shade of this color" },
+        "light": { "$ref": "#/definitions/hexColor", "description": "Lighter shade for hover states" },
+        "lighter": { "$ref": "#/definitions/hexColor", "description": "Very light shade for subtle highlights" },
+        "dark": { "$ref": "#/definitions/hexColor", "description": "Dark shade for text on colored backgrounds" },
+        "darker": { "$ref": "#/definitions/hexColor", "description": "Darker shade for secondary text" },
+        "darkest": { "$ref": "#/definitions/hexColor", "description": "Darkest shade for deep backgrounds" }
+      }
+    }
+  },
+  "type": "object",
+  "description": "DeckWing Design System — all files in src/config/design/ are validated against this schema",
+  "properties": {
+    "colors": {
+      "description": "colors.json — the brand color palette. Bot Teal (50%), Ops Indigo (15%), Trigger Amber (10%), Alert Coral (5%), Cloud Gray (20%)",
+      "type": "object",
+      "required": ["teal", "indigo", "amber", "coral", "gray", "pure"],
+      "properties": {
+        "teal": { "$ref": "#/definitions/colorGroup", "description": "Bot Teal — primary brand color, buttons, accents" },
+        "indigo": { "$ref": "#/definitions/colorGroup", "description": "Ops Indigo — dark backgrounds, app chrome" },
+        "amber": { "$ref": "#/definitions/colorGroup", "description": "Trigger Amber — highlights, calls to action" },
+        "coral": { "$ref": "#/definitions/colorGroup", "description": "Alert Coral — errors, warnings, destructive actions" },
+        "gray": { "$ref": "#/definitions/colorGroup", "description": "Cloud Gray — neutral text, borders, subtle backgrounds" },
+        "pure": {
+          "type": "object",
+          "required": ["black", "white"],
+          "properties": {
+            "black": { "$ref": "#/definitions/hexColor" },
+            "white": { "$ref": "#/definitions/hexColor" }
+          }
+        }
+      }
+    },
+    "icons": {
+      "description": "icons.json — available Lucide icons organized by category",
+      "type": "object",
+      "required": ["slideIcons", "iconSizes"],
+      "properties": {
+        "slideIcons": {
+          "type": "object",
+          "description": "Icons available in slides, grouped by category. Names are case-sensitive Lucide icon names."
+        },
+        "iconSizes": {
+          "type": "object",
+          "description": "Default pixel sizes for icons in different contexts"
+        }
+      }
+    },
+    "images": {
+      "description": "images.json — logo paths and display settings",
+      "type": "object",
+      "required": ["logos", "logoSettings"]
+    }
+  }
+}

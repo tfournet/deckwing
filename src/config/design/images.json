@@ -1,0 +1,21 @@
+{
+  "logos": {
+    "rewst": "/images/rewst-logo.png"
+  },
+  "logoSettings": {
+    "defaultLogo": "rewst",
+    "height": "32px",
+    "opacity": 0.6,
+    "defaultPositions": {
+      "title": "none",
+      "section": "none",
+      "content": "bottom-right",
+      "grid": "bottom-right",
+      "image": "bottom-right",
+      "quote": "bottom-right",
+      "metric": "bottom-right",
+      "blank": "none",
+      "layout": "bottom-right"
+    }
+  }
+}

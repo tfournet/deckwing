@@ -7,13 +7,17 @@ Welcome! You don't need to be a programmer to contribute to DeckWing. If you're 
 These areas are designed for non-technical contributors. Changes here won't break the app:
 
 ### Colors and Branding
-- **`src/config/colors.js`** — The color palette. All Rewst brand colors are defined here.
-- **`src/config/themes.js`** — The 5 slide themes (rewst, dramatic, terminal, highlight, warning). Each theme is a set of color tokens.
-- **`tailwind.config.js`** — Tailwind CSS configuration including custom colors. Changes here affect the entire app's color system.
+- **`src/config/design/colors.json`** — The color palette. All Rewst brand colors.
+- **`src/config/design/typography.json`** — Font families, sizes, and weights.
+- **`src/config/design/borders.json`** — Border radii, widths, shapes.
+- **`src/config/design/spacing.json`** — Padding, margins, gaps.
+- **`src/config/design/shadows.json`** — Shadow and glow effects.
+- **`src/config/design/icons.json`** — Available Lucide icon set.
+- **`src/config/design/images.json`** — Logo paths and display settings.
+- **`src/config/themes.js`** — The 5 slide themes (uses values from the JSON files above).
+- **`tailwind.config.js`** — Tailwind CSS configuration. Changes here affect the entire color system.
 
-### Typography and Spacing
-- **`src/config/typography.js`** — Font families, sizes, and weights.
-- **`src/config/tokens.js`** — Design tokens for spacing, borders, and common styles.
+All design files are JSON — pure data, no code. See `src/config/design/README.md` for a full guide.
 
 ### Slide Content and Templates
 - **`src/data/templates.js`** — The 5 starter templates (QBR, Security, Onboarding, Demo, All-Hands). Edit content, add new templates, change slide order.
@@ -48,30 +52,84 @@ These areas require programming knowledge. Ask a developer for help:
 
 1. Open a terminal in the DeckWing project folder
 2. Run `claude` to start Claude Code
-3. Describe what you want to change in plain English:
-   - "Make the Bot Teal color slightly darker"
-   - "Add a new template for a security incident report presentation"
-   - "Change the AI to be more concise in its bullet points"
-   - "Add a new slide theme called 'ocean' with blue tones"
-4. Claude will make the changes and explain what it did
-5. Test with `npm run dev` to see your changes
-6. Run `npm test` to make sure nothing broke
+3. Tell Claude what you want to change **and why** — be specific:
+   - "I want to make the Bot Teal color slightly darker because it washes out on projectors"
+   - "Add a new template for security incident reports — our IR team needs one for client-facing presentations"
+   - "The AI generates too many bullet points — can we limit it to 4 max? Slides look crowded."
+   - "Add an 'ocean' theme with blue tones for our marine industry clients"
+4. **Claude will ask clarifying questions** — answer them! The more context you give, the better the result:
+   - "How much darker? Like a deep ocean teal, or just slightly richer?"
+   - "What slides should the IR template include? What's the audience?"
+   - "Should the 4-bullet limit apply to all slide types or just content slides?"
+5. Claude creates a branch, makes changes, tests them, and opens a Pull Request
+6. Review the PR on GitHub — someone will approve it before it goes live
 
-### If you're making a Pull Request
+### Step by step: your first contribution
 
-1. Create a branch: `git checkout -b my-change`
-2. Make your changes (or let Claude make them)
-3. Run `npm test` — all tests must pass
-4. Run `npm run build` — the build must succeed
-5. Commit and push: `git add . && git commit -m "description of change" && git push`
-6. Open a Pull Request on GitHub
+Don't worry if you've never used git. Just tell Claude what to do:
+
+**You say:** "I want to make the teal color a bit darker"
+
+**Claude will:**
+1. Create a new branch (like `design/darker-teal`)
+2. Ask you how much darker and why
+3. Edit `src/config/design/colors.json`
+4. Run the tests to make sure nothing broke
+5. Show you the change and ask if it looks right
+6. Commit with a clear message: "design: darken Bot Teal to #189E9E for projector readability"
+7. Push the branch and create a Pull Request
+8. The team reviews and approves it
+
+### What happens after you create a PR
+
+Your Pull Request goes through a review process before it goes live:
+
+1. **Automated tests run** — GitHub Actions checks that all tests pass and the app builds. If tests fail, the PR can't be merged. Claude will help you fix any issues.
+
+2. **Review required** — A maintainer reviews your changes. They may:
+   - **Approve** — your change is good, it gets merged
+   - **Request changes** — they'll explain what needs to be different. Claude can help you make the fixes.
+   - **Comment** — they have questions. Answer them on the PR.
+
+3. **Who can approve:**
+   - **@tfournet (Tim)** — project owner, can approve anything
+   - If you're unsure who to ask, comment on your PR: "Ready for review" and someone will pick it up
+
+4. **After approval** — a maintainer merges your PR into `main`. Your change is now part of DeckWing.
+
+5. **Don't worry about releases** — the maintainers handle when changes get packaged into a new version.
+
+**You never have to type a git command.** Just describe what you want.
+
+### If Claude asks you to run something
+
+Sometimes Claude will ask you to preview the change:
+- `npm run dev` — opens the app so you can see your change live
+- `npm test` — checks nothing is broken
+
+Just paste these into the terminal when asked.
 
 ### What makes a good contribution
 
 - **One thing at a time.** Don't change colors AND templates AND the AI prompt in one PR.
+- **Explain why, not just what.** "Darker teal" is okay. "Darker teal because it's hard to read on conference room projectors" is much better.
 - **Test visually.** Run `npm run dev` and look at the slides. Do they look right?
-- **Run the tests.** `npm test` catches broken schemas, invalid themes, and bad exports.
-- **Describe why.** In your PR description, explain what you changed and why.
+- **Trust the tests.** If `npm test` fails, something is wrong. Don't skip it.
+
+### What Claude should do for every contribution
+
+Claude Code agents helping contributors should follow this checklist:
+
+1. **Understand intent** — Ask what the contributor wants and WHY before touching code
+2. **Confirm scope** — "So you want to change X, not Y. Correct?"
+3. **Check safety** — Is the file in the safe-to-edit list? If not, explain and suggest alternatives
+4. **Create a branch** — Never work on `main` directly
+5. **Make the change** — Edit the appropriate file(s)
+6. **Test** — Run `npm test`. If it fails, fix it before proceeding
+7. **Preview** — Offer to run `npm run dev` so the contributor can see the result
+8. **Commit with context** — Message must explain what changed AND why
+9. **Push and create PR** — Push the branch, create a Pull Request with a clear description
+10. **Explain what happened** — Tell the contributor what was changed, in plain English
 
 ## Testing Your Changes
 
@@ -94,7 +152,7 @@ npm run build         # Build for production (must succeed)
 ## Style Guide
 
 ### Colors
-- All colors must be defined in `src/config/colors.js` first
+- All colors must be defined in `src/config/design/colors.json` first
 - Use semantic names, not hex codes, in components
 - New colors need WCAG AA contrast ratio (4.5:1) against their background
 - Test with `src/config/contrast.js` — the `checkContrast()` function
@@ -115,5 +173,7 @@ npm run build         # Build for production (must succeed)
 
 ## Getting Help
 
-- **Issues:** Open a GitHub issue at https://github.com/tfournet/deckwing/issues
-- **Questions:** Ask your AI assistant — it has read this guide and the CLAUDE.md file
+- **Slack:** `#proj-deckwing` — ask questions, discuss changes, request PR reviews
+- **Issues:** Open a GitHub issue for bugs or feature requests
+- **Your AI assistant:** Claude has read this guide and CLAUDE.md — ask it anything about the project
+- **PR reviews:** Tag `@tfournet` on your PR or ask in `#proj-deckwing` for a review

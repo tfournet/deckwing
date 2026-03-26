@@ -1,0 +1,21 @@
+{
+  "slideIcons": {
+    "general": ["Zap", "Star", "Shield", "Lock", "Check", "X", "AlertTriangle", "Info", "HelpCircle"],
+    "navigation": ["ChevronRight", "ArrowRight", "ArrowLeft", "Home", "ExternalLink"],
+    "people": ["User", "Users", "UserCheck", "Building", "Building2"],
+    "tech": ["Code", "Terminal", "Server", "Database", "Cloud", "Wifi", "Cpu", "HardDrive", "Monitor", "MonitorSmartphone"],
+    "automation": ["Workflow", "Bot", "Cog", "Settings", "Repeat", "RefreshCw", "Layers", "GitBranch"],
+    "business": ["BarChart", "TrendingUp", "DollarSign", "CreditCard", "Package", "Briefcase", "FileText", "Mail", "Target", "Sparkles"],
+    "time": ["Clock", "Calendar", "Timer", "Hourglass"],
+    "communication": ["MessageSquare", "Phone", "Video", "Headphones", "Bell"],
+    "actions": ["Play", "Pause", "Plus", "Minus", "Edit", "Trash2", "Download", "Upload", "Search", "Filter"],
+    "links": ["Link", "Link2", "Unlink", "Share2", "Network"]
+  },
+  "iconSizes": {
+    "slideContent": 56,
+    "gridCard": 40,
+    "uiSmall": 14,
+    "uiMedium": 16,
+    "uiLarge": 18
+  }
+}

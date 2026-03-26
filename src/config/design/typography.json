@@ -1,0 +1,37 @@
+{
+  "fonts": {
+    "display": {
+      "family": "'Goldplay', system-ui, sans-serif",
+      "weights": { "medium": 500, "semibold": 600, "bold": 700, "black": 900 }
+    },
+    "body": {
+      "family": "'Montserrat', system-ui, sans-serif",
+      "weights": { "light": 300, "regular": 400, "medium": 500, "bold": 700 }
+    },
+    "mono": {
+      "family": "'JetBrains Mono', 'Fira Code', 'Consolas', monospace",
+      "weights": { "regular": 400, "medium": 500 }
+    }
+  },
+  "slideFontSizes": {
+    "title": { "large": "96px", "medium": "72px", "small": "56px" },
+    "subtitle": "36px",
+    "body": "36px",
+    "bodyCompact": "32px",
+    "cardTitle": "32px",
+    "cardBody": "28px",
+    "metricValue": "72px",
+    "metricLabel": "28px",
+    "quote": "44px",
+    "quoteCompact": "36px",
+    "caption": "28px",
+    "minimum": "28px"
+  },
+  "uiFontSizes": {
+    "xs": "0.75rem",
+    "sm": "0.875rem",
+    "base": "1rem",
+    "lg": "1.125rem",
+    "xl": "1.25rem"
+  }
+}
