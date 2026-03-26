@@ -115,7 +115,10 @@ export function SlideTypePickerModal({ onSelect, onClose }) {
   function handleSelectLayout(layout) {
     const blocks = layout.slots
       .filter((slot) => slot.required)
-      .map((slot) => createEmptyLayoutBlock(slot.name, slot.kinds[0]));
+      .map((slot) => {
+        const kind = slot.kinds?.[0] || 'text';
+        return createEmptyLayoutBlock(slot.name, kind);
+      });
 
     const slide = createSlide('layout', {
       layout: layout.id,

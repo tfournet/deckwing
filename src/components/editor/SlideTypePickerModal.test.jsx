@@ -6,6 +6,37 @@ import { describe, expect, it, vi } from 'vitest';
 import { fireEvent, render, screen } from '@testing-library/react';
 import { SlideTypePickerModal } from './SlideTypePickerModal';
 
+vi.mock('../../../shared/layouts/index.js', async () => {
+  const actual = await vi.importActual('../../../shared/layouts/index.js');
+
+  return {
+    ...actual,
+    getAllLayouts: () => [
+      ...actual.getAllLayouts(),
+      {
+        id: 'missing-kinds-layout',
+        name: 'Missing Kinds Layout',
+        description: 'Required slot without kinds should fall back to text.',
+        slots: [
+          {
+            name: 'title',
+            label: 'Title',
+            required: true,
+            kinds: ['heading'],
+            position: { col: 1, row: 1, colSpan: 12, rowSpan: 1 },
+          },
+          {
+            name: 'body',
+            label: 'Body',
+            required: true,
+            position: { col: 1, row: 2, colSpan: 12, rowSpan: 5 },
+          },
+        ],
+      },
+    ],
+  };
+});
+
 describe('SlideTypePickerModal', () => {
   it('renders both preset and layout tabs', () => {
     render(<SlideTypePickerModal onSelect={() => {}} onClose={() => {}} />);
@@ -43,6 +74,21 @@ describe('SlideTypePickerModal', () => {
       { slot: 'title', kind: 'heading', text: '', size: 'lg' },
       { slot: 'left', kind: 'list', items: [] },
       { slot: 'right', kind: 'list', items: [] },
+    ]);
+  });
+
+  it('falls back to a text block when a required slot has no kinds', () => {
+    const onSelect = vi.fn();
+
+    render(<SlideTypePickerModal onSelect={onSelect} onClose={() => {}} />);
+
+    fireEvent.click(screen.getByRole('tab', { name: 'Layouts' }));
+    fireEvent.click(screen.getByRole('button', { name: /Missing Kinds Layout/i }));
+
+    expect(onSelect).toHaveBeenCalledTimes(1);
+    expect(onSelect.mock.calls[0][0].blocks).toEqual([
+      { slot: 'title', kind: 'heading', text: '', size: 'lg' },
+      { slot: 'body', kind: 'text', text: '' },
     ]);
   });
 });

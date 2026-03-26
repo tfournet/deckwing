@@ -154,8 +154,10 @@ app.post('/api/chat', async (req, res) => {
   } catch (err) {
     // Log for debugging, not user-facing (the API returns a friendly message)
     console.error('  [chat error]', err.message);
+    console.error('  [chat stack]', err.stack);
     res.status(500).json({
       error: 'Failed to process chat message',
+      detail: err.message,
       reply: 'Something went wrong on my end. Please try again.',
       action: null,
     });

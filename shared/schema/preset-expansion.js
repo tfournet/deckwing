@@ -1,3 +1,5 @@
+import { getLayout } from '../layouts/index.js';
+
 function preserveSlideMetadata(slide) {
   const preserved = {};
 
@@ -69,14 +71,26 @@ export const PRESET_EXPANDERS = {
       return slide;
     }
 
-    const layout = itemCount <= 4 ? 'feature-grid-2x2' : 'feature-grid-2x3';
-    const cardBlocks = slide.items.map((item, index) => ({
-      slot: `card${index + 1}`,
+    const layoutId = itemCount <= 4 ? 'feature-grid-2x2' : 'feature-grid-2x3';
+    const layoutDef = getLayout(layoutId);
+    if (!layoutDef) {
+      return slide;
+    }
+
+    // Grid preset expansion is coupled to the layout's `card*` slot naming.
+    // Pull the actual slot list from the layout definition so the expander stays
+    // aligned if those names ever change.
+    const cardSlots = layoutDef.slots.filter((slot) => slot.name.startsWith('card'));
+    if (cardSlots.length < itemCount) {
+      return slide;
+    }
+    const cardBlocks = slide.items.slice(0, cardSlots.length).map((item, index) => ({
+      slot: cardSlots[index].name,
       kind: 'text',
       text: buildGridItemText(item),
     }));
 
-    return createLayoutSlide(slide, layout, [
+    return createLayoutSlide(slide, layoutId, [
       { slot: 'title', kind: 'heading', text: slide.title },
       ...cardBlocks,
     ]);
@@ -84,11 +98,33 @@ export const PRESET_EXPANDERS = {
 
   metric(slide) {
     const metrics = Array.isArray(slide.metrics) ? slide.metrics.slice(0, 4) : [];
+    if (metrics.length === 0) {
+      return slide;
+    }
 
-    return createLayoutSlide(slide, 'four-column', [
+    const layoutIdByCount = {
+      1: 'single-center',
+      2: 'two-column',
+      3: 'three-column',
+      4: 'four-column',
+    };
+    const layoutId = layoutIdByCount[metrics.length] || 'four-column';
+    const layoutDef = getLayout(layoutId);
+    if (!layoutDef) {
+      return slide;
+    }
+
+    const metricSlots = layoutDef.slots.filter(
+      (slot) => slot.name !== 'title' && slot.kinds?.includes('metric'),
+    );
+    if (metricSlots.length < metrics.length) {
+      return slide;
+    }
+
+    return createLayoutSlide(slide, layoutId, [
       { slot: 'title', kind: 'heading', text: slide.title || '' },
       ...metrics.map((metric, index) => ({
-        slot: `m${index + 1}`,
+        slot: metricSlots[index]?.name,
         kind: 'metric',
         value: metric.value,
         label: metric.label,

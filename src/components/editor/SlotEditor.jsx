@@ -335,6 +335,10 @@ function SlotField({ slotDef, block, onChange }) {
  */
 export function SlotEditor({ slide, onUpdateBlocks }) {
   const layout = slide.layout === 'custom' ? null : getLayout(slide.layout);
+  if (slide.layout !== 'custom' && !layout) {
+    return <p className="text-alert-coral-300 text-sm">Unknown layout: "{slide.layout}"</p>;
+  }
+
   const slots = slide.layout === 'custom' ? (slide.slots || []) : (layout?.slots || []);
   const slotOrder = new Map(slots.map((slot, index) => [slot.name, index]));
 

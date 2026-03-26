@@ -77,6 +77,67 @@ describe('expandPresetToLayout', () => {
     });
   });
 
+  it('chooses narrower metric layouts when there are fewer than four metrics', () => {
+    expect(expandPresetToLayout({
+      type: 'metric',
+      title: 'One KPI',
+      metrics: [{ value: '42%', label: 'Efficiency' }],
+    })).toEqual({
+      type: 'layout',
+      layout: 'single-center',
+      blocks: [
+        { slot: 'title', kind: 'heading', text: 'One KPI' },
+        { slot: 'body', kind: 'metric', value: '42%', label: 'Efficiency' },
+      ],
+    });
+
+    expect(expandPresetToLayout({
+      type: 'metric',
+      title: 'Two KPIs',
+      metrics: [
+        { value: '42%', label: 'Efficiency' },
+        { value: '7', label: 'Automations' },
+      ],
+    })).toEqual({
+      type: 'layout',
+      layout: 'two-column',
+      blocks: [
+        { slot: 'title', kind: 'heading', text: 'Two KPIs' },
+        { slot: 'left', kind: 'metric', value: '42%', label: 'Efficiency' },
+        { slot: 'right', kind: 'metric', value: '7', label: 'Automations' },
+      ],
+    });
+
+    expect(expandPresetToLayout({
+      type: 'metric',
+      title: 'Three KPIs',
+      metrics: [
+        { value: '42%', label: 'Efficiency' },
+        { value: '7', label: 'Automations' },
+        { value: '99.9%', label: 'Success rate' },
+      ],
+    })).toEqual({
+      type: 'layout',
+      layout: 'three-column',
+      blocks: [
+        { slot: 'title', kind: 'heading', text: 'Three KPIs' },
+        { slot: 'col1', kind: 'metric', value: '42%', label: 'Efficiency' },
+        { slot: 'col2', kind: 'metric', value: '7', label: 'Automations' },
+        { slot: 'col3', kind: 'metric', value: '99.9%', label: 'Success rate' },
+      ],
+    });
+  });
+
+  it('returns metric slides unchanged when there are no metrics to place', () => {
+    const slide = {
+      type: 'metric',
+      title: 'Results',
+      metrics: [],
+    };
+
+    expect(expandPresetToLayout(slide)).toBe(slide);
+  });
+
   it('preserves id, theme, notes from original slide', () => {
     const slide = {
       id: 'slide-1',

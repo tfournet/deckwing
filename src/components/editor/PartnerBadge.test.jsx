@@ -60,4 +60,20 @@ describe('PartnerBadge', () => {
     expect(swatch).toBeInTheDocument();
     expect(swatch).toHaveStyle({ backgroundColor: '#1EAFAF' });
   });
+
+  it('falls back to the default teal when primary is not a valid hex color', () => {
+    const { container } = render(
+      <PartnerBadge
+        customColors={{
+          primary: 'url(javascript:alert(1))',
+          label: 'Unsafe Partner',
+        }}
+      />,
+    );
+
+    const swatch = container.querySelector('span[style]');
+
+    expect(swatch).toBeInTheDocument();
+    expect(swatch).toHaveStyle({ backgroundColor: '#1EAFAF' });
+  });
 });

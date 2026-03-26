@@ -1,5 +1,8 @@
 export function PartnerBadge({ customColors }) {
   if (!customColors) return null;
+  const isValidHex = typeof customColors.primary === 'string'
+    && /^#[0-9a-fA-F]{3,8}$/.test(customColors.primary);
+  const safeColor = isValidHex ? customColors.primary : '#1EAFAF';
 
   return (
     <span
@@ -7,7 +10,7 @@ export function PartnerBadge({ customColors }) {
     >
       <span
         style={{
-          backgroundColor: customColors.primary,
+          backgroundColor: safeColor,
           width: 8,
           height: 8,
           borderRadius: '50%',

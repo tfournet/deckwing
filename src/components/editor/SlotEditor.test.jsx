@@ -5,6 +5,7 @@ import React from 'react';
 import { describe, expect, it, vi } from 'vitest';
 import { fireEvent, render, screen, within } from '@testing-library/react';
 import { SlotEditor } from './SlotEditor';
+import '@testing-library/jest-dom/vitest';
 
 describe('SlotEditor', () => {
   it('renders slot fields for a two-column layout slide', () => {
@@ -91,5 +92,20 @@ describe('SlotEditor', () => {
     const rightEditor = container.querySelector('[data-slot-editor="right"]');
     expect(rightEditor).toBeTruthy();
     expect(within(rightEditor).getByLabelText('Right Column block kind').value).toBe('list');
+  });
+
+  it('shows an explicit error when the slide references an unknown layout', () => {
+    render(
+      <SlotEditor
+        slide={{
+          type: 'layout',
+          layout: 'does-not-exist',
+          blocks: [],
+        }}
+        onUpdateBlocks={() => {}}
+      />,
+    );
+
+    expect(screen.getByText('Unknown layout: "does-not-exist"')).toBeInTheDocument();
   });
 });

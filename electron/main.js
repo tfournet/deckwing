@@ -1,3 +1,7 @@
+// Strip NODE_OPTIONS early — Electron rejects most of them in packaged apps
+// and will crash silently if they're set (e.g. --max-old-space-size)
+delete process.env.NODE_OPTIONS;
+
 const { app, BrowserWindow, Tray, Menu, nativeImage, dialog } = require('electron');
 const path = require('path');
 const { existsSync } = require('fs');
@@ -250,6 +254,9 @@ function checkForUpdates() {
 
 const gotLock = app.requestSingleInstanceLock();
 if (!gotLock) {
+  // Check if the other instance is actually alive — stale locks from crashes
+  // cause this to fail even when no instance is running
+  console.log('[electron] Another instance may be running. If not, delete SingletonLock in', app.getPath('userData'));
   app.quit();
 } else {
   app.on('second-instance', () => {
@@ -284,6 +291,7 @@ if (!gotLock) {
     checkForUpdates();
   }).catch((error) => {
     console.error('[electron] Failed to start DeckWing:', error);
+    dialog.showErrorBox('DeckWing failed to start', error instanceof Error ? error.stack || error.message : String(error));
     app.quit();
   });
 
