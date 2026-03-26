@@ -1,5 +1,5 @@
 /**
- * Chat Engine - Rewst Deck Builder AI
+ * Chat Engine - DeckWing AI
  *
  * Manages Claude API calls and per-session conversation history.
  * Supports two auth modes:

@@ -10,5 +10,5 @@ const PORT = process.env.PORT || 3001;
 setInterval(cleanStaleSessions, 15 * 60 * 1000);
 
 app.listen(PORT, () => {
-  console.log(`Rewst Deck Builder API running on port ${PORT}`);
+  console.log(`DeckWing API running on port ${PORT}`);
 });

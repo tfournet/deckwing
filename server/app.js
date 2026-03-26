@@ -45,7 +45,7 @@ async function checkClaudeAuth() {
 // Health check + auth status
 app.get('/api/health', async (req, res) => {
   const auth = await checkClaudeAuth();
-  res.json({ status: 'ok', service: 'rewst-deck-builder', auth });
+  res.json({ status: 'ok', service: 'deckwing', auth });
 });
 
 // AI chat endpoint — generates and modifies slide decks via conversation

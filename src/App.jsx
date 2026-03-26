@@ -14,7 +14,7 @@ import { exportDeckToPDF, downloadBlob } from './engine/export-pdf';
 const SAVE_DEBOUNCE_MS = 500;
 
 /**
- * Rewst Deck Builder - Main Application
+ * DeckWing - Main Application
  *
  * Three-panel layout:
  * - Left: Slide outline (drag reorder, add, duplicate, delete)
@@ -248,7 +248,7 @@ export default function App() {
     return (
       <div className="w-screen h-screen bg-ops-indigo-950 flex items-center justify-center">
         <div className="bg-ops-indigo-900 border border-ops-indigo-700/50 rounded-xl p-8 max-w-md text-center space-y-4">
-          <h1 className="font-display font-bold text-white text-xl">Rewst Deck Builder</h1>
+          <h1 className="font-display font-bold text-white text-xl">DeckWing</h1>
           <div className="w-12 h-12 mx-auto rounded-full bg-trigger-amber-400/20 flex items-center justify-center">
             <AlertTriangle size={24} className="text-trigger-amber-400" />
           </div>
@@ -299,7 +299,7 @@ export default function App() {
     <div className="w-screen h-screen bg-ops-indigo-950 flex flex-col overflow-hidden">
       {/* Top bar */}
       <header className="h-14 bg-ops-indigo-900 border-b border-ops-indigo-700/50 flex items-center px-4 gap-4 shrink-0">
-        <h1 className="font-display font-bold text-white text-lg">Rewst Deck Builder</h1>
+        <h1 className="font-display font-bold text-white text-lg">DeckWing</h1>
         <button
           className="text-cloud-gray-400 hover:text-bot-teal-400 transition-colors p-1"
           onClick={() => setDeckListOpen(true)}

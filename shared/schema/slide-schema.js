@@ -1,5 +1,5 @@
 /**
- * Slide Schema - Rewst Deck Builder
+ * Slide Schema - DeckWing
  *
  * This defines the data model for presentation slides.
  * AI generates JSON conforming to this schema.
@@ -161,7 +161,7 @@ export const EXAMPLE_DECK = createDeck({
   slides: [
     createSlide('title', {
       title: 'Example Presentation',
-      subtitle: 'Built with Rewst Deck Builder',
+      subtitle: 'Built with DeckWing',
       author: 'Rewst Team',
     }),
     createSlide('content', {

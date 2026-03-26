@@ -49,7 +49,7 @@ describe('GET /api/health', () => {
     const { status, data } = await request('GET', '/api/health');
     expect(status).toBe(200);
     expect(data.status).toBe('ok');
-    expect(data.service).toBe('rewst-deck-builder');
+    expect(data.service).toBe('deckwing');
   });
 });
 

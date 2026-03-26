@@ -1,5 +1,5 @@
 /**
- * Design Tokens - Rewst Deck Builder
+ * Design Tokens - DeckWing
  * Centralized styling constants for UI components
  */
 

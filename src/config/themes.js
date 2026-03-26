@@ -1,5 +1,5 @@
 /**
- * Theme Configuration - Rewst Deck Builder
+ * Theme Configuration - DeckWing
  *
  * Rewst brand themes with consistent dark foundation.
  * Each theme provides a complete set of Tailwind utility classes
