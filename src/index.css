@@ -1,0 +1,96 @@
+/* Import Goldplay font */
+@import './fonts/fonts.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* =============================================================================
+   REWST DECK BUILDER - Global Styles
+   ============================================================================= */
+
+/* Grid background pattern */
+.bg-grid {
+  background-image:
+    linear-gradient(rgba(30, 175, 175, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(30, 175, 175, 0.03) 1px, transparent 1px);
+  background-size: 50px 50px;
+}
+
+/* Glow effects */
+.glow-teal {
+  box-shadow: 0 0 20px rgba(30, 175, 175, 0.4), 0 0 40px rgba(30, 175, 175, 0.15);
+}
+.glow-amber {
+  box-shadow: 0 0 20px rgba(249, 161, 0, 0.4), 0 0 40px rgba(249, 161, 0, 0.15);
+}
+.glow-coral {
+  box-shadow: 0 0 20px rgba(241, 91, 91, 0.4), 0 0 40px rgba(241, 91, 91, 0.15);
+}
+
+/* Text glow */
+.text-glow-teal {
+  text-shadow: 0 0 10px rgba(30, 175, 175, 0.6), 0 0 20px rgba(30, 175, 175, 0.3);
+}
+
+/* Animations */
+@keyframes pulse-glow {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+.animate-pulse-glow { animation: pulse-glow 2s ease-in-out infinite; }
+.animate-float { animation: float 3s ease-in-out infinite; }
+
+/* Typography */
+h1, h2, h3 {
+  font-family: 'Goldplay', 'Montserrat', system-ui, sans-serif;
+  letter-spacing: 0;
+  font-weight: 700;
+}
+
+body {
+  font-family: 'Montserrat', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+/* Scrollbar hiding */
+::-webkit-scrollbar { display: none; }
+html { scrollbar-width: none; }
+
+/* Card hover */
+.card-hover {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.card-hover:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+}
+
+/* Rewst brand buttons */
+.btn-primary {
+  font-family: 'Goldplay', 'Montserrat', system-ui, sans-serif;
+  font-weight: 700;
+  border-radius: 9999px;
+  padding: 0.5rem 1.5rem;
+  background-color: #1EAFAF;
+  color: white;
+  transition: background-color 0.2s;
+}
+.btn-primary:hover { background-color: #1A9999; }
+
+.btn-secondary {
+  font-family: 'Goldplay', 'Montserrat', system-ui, sans-serif;
+  font-weight: 700;
+  border-radius: 9999px;
+  padding: 0.5rem 1.5rem;
+  background-color: #282242;
+  color: white;
+  border: 1px solid #1EAFAF;
+  transition: background-color 0.2s;
+}
+.btn-secondary:hover { background-color: #382D5E; }

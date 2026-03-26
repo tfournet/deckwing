@@ -1,0 +1,40 @@
+/**
+ * Goldplay Font Family - Rewst Brand Typography
+ *
+ * Usage:
+ * - Goldplay Bold: Titles, Buttons, Links
+ * - Goldplay Black: Large headlines, impact text
+ * - Goldplay Medium/SemiBold: Subtitles, emphasis
+ */
+
+@font-face {
+  font-family: 'Goldplay';
+  src: url('./Goldplay-Medium.otf') format('opentype');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Goldplay';
+  src: url('./Goldplay-SemiBold.otf') format('opentype');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Goldplay';
+  src: url('./Goldplay-Bold.otf') format('opentype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Goldplay';
+  src: url('./Goldplay-Black.otf') format('opentype');
+  font-weight: 900;
+  font-style: normal;
+  font-display: swap;
+}
