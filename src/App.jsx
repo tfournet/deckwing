@@ -8,6 +8,7 @@ import { SlideEditor } from './components/editor/SlideEditor';
 import { DetachedEditorView } from './components/editor/DetachedEditorView';
 import { SlideOutline } from './components/editor/SlideOutline';
 import { DeckListModal } from './components/editor/DeckListModal';
+import { WelcomeScreen } from './components/WelcomeScreen';
 import { PresenterMode } from './components/presenter/PresenterMode';
 import { useChat } from './hooks/useChat';
 import { useDeckState } from './hooks/useDeckState';
@@ -196,6 +197,23 @@ function MainLayout() {
   );
 }
 
+function AppWithSetup() {
+  const [projectFolder, setProjectFolder] = useState(() =>
+    localStorage.getItem('deckwing-projectFolder')
+  );
+
+  if (!projectFolder) {
+    return (
+      <WelcomeScreen onFolderSelected={(folder) => {
+        localStorage.setItem('deckwing-projectFolder', folder);
+        setProjectFolder(folder);
+      }} />
+    );
+  }
+
+  return <MainLayout />;
+}
+
 export default function App() {
   const isDetachedEditor = new URLSearchParams(window.location.search).get('editor') === 'detached';
 
@@ -205,7 +223,7 @@ export default function App() {
 
   return (
     <AuthGate>
-      <MainLayout />
+      <AppWithSetup />
     </AuthGate>
   );
 }
