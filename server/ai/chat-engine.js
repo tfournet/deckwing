@@ -9,7 +9,7 @@
 
 import { SYSTEM_PROMPT } from './system-prompt.js';
 import { validateSlide } from '../../shared/schema/slide-schema.js';
-import { findClaudeBinary } from './find-claude.js';
+import { findClaudeBinary, checkClaudeVersion } from './find-claude.js';
 
 const MODEL = 'claude-sonnet-4-6-20250514';
 const MAX_TOKENS = 8192;
@@ -26,7 +26,13 @@ if (HAS_API_KEY) {
 } else {
   claudePath = findClaudeBinary();
   if (claudePath) {
-    console.log(`  AI ready (using your Claude account)`);
+    const { ok, version } = checkClaudeVersion(claudePath);
+    if (ok) {
+      console.log(`  AI ready (Claude Code ${version})`);
+    } else {
+      console.log(`  AI may not work — Claude Code ${version || 'unknown'} is outdated`);
+      console.log('  Run: npm install -g @anthropic-ai/claude-code');
+    }
   } else {
     console.log('  AI not available — Claude Code not found');
   }

@@ -8,7 +8,30 @@ import { join } from 'path';
 import { homedir } from 'os';
 import { execFileSync } from 'child_process';
 
+const MIN_CLAUDE_VERSION = '2.0.0';
+
 let cached = undefined;
+
+/**
+ * Check if a claude binary is recent enough.
+ * Returns the version string or null if too old / can't check.
+ */
+export function checkClaudeVersion(binaryPath) {
+  try {
+    const version = execFileSync(binaryPath, ['--version'], { encoding: 'utf-8', timeout: 3000 }).trim();
+    // Output is like "2.1.84 (Claude Code)"
+    const match = version.match(/^(\d+\.\d+\.\d+)/);
+    if (!match) return { ok: false, version: version };
+    const parts = match[1].split('.').map(Number);
+    const minParts = MIN_CLAUDE_VERSION.split('.').map(Number);
+    const ok = parts[0] > minParts[0] ||
+      (parts[0] === minParts[0] && parts[1] > minParts[1]) ||
+      (parts[0] === minParts[0] && parts[1] === minParts[1] && parts[2] >= minParts[2]);
+    return { ok, version: match[1] };
+  } catch {
+    return { ok: false, version: null };
+  }
+}
 
 export function findClaudeBinary() {
   if (cached !== undefined) return cached;

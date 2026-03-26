@@ -6,7 +6,7 @@ import { existsSync, readFileSync } from 'fs';
 import { join } from 'path';
 import { homedir } from 'os';
 import { chat, resetSession } from './ai/chat-engine.js';
-import { findClaudeBinary } from './ai/find-claude.js';
+import { findClaudeBinary, checkClaudeVersion } from './ai/find-claude.js';
 
 const execFileAsync = promisify(execFile);
 
@@ -76,6 +76,19 @@ async function checkClaudeAuth() {
         // Corrupted credentials file
       }
     }
+  }
+
+  // Check if claude binary exists but credentials are missing
+  if (claudeBin) {
+    const { ok, version } = checkClaudeVersion(claudeBin);
+    return {
+      authenticated: false,
+      method: null,
+      claudeInstalled: true,
+      claudeVersion: version,
+      claudeOutdated: !ok,
+      loginCommand: 'claude auth login',
+    };
   }
 
   // No CLI and no credentials file

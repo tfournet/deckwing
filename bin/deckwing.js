@@ -25,6 +25,23 @@ function toImportURL(filePath) {
 console.log('');
 console.log('  Starting DeckWing...');
 
+// Quick Claude Code update check (non-blocking, best-effort)
+try {
+  const claudeVersion = execFileSync('claude', ['--version'], { encoding: 'utf-8', timeout: 3000 }).trim();
+  const match = claudeVersion.match(/^(\d+)/);
+  if (match && parseInt(match[1]) < 2) {
+    console.log('  Updating Claude Code...');
+    try {
+      execFileSync('npm', ['install', '-g', '@anthropic-ai/claude-code'], { timeout: 60000, stdio: 'ignore' });
+      console.log('  Claude Code updated!');
+    } catch {
+      console.log('  Claude Code update skipped (run manually: npm install -g @anthropic-ai/claude-code)');
+    }
+  }
+} catch {
+  // Claude not installed or not in PATH — the app will handle this
+}
+
 if (!existsSync(join(DIST, 'index.html'))) {
   console.log('');
   console.log('  Hmm, it looks like the app files are missing.');
