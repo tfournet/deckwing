@@ -48,15 +48,31 @@ export function findClaudeBinary({ skipCache = false } = {}) {
 
   // Common locations — native installer + npm global
   const home = homedir();
+  // On Windows, also check .claude/downloads for the latest native binary
+  let nativeDownload = null;
+  if (process.platform === 'win32') {
+    const downloadDir = join(home, '.claude', 'downloads');
+    try {
+      const files = require('fs').readdirSync(downloadDir)
+        .filter(f => f.startsWith('claude-') && f.endsWith('.exe'))
+        .sort()
+        .reverse();
+      if (files.length > 0) {
+        nativeDownload = join(downloadDir, files[0]);
+      }
+    } catch { /* no downloads dir */ }
+  }
+
   const candidates = process.platform === 'win32'
     ? [
         join(home, '.claude', 'local', 'claude.exe'),
-        join(home, 'AppData', 'Local', 'Programs', 'claude', 'claude.exe'),
+        nativeDownload,
+        join(home, 'AppData', 'Local', 'Programs', 'Claude', 'claude.exe'),
+        join(home, 'AppData', 'Local', 'claude', 'claude.exe'),
+        'C:\\Program Files\\Claude\\claude.exe',
+        // npm paths last — SDK prefers native binary
         join(home, 'AppData', 'Roaming', 'npm', 'claude.cmd'),
-        join(home, 'AppData', 'Roaming', 'npm', 'claude'),
-        'C:\\Program Files\\claude\\claude.exe',
-        'C:\\Program Files\\nodejs\\claude.cmd',
-      ]
+      ].filter(Boolean)
     : [
         join(home, '.local', 'bin', 'claude'),          // native installer location
         '/usr/local/bin/claude',
