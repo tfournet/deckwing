@@ -36,17 +36,18 @@ export function useDeckState() {
     setCurrentSlideIndex(Math.max(0, Math.min(index, deck.slides.length - 1)));
   }, [deck.slides.length]);
 
-  const addSlide = useCallback((slide) => {
+  const addSlide = useCallback((slide, insertAt) => {
+    const idx = insertAt != null ? insertAt : currentSlideIndex + 1;
     setDeck(prev => ({
       ...prev,
       slides: [
-        ...prev.slides.slice(0, currentSlideIndex + 1),
+        ...prev.slides.slice(0, idx),
         slide,
-        ...prev.slides.slice(currentSlideIndex + 1),
+        ...prev.slides.slice(idx),
       ],
       updatedAt: new Date().toISOString(),
     }));
-    setCurrentSlideIndex(prev => prev + 1);
+    setCurrentSlideIndex(idx);
   }, [currentSlideIndex]);
 
   const removeSlide = useCallback((index) => {

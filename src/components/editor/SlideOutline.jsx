@@ -25,7 +25,10 @@ export function SlideOutline({
   onRemoveSlide,
 }) {
   const [pickerOpen, setPickerOpen] = useState(false);
+  const [pickerInsertAt, setPickerInsertAt] = useState(null); // null = append after current
   const [openMenuIndex, setOpenMenuIndex] = useState(null);
+  const [hoverGap, setHoverGap] = useState(null); // index where hover-gap + button shows
+  const hoverTimerRef = useRef(null);
 
   // Drag state (stored in refs to avoid stale closure issues in event handlers)
   const dragIndex = useRef(null);
@@ -233,35 +236,65 @@ export function SlideOutline({
         className="flex flex-col h-full outline-none focus-visible:ring-1 focus-visible:ring-bot-teal-400/40"
       >
         {/* Header */}
-        <div className="p-3 border-b border-ops-indigo-700/30 flex items-center justify-between shrink-0">
+        <div className="p-3 border-b border-ops-indigo-700/30 shrink-0">
           <span className="text-cloud-gray-400 text-xs font-bold uppercase tracking-wider">
             Slides
           </span>
-          <button
-            className="text-cloud-gray-400 hover:text-bot-teal-400 transition-colors"
-            onClick={() => setPickerOpen(true)}
-            title="Add slide"
-            aria-label="Add slide"
-          >
-            <Plus size={18} />
-          </button>
         </div>
 
         {/* Slide list */}
         <div
           className="flex-1 overflow-y-auto p-2"
           onDragLeave={handleDragLeaveList}
+          onMouseLeave={() => {
+            if (hoverTimerRef.current) clearTimeout(hoverTimerRef.current);
+            setHoverGap(null);
+          }}
         >
           {slides.map((slide, i) => {
             const isActive = i === currentIndex;
             const showIndicatorAbove = dropIndicator === i;
+            const showHoverGap = hoverGap === i && dragIndex.current === null;
 
             return (
               <div key={slide.id}>
-                {/* Drop indicator above this item */}
+                {/* Drop indicator above this item (drag mode) */}
                 {showIndicatorAbove && (
                   <div className="h-0.5 bg-bot-teal-400 rounded-full mx-2 my-0.5" />
                 )}
+
+                {/* Hover-gap insert point (non-drag mode) */}
+                {showHoverGap && (
+                  <div className="flex items-center justify-center py-1">
+                    <button
+                      className="flex items-center gap-1 px-2 py-0.5 rounded-full
+                                 bg-bot-teal-400/20 border border-bot-teal-400/40
+                                 text-bot-teal-400 text-xs hover:bg-bot-teal-400/30
+                                 transition-all"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setPickerInsertAt(i);
+                        setPickerOpen(true);
+                        setHoverGap(null);
+                      }}
+                    >
+                      <Plus size={12} />
+                    </button>
+                  </div>
+                )}
+
+                {/* Gap sensor — detects mouse hovering between slides */}
+                <div
+                  className="h-1"
+                  onMouseEnter={() => {
+                    if (dragIndex.current !== null) return;
+                    if (hoverTimerRef.current) clearTimeout(hoverTimerRef.current);
+                    hoverTimerRef.current = setTimeout(() => setHoverGap(i), 200);
+                  }}
+                  onMouseLeave={() => {
+                    if (hoverTimerRef.current) clearTimeout(hoverTimerRef.current);
+                  }}
+                />
 
                 {/* Slide row */}
                 <div
@@ -339,14 +372,33 @@ export function SlideOutline({
               onDrop={(e) => handleDrop(e, slides.length)}
             />
           )}
+
+          {/* Mini-slide add button at bottom */}
+          <button
+            className="w-full p-3 mt-1 rounded-lg border-2 border-dashed border-ops-indigo-600/40
+                       hover:border-bot-teal-400/50 hover:bg-bot-teal-400/5
+                       flex items-center justify-center gap-2
+                       text-cloud-gray-500 hover:text-bot-teal-400
+                       transition-all group"
+            onClick={() => {
+              setPickerInsertAt(null);
+              setPickerOpen(true);
+            }}
+          >
+            <Plus size={16} className="group-hover:scale-110 transition-transform" />
+            <span className="text-xs font-medium">Add slide</span>
+          </button>
         </div>
       </div>
 
       {/* Slide type picker modal */}
       {pickerOpen && (
         <SlideTypePickerModal
-          onSelect={onAddSlide}
-          onClose={() => setPickerOpen(false)}
+          onSelect={(slide) => {
+            onAddSlide(slide, pickerInsertAt);
+            setPickerInsertAt(null);
+          }}
+          onClose={() => { setPickerOpen(false); setPickerInsertAt(null); }}
         />
       )}
     </>
