@@ -3,6 +3,9 @@ import { EXAMPLE_DECK, createSlide } from './schema/slide-schema';
 import { renderSlide, SlideFrame } from './engine/renderer';
 import { getTheme, getThemeNames } from './config/themes';
 import { ChevronLeft, ChevronRight, Plus, Trash2, MessageSquare, Play, Settings } from 'lucide-react';
+import { ChatPanel } from './components/chat/ChatPanel';
+import { useChat } from './hooks/useChat';
+import { SlideEditor } from './components/editor/SlideEditor';
 
 /**
  * Rewst Deck Builder - Main Application
@@ -50,6 +53,102 @@ export default function App() {
     }));
     setCurrentSlideIndex(prev => Math.min(prev, deck.slides.length - 2));
   }, [currentSlideIndex, deck.slides.length]);
+
+  const updateSlide = useCallback((index, changes) => {
+    setDeck(prev => ({
+      ...prev,
+      slides: prev.slides.map((slide, i) =>
+        i === index ? { ...slide, ...changes } : slide
+      ),
+      updatedAt: new Date().toISOString(),
+    }));
+  }, []);
+
+  /**
+   * Apply an AI action to the deck state.
+   * @param {object} action - Action object from AI response
+   */
+  const applyAction = useCallback((action) => {
+    if (!action) return;
+
+    setDeck(prev => {
+      const now = new Date().toISOString();
+
+      switch (action.type) {
+        case 'create_deck': {
+          const { slides = [], title, author, defaultTheme } = action.data;
+          const normalizedSlides = slides.map(slide =>
+            createSlide(slide.type || 'content', slide)
+          );
+          return {
+            ...prev,
+            title: title || prev.title,
+            author: author || prev.author,
+            defaultTheme: defaultTheme || prev.defaultTheme,
+            slides: normalizedSlides.length > 0 ? normalizedSlides : prev.slides,
+            updatedAt: now,
+          };
+        }
+
+        case 'update_slide': {
+          const { index, changes } = action.data;
+          if (index == null || !changes) return prev;
+          const slides = prev.slides.map((slide, i) =>
+            i === index ? { ...slide, ...changes } : slide
+          );
+          return { ...prev, slides, updatedAt: now };
+        }
+
+        case 'add_slide': {
+          const { slide, index } = action.data;
+          if (!slide) return prev;
+          const newSlide = createSlide(slide.type || 'content', slide);
+          const insertAt = index != null ? index : prev.slides.length;
+          const slides = [
+            ...prev.slides.slice(0, insertAt),
+            newSlide,
+            ...prev.slides.slice(insertAt),
+          ];
+          return { ...prev, slides, updatedAt: now };
+        }
+
+        case 'remove_slide': {
+          const { index } = action.data;
+          if (index == null || prev.slides.length <= 1) return prev;
+          const slides = prev.slides.filter((_, i) => i !== index);
+          return { ...prev, slides, updatedAt: now };
+        }
+
+        case 'reorder': {
+          const { order } = action.data;
+          if (!Array.isArray(order)) return prev;
+          const slides = order
+            .filter(i => i >= 0 && i < prev.slides.length)
+            .map(i => prev.slides[i]);
+          if (slides.length === 0) return prev;
+          return { ...prev, slides, updatedAt: now };
+        }
+
+        default:
+          return prev;
+      }
+    });
+
+    // After deck-modifying actions, navigate sensibly
+    if (action.type === 'create_deck') {
+      setCurrentSlideIndex(0);
+    }
+    if (action.type === 'remove_slide' && action.data?.index != null) {
+      setCurrentSlideIndex(prev =>
+        Math.min(prev, Math.max(0, deck.slides.length - 2))
+      );
+    }
+  }, [deck.slides.length]);
+
+  const { messages, isLoading, sendMessage, resetChat } = useChat({
+    deck,
+    onAction: applyAction,
+  });
 
   // Present mode - fullscreen single slide
   if (presentMode) {
@@ -175,43 +274,24 @@ export default function App() {
               <SlideFrame slide={currentSlide} defaultTheme={deck.defaultTheme} />
             </div>
           </div>
+
+          {/* Inline slide editor */}
+          <SlideEditor
+            slide={currentSlide}
+            index={currentSlideIndex}
+            onUpdateSlide={updateSlide}
+          />
         </main>
 
         {/* Right panel - AI Chat */}
         {chatOpen && (
-          <aside className="w-96 bg-ops-indigo-900/50 border-l border-ops-indigo-700/30 flex flex-col shrink-0">
-            <div className="p-3 border-b border-ops-indigo-700/30 flex items-center justify-between">
-              <span className="text-cloud-gray-400 text-xs font-bold uppercase tracking-wider">AI Assistant</span>
-              <button
-                className="text-cloud-gray-500 hover:text-white transition-colors"
-                onClick={() => setChatOpen(false)}
-              >
-                &times;
-              </button>
-            </div>
-            <div className="flex-1 overflow-y-auto p-4">
-              <div className="text-center py-12">
-                <div className="text-bot-teal-400 mb-4">
-                  <MessageSquare size={48} className="mx-auto opacity-50" />
-                </div>
-                <p className="text-cloud-gray-300 text-lg font-medium mb-2">
-                  Chat with AI to build your deck
-                </p>
-                <p className="text-cloud-gray-500 text-sm max-w-xs mx-auto">
-                  Describe your presentation topic, ask to add slides, or refine existing content.
-                </p>
-              </div>
-            </div>
-            <div className="p-3 border-t border-ops-indigo-700/30">
-              <div className="flex gap-2">
-                <input
-                  className="flex-1 bg-ops-indigo-800 border border-ops-indigo-600/50 rounded-full px-4 py-2 text-sm text-white placeholder-cloud-gray-500 focus:outline-none focus:border-bot-teal-400/50"
-                  placeholder="Describe your presentation..."
-                />
-                <button className="btn-primary text-sm px-4">Send</button>
-              </div>
-            </div>
-          </aside>
+          <ChatPanel
+            messages={messages}
+            isLoading={isLoading}
+            onSendMessage={sendMessage}
+            onResetChat={resetChat}
+            onClose={() => setChatOpen(false)}
+          />
         )}
       </div>
     </div>
