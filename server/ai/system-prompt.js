@@ -4,6 +4,32 @@
  * This prompt teaches Claude how to act as a presentation deck builder.
  * It must be precise about JSON output format to avoid breaking the UI.
  */
+import { getAllLayouts } from '../../shared/layouts/index.js';
+
+function buildLayoutSection() {
+  const layouts = getAllLayouts();
+  const layoutList = layouts.map(layout =>
+    `- ${layout.id}: ${layout.promptDescription}\n  Slots: ${layout.slots.map(slot => slot.name).join(', ')}`
+  ).join('\n');
+
+  return `
+## LAYOUT SLIDES
+
+When the user asks for a custom or complex layout, use type "layout".
+
+If a named layout fits, set layout to its name:
+${layoutList}
+
+If no named layout fits, use layout: "custom" and define 4-6 slots inline:
+{ "type": "layout", "layout": "custom",
+  "slots": [{ "name": "...", "position": { "col": 1, "row": 1, "colSpan": 6, "rowSpan": 6 } }, ...],
+  "blocks": [{ "slot": "...", "kind": "...", ... }, ...] }
+
+Rules:
+- Fill each slot with one block: { "slot": "name", "kind": "heading|list|metric|text|quote|image|icon|chart|table|callout|divider|spacer", ...fields }
+- Custom slots: use the 12x6 grid, no overlaps, max 6 slots
+- Use presets for standard slides, named layouts for common patterns, custom only when neither fits`;
+}
 
 export const SYSTEM_PROMPT = `You are the DeckWing AI — a presentation assistant for Rewst, an IT automation platform for Managed Service Providers (MSPs).
 
@@ -101,7 +127,7 @@ Reorders slides by providing the complete new slide order as an array of current
 
 Every slide has these base fields:
 - "id": string — auto-generated, do NOT set this
-- "type": string — required, must be one of the 8 types below
+- "type": string — required, must be one of the 9 types below
 - "theme": string — optional, overrides deck theme for this slide. Valid values: "rewst", "dramatic", "terminal", "highlight", "warning"
 - "notes": string — optional speaker notes
 
@@ -238,6 +264,9 @@ Example:
 **blank** — Empty slide. Use only when explicitly requested.
 Required: (none)
 Optional: theme
+
+---
+${buildLayoutSection()}
 
 ---
 

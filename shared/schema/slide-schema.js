@@ -57,6 +57,25 @@ export const SLIDE_TYPES = {
     required: [],
     optional: ['theme'],
   },
+  layout: {
+    required: ['layout', 'blocks'],
+    optional: ['slots', 'customColors', 'theme', 'notes'],
+  },
+};
+
+export const BLOCK_KINDS = {
+  heading: { required: ['text'], optional: ['size'] },
+  text: { required: ['text'], optional: ['style'] },
+  list: { required: ['items'], optional: ['style'] },
+  metric: { required: ['value', 'label'], optional: ['color'] },
+  chart: { required: ['type', 'data'], optional: [] },
+  table: { required: ['headers', 'rows'], optional: [] },
+  image: { required: ['src'], optional: ['fit', 'alt'] },
+  icon: { required: ['name'], optional: ['size'] },
+  quote: { required: ['text'], optional: ['attribution', 'role'] },
+  callout: { required: ['text'], optional: ['variant'] },
+  divider: { required: [], optional: ['direction'] },
+  spacer: { required: [], optional: [] },
 };
 
 /**
@@ -145,6 +164,34 @@ export function validateSlide(slide) {
   for (const field of schema.required) {
     if (slide[field] === undefined || slide[field] === null) {
       errors.push(`Slide type "${slide.type}" missing required field: ${field}`);
+    }
+  }
+
+  return { valid: errors.length === 0, errors };
+}
+
+/**
+ * Validate a block against its kind schema
+ * @param {object} block - Block to validate
+ * @returns {{ valid: boolean, errors: string[] }}
+ */
+export function validateBlock(block) {
+  const errors = [];
+
+  if (!block.kind) {
+    errors.push('Block missing required field: kind');
+    return { valid: false, errors };
+  }
+
+  const schema = BLOCK_KINDS[block.kind];
+  if (!schema) {
+    errors.push(`Unknown block kind: ${block.kind}`);
+    return { valid: false, errors };
+  }
+
+  for (const field of schema.required) {
+    if (block[field] === undefined || block[field] === null) {
+      errors.push(`Block kind "${block.kind}" missing required field: ${field}`);
     }
   }
 

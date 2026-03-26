@@ -1,10 +1,12 @@
 import { describe, it, expect } from 'vitest';
 import {
   SLIDE_TYPES,
+  BLOCK_KINDS,
   CURRENT_SCHEMA_VERSION,
   createSlide,
   createDeck,
   migrateDeck,
+  validateBlock,
   validateSlide,
   validateDeck,
   EXAMPLE_DECK,
@@ -13,10 +15,10 @@ import {
 // --- SLIDE_TYPES ---
 
 describe('SLIDE_TYPES', () => {
-  it('defines all 8 slide types', () => {
+  it('defines all 9 slide types', () => {
     const types = Object.keys(SLIDE_TYPES);
     expect(types).toEqual([
-      'title', 'content', 'grid', 'image', 'quote', 'metric', 'section', 'blank',
+      'title', 'content', 'grid', 'image', 'quote', 'metric', 'section', 'blank', 'layout',
     ]);
   });
 
@@ -29,6 +31,16 @@ describe('SLIDE_TYPES', () => {
 
   it('blank has no required fields', () => {
     expect(SLIDE_TYPES.blank.required).toEqual([]);
+  });
+});
+
+describe('BLOCK_KINDS', () => {
+  it('defines all 12 block kinds', () => {
+    const kinds = Object.keys(BLOCK_KINDS);
+    expect(kinds).toEqual([
+      'heading', 'text', 'list', 'metric', 'chart', 'table',
+      'image', 'icon', 'quote', 'callout', 'divider', 'spacer',
+    ]);
   });
 });
 
@@ -68,6 +80,20 @@ describe('createSlide', () => {
     const slide = createSlide('blank');
     expect(slide.type).toBe('blank');
     expect(slide.theme).toBe('rewst');
+  });
+
+  it('creates a layout slide', () => {
+    const slide = createSlide('layout', {
+      layout: 'single-center',
+      blocks: [
+        { slot: 'title', kind: 'heading', text: 'Layout title' },
+        { slot: 'body', kind: 'text', text: 'Layout body' },
+      ],
+    });
+
+    expect(slide.type).toBe('layout');
+    expect(slide.layout).toBe('single-center');
+    expect(slide.blocks).toHaveLength(2);
   });
 
   it('generates unique ids across calls', () => {
@@ -237,6 +263,25 @@ describe('validateSlide', () => {
 
     expect(result.valid).toBe(false);
     expect(result.errors[0]).toContain('kind "heading" not allowed in slot "body"');
+  });
+});
+
+describe('validateBlock', () => {
+  it('passes for valid heading block', () => {
+    const result = validateBlock({ kind: 'heading', text: 'Quarterly Review' });
+    expect(result).toEqual({ valid: true, errors: [] });
+  });
+
+  it('fails for missing required field', () => {
+    const result = validateBlock({ kind: 'metric', value: '42%' });
+    expect(result.valid).toBe(false);
+    expect(result.errors).toContain('Block kind "metric" missing required field: label');
+  });
+
+  it('fails for unknown kind', () => {
+    const result = validateBlock({ kind: 'sparkles' });
+    expect(result.valid).toBe(false);
+    expect(result.errors).toContain('Unknown block kind: sparkles');
   });
 });
 

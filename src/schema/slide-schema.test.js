@@ -1,5 +1,16 @@
 import { describe, it, expect } from 'vitest';
-import { SLIDE_TYPES, CURRENT_SCHEMA_VERSION, createSlide, createDeck, migrateDeck, validateSlide, validateDeck, EXAMPLE_DECK } from './slide-schema.js';
+import {
+  SLIDE_TYPES,
+  BLOCK_KINDS,
+  CURRENT_SCHEMA_VERSION,
+  createSlide,
+  createDeck,
+  migrateDeck,
+  validateBlock,
+  validateSlide,
+  validateDeck,
+  EXAMPLE_DECK,
+} from './slide-schema.js';
 
 describe('slide-schema re-export', () => {
   it('re-exports all expected symbols from shared/', () => {
@@ -8,6 +19,8 @@ describe('slide-schema re-export', () => {
     expect(typeof createDeck).toBe('function');
     expect(CURRENT_SCHEMA_VERSION).toBe(2);
     expect(typeof migrateDeck).toBe('function');
+    expect(BLOCK_KINDS).toBeDefined();
+    expect(typeof validateBlock).toBe('function');
     expect(typeof validateSlide).toBe('function');
     expect(typeof validateDeck).toBe('function');
     expect(EXAMPLE_DECK).toBeDefined();
