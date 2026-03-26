@@ -36,19 +36,9 @@ export function checkClaudeVersion(binaryPath) {
 export function findClaudeBinary({ skipCache = false } = {}) {
   if (!skipCache && cached !== undefined) return cached;
 
-  // Check PATH first
-  try {
-    const cmd = process.platform === 'win32' ? 'where' : 'which';
-    const result = execFileSync(cmd, ['claude'], { encoding: 'utf-8', timeout: 3000 }).trim();
-    if (result) {
-      cached = result.split('\n')[0].trim();
-      return cached;
-    }
-  } catch { /* not in PATH */ }
-
   const home = homedir();
 
-  // Check DeckWing's own Claude installation first — always a known location
+  // Check DeckWing's own installation FIRST — known location, always native binary
   const deckwingClaude = process.platform === 'win32'
     ? join(home, '.deckwing', 'claude', 'claude.exe')
     : join(home, '.deckwing', 'claude', 'claude');

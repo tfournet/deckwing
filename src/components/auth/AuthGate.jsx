@@ -50,8 +50,11 @@ export function AuthGate({ children }) {
       }
 
       setOauthUrl(data.oauthUrl);
-      setLoginMessage('Open the Claude sign-in page, then complete sign-in in your browser.');
+      setLoginMessage('Complete sign-in in your browser. This screen will update automatically.');
       setPolling(true);
+
+      // Open the sign-in page automatically
+      window.open(data.oauthUrl, '_blank');
 
       authPollIntervalRef.current = setInterval(async () => {
         try {
@@ -127,41 +130,38 @@ export function AuthGate({ children }) {
 
           {hasClaude ? (
             <>
-              {oauthUrl ? (
-                <>
-                  <a
-                    href={oauthUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="btn-primary text-sm px-8 py-3 w-full block text-center"
-                  >
-                    Open Claude sign-in page
-                  </a>
-                  <p className="text-bot-teal-400 text-xs animate-pulse">
-                    Sign in on the Claude page. This screen will update automatically when you're done.
-                  </p>
-                </>
-              ) : polling ? (
+              {polling ? (
                 <>
                   <button className="btn-primary text-sm px-8 py-3 w-full opacity-80" disabled>
                     Waiting for sign in...
                   </button>
                   <p className="text-bot-teal-400 text-xs animate-pulse">
-                    Complete the sign-in in your browser, then come back here.
+                    {loginMessage || 'Complete sign-in in your browser. This screen will update automatically.'}
                   </p>
+                  {oauthUrl && (
+                    <a
+                      href={oauthUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-cloud-gray-500 text-xs underline hover:text-cloud-gray-300"
+                    >
+                      Sign-in page didn't open? Click here.
+                    </a>
+                  )}
                 </>
               ) : (
-                <button
-                  className="btn-primary text-sm px-8 py-3 w-full"
-                  onClick={startLogin}
-                >
-                  Sign in with Claude
-                </button>
+                <>
+                  <button
+                    className="btn-primary text-sm px-8 py-3 w-full"
+                    onClick={startLogin}
+                  >
+                    Sign in with Claude
+                  </button>
+                  {loginMessage && (
+                    <p className="text-cloud-gray-300 text-xs">{loginMessage}</p>
+                  )}
+                </>
               )}
-
-              {loginMessage ? (
-                <p className="text-cloud-gray-300 text-xs">{loginMessage}</p>
-              ) : null}
             </>
           ) : (
             <>
