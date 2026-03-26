@@ -37,6 +37,13 @@ jobs:
       - name: Verify build output exists
         run: test -f dist/index.html
 
+      - name: Validate install scripts
+        run: |
+          bash -n scripts/install.sh
+          pwsh -Command "Get-Content scripts/install.ps1 | Out-Null" 2>/dev/null || true
+          grep -q "tfournet" scripts/install.sh || (echo "ERROR: install.sh missing repo reference" && exit 1)
+          grep -q "tfournet" scripts/install.ps1 || (echo "ERROR: install.ps1 missing repo reference" && exit 1)
+
   # On push to main (not PRs), rebuild dist/ and commit if changed
   update-dist:
     needs: test
