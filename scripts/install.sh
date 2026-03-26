@@ -134,7 +134,10 @@ step "Step 3/3 — AI Setup (Claude)"
 if command -v claude &>/dev/null; then
   info "Claude Code — already installed"
 else
-  run_with_spinner "Installing Claude Code" npm install -g @anthropic-ai/claude-code
+  detail "Installing Claude Code..."
+  curl -fsSL https://claude.ai/install.sh | sh >/dev/null 2>&1
+  # Refresh PATH to pick up the new binary
+  export PATH="$HOME/.local/bin:$PATH"
   if command -v claude &>/dev/null; then
     info "Claude Code — installed"
   else

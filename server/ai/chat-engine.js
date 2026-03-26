@@ -31,7 +31,7 @@ if (HAS_API_KEY) {
       console.log(`  AI ready (Claude Code ${version})`);
     } else {
       console.log(`  AI may not work — Claude Code ${version || 'unknown'} is outdated`);
-      console.log('  Run: npm install -g @anthropic-ai/claude-code');
+      console.log('  Run: curl -fsSL https://claude.ai/install.sh | sh');
     }
   } else {
     console.log('  AI not available — Claude Code not found');

@@ -46,18 +46,21 @@ export function findClaudeBinary() {
     }
   } catch { /* not in PATH */ }
 
-  // Common locations
+  // Common locations — native installer + npm global
   const home = homedir();
   const candidates = process.platform === 'win32'
     ? [
+        join(home, '.claude', 'local', 'claude.exe'),
+        join(home, 'AppData', 'Local', 'Programs', 'claude', 'claude.exe'),
         join(home, 'AppData', 'Roaming', 'npm', 'claude.cmd'),
         join(home, 'AppData', 'Roaming', 'npm', 'claude'),
+        'C:\\Program Files\\claude\\claude.exe',
         'C:\\Program Files\\nodejs\\claude.cmd',
       ]
     : [
+        join(home, '.local', 'bin', 'claude'),          // native installer location
         '/usr/local/bin/claude',
         '/opt/homebrew/bin/claude',
-        join(home, '.local', 'bin', 'claude'),
         join(home, '.npm-global', 'bin', 'claude'),
       ];
 

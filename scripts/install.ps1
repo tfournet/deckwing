@@ -144,7 +144,9 @@ try {
 
 if (-not $hasClaude) {
     try {
-        Invoke-WithSpinner -Label "Installing Claude Code" -Command { npm install -g @anthropic-ai/claude-code 2>&1 | Out-Null } | Out-Null
+        Invoke-WithSpinner -Label "Installing Claude Code" -Command { irm https://claude.ai/install.ps1 | iex 2>&1 | Out-Null } | Out-Null
+        # Save the npm prefix so DeckWing can find claude
+        $npmPrefix = (npm config get prefix 2>$null)
         $env:Path = [System.Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path", "User")
         try { if (Get-Command claude -ErrorAction SilentlyContinue) { $hasClaude = $true } } catch {}
     } catch {

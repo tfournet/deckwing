@@ -25,17 +25,17 @@ function toImportURL(filePath) {
 console.log('');
 console.log('  Starting DeckWing...');
 
-// Quick Claude Code update check (non-blocking, best-effort)
+// Quick Claude Code version check (non-blocking, best-effort)
 try {
   const claudeVersion = execFileSync('claude', ['--version'], { encoding: 'utf-8', timeout: 3000 }).trim();
   const match = claudeVersion.match(/^(\d+)/);
   if (match && parseInt(match[1]) < 2) {
-    console.log('  Updating Claude Code...');
+    console.log('  Claude Code is outdated — updating...');
     try {
-      execFileSync('npm', ['install', '-g', '@anthropic-ai/claude-code'], { timeout: 60000, stdio: 'ignore' });
+      execFileSync('claude', ['update'], { timeout: 60000, stdio: 'ignore' });
       console.log('  Claude Code updated!');
     } catch {
-      console.log('  Claude Code update skipped (run manually: npm install -g @anthropic-ai/claude-code)');
+      console.log('  Update skipped. Run: curl -fsSL https://claude.ai/install.sh | sh');
     }
   }
 } catch {

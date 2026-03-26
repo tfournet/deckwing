@@ -96,7 +96,7 @@ async function checkClaudeAuth() {
     authenticated: false,
     method: null,
     loginCommand: 'claude auth login',
-    error: 'Claude Code not found. Install it with: npm install -g @anthropic-ai/claude-code',
+    error: 'Claude Code not found. Install it with: curl -fsSL https://claude.ai/install.sh | sh',
   };
 }
 
@@ -137,7 +137,7 @@ app.post('/api/auth/login', async (req, res) => {
     loginInProgress = false;
     return res.status(500).json({
       ok: false,
-      error: 'Claude Code not found. Install it with: npm install -g @anthropic-ai/claude-code',
+      error: 'Claude Code not found. Install it with: curl -fsSL https://claude.ai/install.sh | sh',
     });
   }
 

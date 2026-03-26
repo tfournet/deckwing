@@ -305,7 +305,7 @@ export default function App() {
               <div className="bg-ops-indigo-950 rounded-lg p-4 text-left space-y-2">
                 <p className="text-cloud-gray-400 text-xs">Claude Code is required. Install it first:</p>
                 <code className="text-bot-teal-400 text-sm font-mono block">
-                  npm install -g @anthropic-ai/claude-code
+                  curl -fsSL https://claude.ai/install.sh | sh
                 </code>
               </div>
               <button
