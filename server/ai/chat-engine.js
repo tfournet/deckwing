@@ -7,10 +7,32 @@
  *   2. Claude Agent SDK (no key) — uses local Claude Code OAuth session
  */
 
+import { existsSync } from 'fs';
+import { join } from 'path';
 import { SYSTEM_PROMPT } from './system-prompt.js';
 import { validateSlide } from '../../shared/schema/slide-schema.js';
 import { findClaudeBinary } from './find-claude.js';
 import { DEFAULT_MODEL } from '../../shared/models.js';
+
+/**
+ * Find Git Bash on Windows — required by Claude Code.
+ */
+function findGitBash() {
+  if (process.platform !== 'win32') return null;
+  if (process.env.CLAUDE_CODE_GIT_BASH_PATH) return process.env.CLAUDE_CODE_GIT_BASH_PATH;
+
+  const candidates = [
+    'C:\\Program Files\\Git\\bin\\bash.exe',
+    'C:\\Program Files (x86)\\Git\\bin\\bash.exe',
+    join(process.env.LOCALAPPDATA || '', 'Programs', 'Git', 'bin', 'bash.exe'),
+    join(process.env.ProgramFiles || '', 'Git', 'bin', 'bash.exe'),
+  ];
+
+  for (const p of candidates) {
+    if (p && existsSync(p)) return p;
+  }
+  return null;
+}
 
 const MAX_TOKENS = 8192;
 
@@ -26,6 +48,11 @@ if (HAS_API_KEY) {
 } else {
   claudePath = findClaudeBinary();
   if (claudePath) {
+    // On Windows, Claude Code needs Git Bash — set env var so it can find it
+    const gitBash = findGitBash();
+    if (gitBash) {
+      process.env.CLAUDE_CODE_GIT_BASH_PATH = gitBash;
+    }
     console.log(`  AI ready (Claude Code at ${claudePath})`);
   } else {
     console.log('  AI not available — Claude Code not found');

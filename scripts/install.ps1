@@ -44,7 +44,7 @@ Write-Host "  ──────────────────────
 
 # ── Step 1: Node.js ───────────────────────────────────────────────────
 
-Write-Step "Step 1/3 - Node.js"
+Write-Step "Step 1/4 - Node.js"
 
 $hasNode = $false
 try {
@@ -79,7 +79,7 @@ if (-not $hasNode) {
 
 # ── Step 2: DeckWing ──────────────────────────────────────────────────
 
-Write-Step "Step 2/3 - DeckWing"
+Write-Step "Step 2/4 - DeckWing"
 
 # Stop any running DeckWing instance first
 $running = Get-Process -Name "node" -ErrorAction SilentlyContinue | Where-Object {
@@ -140,9 +140,28 @@ try {
     Write-Fail "DeckWing installation failed. Check the error above and try again."
 }
 
-# ── Step 3: Claude Code (for AI features) ─────────────────────────────
+# ── Step 3: AI Setup ──────────────────────────────────────────────────
 
-Write-Step "Step 3/3 - AI Setup"
+Write-Step "Step 3/4 - Git"
+
+$hasGit = $false
+try { if (Get-Command git -ErrorAction SilentlyContinue) { $hasGit = $true } } catch {}
+
+if ($hasGit) {
+    Write-Info "Git - already installed"
+} else {
+    Write-Detail "Git is required by Claude Code on Windows. Installing..."
+    try {
+        winget install Git.Git --accept-source-agreements --accept-package-agreements 2>&1 | Out-Null
+        $env:Path = [System.Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path", "User")
+        Write-Info "Git installed"
+    } catch {
+        Write-Warn "Could not install Git automatically"
+        Write-Detail "Download from https://git-scm.com and re-run the installer."
+    }
+}
+
+Write-Step "Step 4/4 - Claude Code"
 
 $claudeDir = Join-Path (Join-Path $env:USERPROFILE ".deckwing") "claude"
 $claudeBin = Join-Path $claudeDir "claude.exe"
