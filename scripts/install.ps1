@@ -4,7 +4,7 @@
 #
 
 $ErrorActionPreference = "Stop"
-$GithubRepo = "tfournet/rewst-deck-builder"
+$GithubRepo = "tfournet/deckwing"
 
 function Write-Info($msg)  { Write-Host "  [OK] " -ForegroundColor Green -NoNewline; Write-Host $msg }
 function Write-Warn($msg)  { Write-Host "  [!!] " -ForegroundColor Yellow -NoNewline; Write-Host $msg }
