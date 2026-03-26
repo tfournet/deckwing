@@ -211,9 +211,47 @@ This is a two-part task: first extract deck state into a shareable store, then b
 
 ---
 
+## Model Chooser (gpt-5.4 via clink — backend logic + small UI)
+
+### Task 6: Model Selection
+
+**Context:** `server/ai/chat-engine.js`, `src/components/chat/ChatPanel.jsx`, `src/hooks/useChat.js`
+
+The chat engine currently hardcodes `claude-sonnet-4-6-20250514`. Users should pick between the latest Haiku (fast/cheap), Sonnet (balanced), and Opus (best quality) — and the choice should persist.
+
+**Steps:**
+
+1. [ ] Create `shared/models.js` — single source of truth for available models:
+   ```js
+   export const MODELS = [
+     { id: 'claude-haiku-4-5-20251001', label: 'Haiku', description: 'Fast, good for quick edits' },
+     { id: 'claude-sonnet-4-6-20250514', label: 'Sonnet', description: 'Balanced speed and quality' },
+     { id: 'claude-opus-4-6-20250807', label: 'Opus', description: 'Best quality, slower' },
+   ];
+   export const DEFAULT_MODEL = MODELS[1].id; // Sonnet
+   ```
+2. [ ] Update `server/ai/chat-engine.js`:
+   - Remove hardcoded `MODEL` constant
+   - Accept `model` parameter in `chat()` function
+   - Pass to both `callDirectAPI()` and `callAgentSDK()` (SDK uses `options.model`)
+   - Fall back to `DEFAULT_MODEL` if not provided
+3. [ ] Update `server/app.js` — pass `model` from request body to `chat()`
+4. [ ] Update `src/hooks/useChat.js` — accept `model` option, pass in POST body
+5. [ ] Add model selector dropdown to `ChatPanel.jsx`:
+   - Small dropdown in the chat panel header (next to the reset button)
+   - Shows model label (Haiku / Sonnet / Opus) with description on hover
+   - Selection stored in localStorage (`deckwing-model`)
+   - Loaded on mount, passed to `useChat`
+6. [ ] Create `shared/models.test.js` — validates model IDs and structure
+7. [ ] Update `server/ai/chat-engine.test.js` — verify model is passed through to API
+
+**Verify:** `npm test` + manual: switch to Haiku, send message, check server logs show haiku model
+
+---
+
 ## Integration
 
-### Task 6: Wire Features + Final Verification
+### Task 7: Wire Features + Final Verification
 
 **Context:** `src/App.jsx`, `src/hooks/useExport.js` (from Task 0), all new modules
 
@@ -225,9 +263,9 @@ This is a two-part task: first extract deck state into a shareable store, then b
 4. [ ] Wire Task 4: add `exportDeckToHTML` to useExport hook
 5. [ ] Replace individual export buttons with a dropdown: PDF | PPTX | HTML Presentation
 6. [ ] Wire Task 5: connect useDetachedEditor to SlideEditor
-7. [ ] Full test suite: `npm test`
-8. [ ] Build: `npm run build`
-9. [ ] Tag release: `npm version minor && git push --tags`
+7. [ ] Wire Task 6: connect model selector in ChatPanel to useChat + chat engine
+8. [ ] Full test suite: `npm test`
+9. [ ] Build: `npm run build`
 
 **Verify:** `npm test && npm run build`
 
@@ -245,7 +283,8 @@ Phase 2 (parallel after Task 0):
 ┌─────────────────────────┐  ┌──────────────────────────┐
 │ Task 1: Slide Insert UX │  │ Task 2: PPTX Export      │ (gpt-5.4 clink)
 │ (main thread)           │  │ Task 3: AI Review Agent  │ (gpt-5.4 clink)
-└─────────────────────────┘  └──────────────────────────┘
+└─────────────────────────┘  │ Task 6: Model Chooser    │ (gpt-5.4 clink)
+                              └──────────────────────────┘
 
 Phase 3 (parallel after Phase 2):
 ┌─────────────────────────┐  ┌──────────────────────────┐
@@ -255,15 +294,15 @@ Phase 3 (parallel after Phase 2):
 
 Phase 4 (sequential):
 ┌────────────────────────────────────────┐
-│ Task 6: Integration + Release          │
+│ Task 7: Integration + Release          │
 └────────────────────────────────────────┘
 ```
 
 **Team assignment:**
-- Tasks 2 + 3 → gpt-5.4 via clink (worktree isolation, must pass `npm test` before merge)
+- Tasks 2 + 3 + 6 → gpt-5.4 via clink (worktree isolation, must pass `npm test` before merge)
 - Task 0 + 1 → main thread (touches App.jsx/SlideOutline)
 - Tasks 4 + 5 → main thread (renderer/React coupling)
-- Task 6 → main thread (integration)
+- Task 7 → main thread (integration)
 
 ## Review Notes
 
