@@ -50,8 +50,9 @@ if (-not $hasNode) {
 
 # ── DeckWing ──────────────────────────────────────────────────────────
 
+# TODO: Update org name when repo is published
 Write-Step "Installing DeckWing..."
-npm install -g deckwing
+npm install -g github:rewst-io/deckwing
 Write-Info "DeckWing installed"
 
 # ── Claude Code (for AI chat) ────────────────────────────────────────

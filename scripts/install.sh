@@ -48,8 +48,9 @@ fi
 
 # ── DeckWing ──────────────────────────────────────────────────────────
 
+# TODO: Update org name when repo is published
 step "Installing DeckWing..."
-npm install -g deckwing
+npm install -g github:rewst-io/deckwing
 info "DeckWing installed"
 
 # ── Claude Code (for AI chat) ────────────────────────────────────────
