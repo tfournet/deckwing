@@ -1,5 +1,6 @@
-import { useState, useEffect } from 'react';
-import { ChevronLeft, ChevronRight, MessageSquare, Play, FolderOpen, Download } from 'lucide-react';
+import { useState, useEffect, useCallback } from 'react';
+import { ChevronLeft, ChevronRight, MessageSquare, Play, FolderOpen, Download, ChevronDown } from 'lucide-react';
+import { MODELS, DEFAULT_MODEL } from '../shared/models.js';
 import { SlideFrame } from './engine/renderer';
 import { ChatPanel } from './components/chat/ChatPanel';
 import { AuthGate } from './components/auth/AuthGate';
@@ -18,6 +19,10 @@ function MainLayout() {
   const [chatOpen, setChatOpen] = useState(true);
   const [presentMode, setPresentMode] = useState(false);
   const [deckListOpen, setDeckListOpen] = useState(false);
+  const [exportMenuOpen, setExportMenuOpen] = useState(false);
+  const [selectedModel, setSelectedModel] = useState(() =>
+    localStorage.getItem('deckwing-model') || DEFAULT_MODEL
+  );
   const {
     deck,
     setDeck,
@@ -31,8 +36,13 @@ function MainLayout() {
     updateSlide,
     applyAction,
   } = useDeckState();
-  const { exporting, slideContainerRef, handleExportPDF } = useExport({ deck });
-  const { messages, isLoading, sendMessage, resetChat } = useChat({ deck, onAction: applyAction });
+  const { exporting, exportType, slideContainerRef, handleExportPDF, handleExportPPTX, handleExportHTML } = useExport({ deck });
+  const { messages, isLoading, sendMessage, resetChat } = useChat({ deck, onAction: applyAction, model: selectedModel });
+
+  // Persist model selection
+  useEffect(() => {
+    localStorage.setItem('deckwing-model', selectedModel);
+  }, [selectedModel]);
   const { isDetached, openEditor, closeEditor, sendSlideData, useEditListener } = useDetachedEditor();
 
   useEditListener(updateSlide);
@@ -62,11 +72,52 @@ function MainLayout() {
         </button>
         <span className="text-cloud-gray-500 text-sm">|</span>
         <input className="bg-transparent text-cloud-gray-200 text-sm font-medium focus:outline-none focus:text-white flex-1 max-w-md" value={deck.title} onChange={(e) => setDeck(prev => ({ ...prev, title: e.target.value }))} />
+        {/* Model selector */}
+        <select
+          className="bg-ops-indigo-800 border border-ops-indigo-600/50 rounded px-2 py-1.5 text-xs text-cloud-gray-200 cursor-pointer focus:outline-none focus:border-bot-teal-400/50"
+          value={selectedModel}
+          onChange={(e) => setSelectedModel(e.target.value)}
+          title="AI model"
+        >
+          {MODELS.map(m => (
+            <option key={m.id} value={m.id}>{m.label}</option>
+          ))}
+        </select>
         <div className="flex-1" />
-        <button className="btn-secondary text-sm flex items-center gap-2" onClick={handleExportPDF} disabled={exporting}>
-          <Download size={16} />
-          {exporting ? 'Exporting...' : 'Export PDF'}
-        </button>
+        {/* Export dropdown */}
+        <div className="relative">
+          <button
+            className="btn-secondary text-sm flex items-center gap-2"
+            onClick={() => setExportMenuOpen(v => !v)}
+            disabled={exporting}
+          >
+            <Download size={16} />
+            {exporting ? `Exporting ${exportType?.toUpperCase()}...` : 'Export'}
+            <ChevronDown size={14} />
+          </button>
+          {exportMenuOpen && !exporting && (
+            <div className="absolute right-0 top-full mt-1 z-40 bg-ops-indigo-800 border border-ops-indigo-600/50 rounded-lg shadow-xl py-1 w-48">
+              <button
+                className="w-full text-left px-3 py-2 text-sm text-cloud-gray-200 hover:bg-ops-indigo-700/60 hover:text-white transition-colors"
+                onClick={() => { setExportMenuOpen(false); handleExportPDF(); }}
+              >
+                Export as PDF
+              </button>
+              <button
+                className="w-full text-left px-3 py-2 text-sm text-cloud-gray-200 hover:bg-ops-indigo-700/60 hover:text-white transition-colors"
+                onClick={() => { setExportMenuOpen(false); handleExportPPTX(); }}
+              >
+                Export as PowerPoint
+              </button>
+              <button
+                className="w-full text-left px-3 py-2 text-sm text-cloud-gray-200 hover:bg-ops-indigo-700/60 hover:text-white transition-colors"
+                onClick={() => { setExportMenuOpen(false); handleExportHTML(); }}
+              >
+                Export as HTML Presentation
+              </button>
+            </div>
+          )}
+        </div>
         <button className="btn-secondary text-sm flex items-center gap-2" onClick={() => setChatOpen(!chatOpen)}>
           <MessageSquare size={16} />
           AI Chat
