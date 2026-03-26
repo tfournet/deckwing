@@ -1,0 +1,230 @@
+import { describe, it, expect } from 'vitest';
+import {
+  SLIDE_TYPES,
+  createSlide,
+  createDeck,
+  validateSlide,
+  validateDeck,
+  EXAMPLE_DECK,
+} from './slide-schema.js';
+
+// --- SLIDE_TYPES ---
+
+describe('SLIDE_TYPES', () => {
+  it('defines all 8 slide types', () => {
+    const types = Object.keys(SLIDE_TYPES);
+    expect(types).toEqual([
+      'title', 'content', 'grid', 'image', 'quote', 'metric', 'section', 'blank',
+    ]);
+  });
+
+  it('each type has required and optional arrays', () => {
+    for (const [type, schema] of Object.entries(SLIDE_TYPES)) {
+      expect(Array.isArray(schema.required), `${type}.required`).toBe(true);
+      expect(Array.isArray(schema.optional), `${type}.optional`).toBe(true);
+    }
+  });
+
+  it('blank has no required fields', () => {
+    expect(SLIDE_TYPES.blank.required).toEqual([]);
+  });
+});
+
+// --- createSlide ---
+
+describe('createSlide', () => {
+  it('creates a slide with type, id, theme defaults, and notes', () => {
+    const slide = createSlide('title', { title: 'Hello' });
+    expect(slide.type).toBe('title');
+    expect(slide.title).toBe('Hello');
+    expect(slide.theme).toBe('rewst');
+    expect(slide.notes).toBe('');
+    expect(typeof slide.id).toBe('string');
+    expect(slide.id.length).toBeGreaterThan(0);
+  });
+
+  it('preserves a provided id', () => {
+    const slide = createSlide('content', { id: 'my-id', title: 'X', points: [] });
+    expect(slide.id).toBe('my-id');
+  });
+
+  it('allows overriding theme and notes', () => {
+    const slide = createSlide('section', {
+      title: 'Break',
+      theme: 'dramatic',
+      notes: 'Pause here',
+    });
+    expect(slide.theme).toBe('dramatic');
+    expect(slide.notes).toBe('Pause here');
+  });
+
+  it('throws on unknown type', () => {
+    expect(() => createSlide('unknown')).toThrow('Unknown slide type: unknown');
+  });
+
+  it('works with no data argument', () => {
+    const slide = createSlide('blank');
+    expect(slide.type).toBe('blank');
+    expect(slide.theme).toBe('rewst');
+  });
+
+  it('generates unique ids across calls', () => {
+    const ids = new Set(Array.from({ length: 50 }, () => createSlide('blank').id));
+    expect(ids.size).toBe(50);
+  });
+});
+
+// --- createDeck ---
+
+describe('createDeck', () => {
+  it('creates a deck with defaults when no metadata given', () => {
+    const deck = createDeck();
+    expect(deck.title).toBe('Untitled Presentation');
+    expect(deck.author).toBe('');
+    expect(deck.defaultTheme).toBe('rewst');
+    expect(deck.slides).toHaveLength(1);
+    expect(deck.slides[0].type).toBe('title');
+    expect(typeof deck.id).toBe('string');
+    expect(typeof deck.createdAt).toBe('string');
+    expect(typeof deck.updatedAt).toBe('string');
+  });
+
+  it('uses provided metadata', () => {
+    const deck = createDeck({ title: 'My Deck', author: 'Tim', theme: 'terminal' });
+    expect(deck.title).toBe('My Deck');
+    expect(deck.author).toBe('Tim');
+    expect(deck.defaultTheme).toBe('terminal');
+  });
+
+  it('uses provided slides array', () => {
+    const slides = [
+      createSlide('title', { title: 'A' }),
+      createSlide('content', { title: 'B', points: ['x'] }),
+    ];
+    const deck = createDeck({ slides });
+    expect(deck.slides).toHaveLength(2);
+    expect(deck.slides[0].title).toBe('A');
+    expect(deck.slides[1].title).toBe('B');
+  });
+});
+
+// --- validateSlide ---
+
+describe('validateSlide', () => {
+  it('validates a correct title slide', () => {
+    const result = validateSlide({ type: 'title', title: 'Hello' });
+    expect(result.valid).toBe(true);
+    expect(result.errors).toEqual([]);
+  });
+
+  it('validates a correct content slide', () => {
+    const result = validateSlide({
+      type: 'content',
+      title: 'Features',
+      points: ['a', 'b'],
+    });
+    expect(result.valid).toBe(true);
+  });
+
+  it('fails when required fields are missing', () => {
+    const result = validateSlide({ type: 'content', title: 'No Points' });
+    expect(result.valid).toBe(false);
+    expect(result.errors).toContain('Slide type "content" missing required field: points');
+  });
+
+  it('fails when type is missing', () => {
+    const result = validateSlide({ title: 'Oops' });
+    expect(result.valid).toBe(false);
+    expect(result.errors).toContain('Slide missing required field: type');
+  });
+
+  it('fails on unknown type', () => {
+    const result = validateSlide({ type: 'fancy' });
+    expect(result.valid).toBe(false);
+    expect(result.errors).toContain('Unknown slide type: fancy');
+  });
+
+  it('reports multiple missing fields', () => {
+    const result = validateSlide({ type: 'grid' });
+    expect(result.valid).toBe(false);
+    expect(result.errors).toHaveLength(2); // title + items
+  });
+
+  it('treats null as missing', () => {
+    const result = validateSlide({ type: 'quote', quote: null });
+    expect(result.valid).toBe(false);
+  });
+
+  it('blank slide always passes', () => {
+    const result = validateSlide({ type: 'blank' });
+    expect(result.valid).toBe(true);
+  });
+
+  it('validates image slide requires src', () => {
+    expect(validateSlide({ type: 'image' }).valid).toBe(false);
+    expect(validateSlide({ type: 'image', src: '/img.png' }).valid).toBe(true);
+  });
+
+  it('validates metric slide requires metrics', () => {
+    expect(validateSlide({ type: 'metric' }).valid).toBe(false);
+    expect(validateSlide({ type: 'metric', metrics: [] }).valid).toBe(true);
+  });
+});
+
+// --- validateDeck ---
+
+describe('validateDeck', () => {
+  it('validates a correct deck', () => {
+    const deck = createDeck({ title: 'Valid' });
+    const result = validateDeck(deck);
+    expect(result.valid).toBe(true);
+    expect(result.errors).toEqual([]);
+  });
+
+  it('fails when slides is missing', () => {
+    const result = validateDeck({ title: 'Bad' });
+    expect(result.valid).toBe(false);
+    expect(result.errors).toContain('Deck must have a slides array');
+  });
+
+  it('fails when slides is not an array', () => {
+    const result = validateDeck({ slides: 'nope' });
+    expect(result.valid).toBe(false);
+  });
+
+  it('fails when slides is empty', () => {
+    const result = validateDeck({ slides: [] });
+    expect(result.valid).toBe(false);
+    expect(result.errors).toContain('Deck must have at least one slide');
+  });
+
+  it('reports per-slide errors with slide numbers', () => {
+    const deck = {
+      slides: [
+        { type: 'title', title: 'OK' },
+        { type: 'content' }, // missing title and points
+      ],
+    };
+    const result = validateDeck(deck);
+    expect(result.valid).toBe(false);
+    expect(result.errors.some(e => e.startsWith('Slide 2:'))).toBe(true);
+  });
+});
+
+// --- EXAMPLE_DECK ---
+
+describe('EXAMPLE_DECK', () => {
+  it('passes deck validation', () => {
+    const result = validateDeck(EXAMPLE_DECK);
+    expect(result.valid).toBe(true);
+  });
+
+  it('has expected number of slides', () => {
+    expect(EXAMPLE_DECK.slides.length).toBe(6);
+  });
+
+  it('uses a variety of slide types', () => {
+    const types = new Set(EXAMPLE_DECK.slides.map(s => s.type));
+    expect(types.size).toBeGreaterThanOrEqual(4);
+  });
+});
