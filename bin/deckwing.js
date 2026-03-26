@@ -7,7 +7,7 @@
  * pre-built frontend and API from a single Express process.
  */
 
-import { fileURLToPath } from 'url';
+import { fileURLToPath, pathToFileURL } from 'url';
 import { dirname, join } from 'path';
 import { existsSync } from 'fs';
 import { execFileSync } from 'child_process';
@@ -17,14 +17,19 @@ const ROOT = join(__dirname, '..');
 const DIST = join(ROOT, 'dist');
 const PORT = process.env.PORT || 3000;
 
+/** Convert a file path to a file:// URL for dynamic import (Windows-safe) */
+function toImportURL(filePath) {
+  return pathToFileURL(filePath).href;
+}
+
 if (!existsSync(join(DIST, 'index.html'))) {
   console.error('Error: dist/ not found. Run `npm run build` first, or reinstall the package.');
   process.exit(1);
 }
 
 // Start the production server
-const { default: app } = await import(join(ROOT, 'server', 'app.js'));
-const { cleanStaleSessions } = await import(join(ROOT, 'server', 'ai', 'chat-engine.js'));
+const { default: app } = await import(toImportURL(join(ROOT, 'server', 'app.js')));
+const { cleanStaleSessions } = await import(toImportURL(join(ROOT, 'server', 'ai', 'chat-engine.js')));
 const express = await import('express');
 
 // Serve built frontend
@@ -42,8 +47,8 @@ setInterval(cleanStaleSessions, 15 * 60 * 1000);
 const server = app.listen(PORT, () => {
   const url = `http://localhost:${PORT}`;
   console.log('');
-  console.log('  🐔 DeckWing is running');
-  console.log(`     ${url}`);
+  console.log('  DeckWing is running');
+  console.log(`  ${url}`);
   console.log('');
   console.log('  Press Ctrl+C to stop.');
   console.log('');
