@@ -1,15 +1,17 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight, MessageSquare, Play, FolderOpen, Download } from 'lucide-react';
 import { SlideFrame } from './engine/renderer';
 import { ChatPanel } from './components/chat/ChatPanel';
 import { AuthGate } from './components/auth/AuthGate';
 import { SlideEditor } from './components/editor/SlideEditor';
+import { DetachedEditorView } from './components/editor/DetachedEditorView';
 import { SlideOutline } from './components/editor/SlideOutline';
 import { DeckListModal } from './components/editor/DeckListModal';
 import { PresenterMode } from './components/presenter/PresenterMode';
 import { useChat } from './hooks/useChat';
 import { useDeckState } from './hooks/useDeckState';
 import { useExport } from './hooks/useExport';
+import { useDetachedEditor } from './hooks/useDetachedEditor';
 import { loadDeck } from './store/deck-store';
 
 function MainLayout() {
@@ -31,6 +33,15 @@ function MainLayout() {
   } = useDeckState();
   const { exporting, slideContainerRef, handleExportPDF } = useExport({ deck });
   const { messages, isLoading, sendMessage, resetChat } = useChat({ deck, onAction: applyAction });
+  const { isDetached, openEditor, closeEditor, sendSlideData, useEditListener } = useDetachedEditor();
+
+  useEditListener(updateSlide);
+
+  useEffect(() => {
+    if (isDetached && currentSlide) {
+      sendSlideData(currentSlide, currentSlideIndex);
+    }
+  }, [currentSlide, currentSlideIndex, isDetached, sendSlideData]);
 
   if (presentMode) {
     return (
@@ -96,7 +107,14 @@ function MainLayout() {
             </div>
           </div>
 
-          <SlideEditor slide={currentSlide} index={currentSlideIndex} onUpdateSlide={updateSlide} />
+          <SlideEditor
+            slide={currentSlide}
+            index={currentSlideIndex}
+            onUpdateSlide={updateSlide}
+            isDetached={isDetached}
+            openDetachedEditor={openEditor}
+            closeDetachedEditor={closeEditor}
+          />
         </main>
 
         {chatOpen && (
@@ -130,6 +148,12 @@ function MainLayout() {
 }
 
 export default function App() {
+  const isDetachedEditor = new URLSearchParams(window.location.search).get('editor') === 'detached';
+
+  if (isDetachedEditor) {
+    return <DetachedEditorView />;
+  }
+
   return (
     <AuthGate>
       <MainLayout />

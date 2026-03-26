@@ -188,7 +188,7 @@ function SectionFields({ slide, update }) {
   );
 }
 
-const TYPE_FIELDS = {
+export const TYPE_FIELDS = {
   title: TitleFields,
   content: ContentFields,
   grid: GridFields,
@@ -209,7 +209,14 @@ const TYPE_FIELDS = {
  *   index        – current slide index in deck
  *   onUpdateSlide(index, changes) – callback to apply changes
  */
-export function SlideEditor({ slide, index, onUpdateSlide }) {
+export function SlideEditor({
+  slide,
+  index,
+  onUpdateSlide,
+  isDetached = false,
+  openDetachedEditor,
+  closeDetachedEditor,
+}) {
   const [open, setOpen] = useState(false);
   const [jsonMode, setJsonMode] = useState(false);
   const [poppedOut, setPoppedOut] = useState(false);
@@ -248,6 +255,12 @@ export function SlideEditor({ slide, index, onUpdateSlide }) {
     return () => window.removeEventListener('keydown', handler);
   }, [poppedOut]);
 
+  useEffect(() => {
+    if (isDetached) {
+      setPoppedOut(false);
+    }
+  }, [isDetached]);
+
   const TypeFields = TYPE_FIELDS[slide?.type] || null;
   const themeNames = getThemeNames();
   const slideTypes = Object.keys(SLIDE_TYPES);
@@ -281,14 +294,32 @@ export function SlideEditor({ slide, index, onUpdateSlide }) {
                 {jsonMode ? <Eye size={12} /> : <Code size={12} />}
                 {jsonMode ? 'Visual' : 'JSON'}
               </button>
-              <button
-                type="button"
-                onClick={(e) => { e.stopPropagation(); setPoppedOut(true); }}
-                className="flex items-center gap-1 px-2 py-0.5 rounded text-xs bg-ops-indigo-800 hover:bg-ops-indigo-700 text-cloud-gray-400 hover:text-white transition-colors"
-                title="Pop out editor"
-              >
-                <Maximize2 size={12} />
-              </button>
+              {isDetached ? (
+                <button
+                  type="button"
+                  onClick={(e) => { e.stopPropagation(); closeDetachedEditor?.(); }}
+                  className="flex items-center gap-1 px-2 py-0.5 rounded text-xs bg-ops-indigo-800 hover:bg-ops-indigo-700 text-cloud-gray-400 hover:text-white transition-colors"
+                  title="Dock editor"
+                >
+                  <Minimize2 size={12} />
+                  Dock
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    const opened = openDetachedEditor?.();
+                    if (!opened) {
+                      setPoppedOut(true);
+                    }
+                  }}
+                  className="flex items-center gap-1 px-2 py-0.5 rounded text-xs bg-ops-indigo-800 hover:bg-ops-indigo-700 text-cloud-gray-400 hover:text-white transition-colors"
+                  title="Pop out editor"
+                >
+                  <Maximize2 size={12} />
+                </button>
+              )}
             </>
           )}
         </div>
@@ -300,7 +331,7 @@ export function SlideEditor({ slide, index, onUpdateSlide }) {
       </button>
 
       {/* Editor body — inline panel */}
-      {open && !poppedOut && (
+      {open && !poppedOut && !isDetached && (
         <>
           {/* Drag-to-resize handle */}
           <div
@@ -329,7 +360,7 @@ export function SlideEditor({ slide, index, onUpdateSlide }) {
       )}
 
       {/* Pop-out modal */}
-      {open && poppedOut && (
+      {open && poppedOut && !isDetached && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
           <div className="bg-ops-indigo-900 border border-ops-indigo-600/50 rounded-xl shadow-2xl w-[700px] max-w-[calc(100vw-2rem)] max-h-[80vh] flex flex-col">
             {/* Modal header */}
@@ -387,7 +418,7 @@ export function SlideEditor({ slide, index, onUpdateSlide }) {
 
 /* ── shared editor content (used by both inline and popout) ──────── */
 
-function EditorContent({ slide, jsonMode, handleJsonChange, handleTypeChange, update, slideTypes, themeNames, TypeFields }) {
+export function EditorContent({ slide, jsonMode, handleJsonChange, handleTypeChange, update, slideTypes, themeNames, TypeFields }) {
   return jsonMode ? (
     <JsonEditor value={slide} onChange={handleJsonChange} mode="slide" />
   ) : (
