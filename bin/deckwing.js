@@ -9,7 +9,7 @@
 
 import { fileURLToPath, pathToFileURL } from 'url';
 import { dirname, join } from 'path';
-import { existsSync } from 'fs';
+import { existsSync, readFileSync } from 'fs';
 import { execFileSync } from 'child_process';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -22,8 +22,10 @@ function toImportURL(filePath) {
   return pathToFileURL(filePath).href;
 }
 
+const pkg = JSON.parse(readFileSync(join(ROOT, 'package.json'), 'utf-8'));
+
 console.log('');
-console.log('  Starting DeckWing...');
+console.log(`  Starting DeckWing v${pkg.version}...`);
 
 // Quick Claude Code version check (non-blocking, best-effort)
 try {

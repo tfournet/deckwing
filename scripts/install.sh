@@ -110,7 +110,8 @@ if run_with_spinner "Downloading and installing DeckWing" npm install -g "$TARBA
   fi
 
   if command -v deckwing &>/dev/null; then
-    info "DeckWing — installed"
+    DW_VERSION=$(node -e "console.log(require('$(npm config get prefix 2>/dev/null)/lib/node_modules/deckwing/package.json').version)" 2>/dev/null || echo "?")
+    info "DeckWing v${DW_VERSION} — installed"
     detail "You can start it anytime by typing: deckwing"
   else
     warn "DeckWing installed but not in PATH for this session"

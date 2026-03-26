@@ -250,10 +250,8 @@ export default function App() {
         const res = await fetch('/api/auth/login', { method: 'POST' });
         const data = await res.json();
 
-        // Open the OAuth URL directly from the browser — always works
         if (data.oauthUrl) {
-          window.open(data.oauthUrl, '_blank');
-          setLoginMessage('Sign in in the new tab, then come back here.');
+          setLoginMessage(data.oauthUrl);
         } else {
           setLoginMessage(data.message);
         }
@@ -292,20 +290,36 @@ export default function App() {
 
           {hasClaude ? (
             <>
-              <button
-                className="btn-primary text-sm px-8 py-3 w-full"
-                onClick={startLogin}
-                disabled={polling}
-              >
-                {polling ? 'Waiting for sign in...' : 'Sign in with Claude'}
-              </button>
-              {polling && (
-                <p className="text-bot-teal-400 text-xs animate-pulse">
-                  Complete the sign-in in your browser, then come back here.
-                </p>
-              )}
-              {loginMessage && !polling && (
-                <p className="text-cloud-gray-400 text-xs">{loginMessage}</p>
+              {!polling ? (
+                <button
+                  className="btn-primary text-sm px-8 py-3 w-full"
+                  onClick={startLogin}
+                >
+                  Sign in with Claude
+                </button>
+              ) : loginMessage?.startsWith('https://') ? (
+                <>
+                  <a
+                    href={loginMessage}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="btn-primary text-sm px-8 py-3 w-full block text-center"
+                  >
+                    Open Claude sign-in page
+                  </a>
+                  <p className="text-bot-teal-400 text-xs animate-pulse">
+                    Sign in on the Claude page. This screen will update automatically when you're done.
+                  </p>
+                </>
+              ) : (
+                <>
+                  <button className="btn-primary text-sm px-8 py-3 w-full opacity-80" disabled>
+                    Waiting for sign in...
+                  </button>
+                  <p className="text-bot-teal-400 text-xs animate-pulse">
+                    Complete the sign-in in your browser, then come back here.
+                  </p>
+                </>
               )}
             </>
           ) : (
