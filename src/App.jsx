@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { EXAMPLE_DECK, createSlide } from './schema/slide-schema';
 import { SlideFrame } from './engine/renderer';
-import { ChevronLeft, ChevronRight, MessageSquare, Play, Save, AlertTriangle, FolderOpen, Download } from 'lucide-react';
+import { ChevronLeft, ChevronRight, MessageSquare, Play, AlertTriangle, FolderOpen, Download } from 'lucide-react';
 import { ChatPanel } from './components/chat/ChatPanel';
 import { useChat } from './hooks/useChat';
 import { SlideEditor } from './components/editor/SlideEditor';
@@ -35,7 +35,6 @@ export default function App() {
   const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
   const [chatOpen, setChatOpen] = useState(true);
   const [presentMode, setPresentMode] = useState(false);
-  const [saveStatus, setSaveStatus] = useState('new');
   const [deckListOpen, setDeckListOpen] = useState(false);
   const [exporting, setExporting] = useState(false);
   const [authState, setAuthState] = useState(null); // null = loading, object = result
@@ -54,13 +53,11 @@ export default function App() {
 
   // Auto-save with debounce
   useEffect(() => {
-    setSaveStatus('saving');
     if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
 
     saveTimerRef.current = setTimeout(() => {
       const deckToSave = { ...deck, updatedAt: new Date().toISOString() };
-      const result = saveDeck(deckToSave);
-      setSaveStatus(result.ok ? 'saved' : 'error');
+      saveDeck(deckToSave);
     }, SAVE_DEBOUNCE_MS);
 
     return () => {
@@ -308,22 +305,11 @@ export default function App() {
           <FolderOpen size={18} />
         </button>
         <span className="text-cloud-gray-500 text-sm">|</span>
-        <div className="flex items-center gap-2 flex-1 max-w-md">
-          <input
-            className="bg-transparent text-cloud-gray-200 text-sm font-medium focus:outline-none focus:text-white flex-1"
-            value={deck.title}
-            onChange={(e) => setDeck(prev => ({ ...prev, title: e.target.value }))}
-          />
-          {saveStatus === 'saving' && (
-            <Save size={12} className="text-cloud-gray-600 animate-pulse shrink-0" />
-          )}
-          {saveStatus === 'saved' && (
-            <Save size={12} className="text-cloud-gray-700 shrink-0" />
-          )}
-          {saveStatus === 'error' && (
-            <AlertTriangle size={12} className="text-alert-coral-400 shrink-0" title="Save failed" />
-          )}
-        </div>
+        <input
+          className="bg-transparent text-cloud-gray-200 text-sm font-medium focus:outline-none focus:text-white flex-1 max-w-md"
+          value={deck.title}
+          onChange={(e) => setDeck(prev => ({ ...prev, title: e.target.value }))}
+        />
         <div className="flex-1" />
         <button
           className="btn-secondary text-sm flex items-center gap-2"
@@ -424,13 +410,11 @@ export default function App() {
             if (loaded) {
               setDeck(loaded);
               setCurrentSlideIndex(0);
-              setSaveStatus('saved');
             }
           }}
           onNewDeck={(newDeck) => {
             setDeck(newDeck);
             setCurrentSlideIndex(0);
-            setSaveStatus('new');
           }}
           onClose={() => setDeckListOpen(false)}
         />
