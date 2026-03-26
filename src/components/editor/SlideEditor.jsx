@@ -6,6 +6,7 @@ import { PointsEditor } from './PointsEditor';
 import { GridItemEditor } from './GridItemEditor';
 import { MetricsEditor } from './MetricsEditor';
 import JsonEditor from './JsonEditor';
+import { SlotEditor } from './SlotEditor';
 
 /* ── shared style tokens ───────────────────────────────────────────── */
 const INPUT_CLS =
@@ -461,14 +462,22 @@ export function EditorContent({ slide, jsonMode, handleJsonChange, handleTypeCha
         </Field>
       </div>
 
-      {TypeFields && (
+      {slide.type === 'layout' ? (
+        <>
+          <Divider />
+          <SlotEditor
+            slide={slide}
+            onUpdateBlocks={(blocks) => update({ blocks })}
+          />
+        </>
+      ) : TypeFields ? (
         <>
           <Divider />
           <div className="space-y-3">
             <TypeFields slide={slide} update={update} />
           </div>
         </>
-      )}
+      ) : null}
 
       <Divider />
       <Field label="Speaker Notes">
@@ -483,4 +492,3 @@ export function EditorContent({ slide, jsonMode, handleJsonChange, handleTypeCha
     </>
   );
 }
-
