@@ -162,4 +162,36 @@ describe('export-html', () => {
     expect(onProgress).toHaveBeenNthCalledWith(2, 2, 3);
     expect(onProgress).toHaveBeenNthCalledWith(3, 3, 3);
   });
+
+  it('handles layout slides in the deck', async () => {
+    const deck = {
+      title: 'Layout Test',
+      defaultTheme: 'rewst',
+      slides: [
+        {
+          type: 'layout',
+          layout: 'two-column',
+          theme: 'rewst',
+          blocks: [
+            { slot: 'title', kind: 'heading', text: 'Test Layout' },
+            { slot: 'left', kind: 'list', items: ['a', 'b'] },
+            { slot: 'right', kind: 'metric', value: '42', label: 'Answer' },
+          ],
+          notes: 'Layout slide notes',
+        },
+      ],
+    };
+
+    const container = document.createElement('div');
+    const html = await exportDeckToHTML({
+      slideContainer: container,
+      deck,
+      defaultTheme: 'rewst',
+      onProgress: vi.fn(),
+    });
+
+    expect(html).toContain('<!DOCTYPE html>');
+    expect(html).toContain('Layout slide notes');
+    expect(html).toContain('data:image/png');
+  });
 });

@@ -14,15 +14,72 @@ describe('getBlockThemeVars', () => {
     });
   });
 
-  it('overrides accent and bg when customColors are provided', () => {
+  it('uses theme defaults when customColors is null', () => {
+    expect(getBlockThemeVars('dramatic', null)).toEqual({
+      '--block-bg': themes.dramatic.hex.bg,
+      '--block-card-bg': themes.dramatic.hex.cardBg,
+      '--block-text': themes.dramatic.hex.text,
+      '--block-text-muted': themes.dramatic.hex.textMuted,
+      '--block-accent': themes.dramatic.hex.accent,
+      '--block-accent-light': themes.dramatic.hex.accentLight,
+    });
+  });
+
+  it('uses theme defaults when customColors is undefined', () => {
+    expect(getBlockThemeVars('dramatic', undefined)).toEqual({
+      '--block-bg': themes.dramatic.hex.bg,
+      '--block-card-bg': themes.dramatic.hex.cardBg,
+      '--block-text': themes.dramatic.hex.text,
+      '--block-text-muted': themes.dramatic.hex.textMuted,
+      '--block-accent': themes.dramatic.hex.accent,
+      '--block-accent-light': themes.dramatic.hex.accentLight,
+    });
+  });
+
+  it('overrides only --block-accent when customColors.primary is provided', () => {
+    const vars = getBlockThemeVars('dramatic', {
+      primary: '#FFE066',
+    });
+
+    expect(vars).toEqual({
+      '--block-bg': themes.dramatic.hex.bg,
+      '--block-card-bg': themes.dramatic.hex.cardBg,
+      '--block-text': themes.dramatic.hex.text,
+      '--block-text-muted': themes.dramatic.hex.textMuted,
+      '--block-accent': '#FFE066',
+      '--block-accent-light': themes.dramatic.hex.accentLight,
+    });
+  });
+
+  it('overrides only --block-bg when customColors.bg is provided', () => {
+    const vars = getBlockThemeVars('dramatic', {
+      bg: '#101820',
+    });
+
+    expect(vars).toEqual({
+      '--block-bg': '#101820',
+      '--block-card-bg': themes.dramatic.hex.cardBg,
+      '--block-text': themes.dramatic.hex.text,
+      '--block-text-muted': themes.dramatic.hex.textMuted,
+      '--block-accent': themes.dramatic.hex.accent,
+      '--block-accent-light': themes.dramatic.hex.accentLight,
+    });
+  });
+
+  it('overrides both --block-accent and --block-bg when both colors are provided', () => {
     const vars = getBlockThemeVars('dramatic', {
       bg: '#101820',
       primary: '#FFE066',
     });
 
-    expect(vars['--block-bg']).toBe('#101820');
-    expect(vars['--block-accent']).toBe('#FFE066');
-    expect(vars['--block-text']).toBe(themes.dramatic.hex.text);
+    expect(vars).toEqual({
+      '--block-bg': '#101820',
+      '--block-card-bg': themes.dramatic.hex.cardBg,
+      '--block-text': themes.dramatic.hex.text,
+      '--block-text-muted': themes.dramatic.hex.textMuted,
+      '--block-accent': '#FFE066',
+      '--block-accent-light': themes.dramatic.hex.accentLight,
+    });
   });
 
   it('each theme produces defined hex values', () => {
