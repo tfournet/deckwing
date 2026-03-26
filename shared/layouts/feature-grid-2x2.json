@@ -1,0 +1,123 @@
+{
+  "id": "feature-grid-2x2",
+  "name": "Feature Grid 2x2",
+  "description": "Four feature cards arranged in a two-by-two grid.",
+  "promptDescription": "Use for showcasing four capabilities, pillars, or solution areas with balanced card treatment.",
+  "editorLabel": "Grid 2x2",
+  "editorIcon": "LayoutGrid",
+  "thumbnail": "feature-grid-2x2.svg",
+  "slots": [
+    {
+      "name": "title",
+      "label": "Title",
+      "kinds": [
+        "heading"
+      ],
+      "required": true,
+      "position": {
+        "col": 1,
+        "row": 1,
+        "colSpan": 12,
+        "rowSpan": 1
+      },
+      "maxContent": {
+        "text": 80
+      }
+    },
+    {
+      "name": "card1",
+      "label": "Card 1",
+      "kinds": [
+        "text",
+        "list",
+        "quote",
+        "metric",
+        "chart",
+        "image"
+      ],
+      "required": true,
+      "position": {
+        "col": 1,
+        "row": 2,
+        "colSpan": 6,
+        "rowSpan": 2
+      },
+      "maxContent": {
+        "list": 4,
+        "text": 170
+      }
+    },
+    {
+      "name": "card2",
+      "label": "Card 2",
+      "kinds": [
+        "text",
+        "list",
+        "quote",
+        "metric",
+        "chart",
+        "image"
+      ],
+      "required": true,
+      "position": {
+        "col": 7,
+        "row": 2,
+        "colSpan": 6,
+        "rowSpan": 2
+      },
+      "maxContent": {
+        "list": 4,
+        "text": 170
+      }
+    },
+    {
+      "name": "card3",
+      "label": "Card 3",
+      "kinds": [
+        "text",
+        "list",
+        "quote",
+        "metric",
+        "chart",
+        "image"
+      ],
+      "required": true,
+      "position": {
+        "col": 1,
+        "row": 4,
+        "colSpan": 6,
+        "rowSpan": 3
+      },
+      "maxContent": {
+        "list": 5,
+        "text": 220
+      }
+    },
+    {
+      "name": "card4",
+      "label": "Card 4",
+      "kinds": [
+        "text",
+        "list",
+        "quote",
+        "metric",
+        "chart",
+        "image"
+      ],
+      "required": true,
+      "position": {
+        "col": 7,
+        "row": 4,
+        "colSpan": 6,
+        "rowSpan": 3
+      },
+      "maxContent": {
+        "list": 5,
+        "text": 220
+      }
+    }
+  ],
+  "pptx": {
+    "slotOverrides": {}
+  }
+}

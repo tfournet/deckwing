@@ -1,0 +1,123 @@
+{
+  "id": "quadrant",
+  "name": "Quadrant",
+  "description": "Four quadrants for matrix-style categorization beneath a centered title.",
+  "promptDescription": "Use for two-by-two matrices, prioritization frameworks, and quadrant thinking where each area needs its own content.",
+  "editorLabel": "Quadrant",
+  "editorIcon": "SquareDashedBottom",
+  "thumbnail": "quadrant.svg",
+  "slots": [
+    {
+      "name": "title",
+      "label": "Title",
+      "kinds": [
+        "heading"
+      ],
+      "required": true,
+      "position": {
+        "col": 3,
+        "row": 1,
+        "colSpan": 8,
+        "rowSpan": 1
+      },
+      "maxContent": {
+        "text": 80
+      }
+    },
+    {
+      "name": "q1",
+      "label": "Quadrant 1",
+      "kinds": [
+        "text",
+        "list",
+        "quote",
+        "metric",
+        "chart",
+        "image"
+      ],
+      "required": true,
+      "position": {
+        "col": 1,
+        "row": 2,
+        "colSpan": 6,
+        "rowSpan": 2
+      },
+      "maxContent": {
+        "list": 4,
+        "text": 180
+      }
+    },
+    {
+      "name": "q2",
+      "label": "Quadrant 2",
+      "kinds": [
+        "text",
+        "list",
+        "quote",
+        "metric",
+        "chart",
+        "image"
+      ],
+      "required": true,
+      "position": {
+        "col": 7,
+        "row": 2,
+        "colSpan": 6,
+        "rowSpan": 2
+      },
+      "maxContent": {
+        "list": 4,
+        "text": 180
+      }
+    },
+    {
+      "name": "q3",
+      "label": "Quadrant 3",
+      "kinds": [
+        "text",
+        "list",
+        "quote",
+        "metric",
+        "chart",
+        "image"
+      ],
+      "required": true,
+      "position": {
+        "col": 1,
+        "row": 4,
+        "colSpan": 6,
+        "rowSpan": 3
+      },
+      "maxContent": {
+        "list": 5,
+        "text": 220
+      }
+    },
+    {
+      "name": "q4",
+      "label": "Quadrant 4",
+      "kinds": [
+        "text",
+        "list",
+        "quote",
+        "metric",
+        "chart",
+        "image"
+      ],
+      "required": true,
+      "position": {
+        "col": 7,
+        "row": 4,
+        "colSpan": 6,
+        "rowSpan": 3
+      },
+      "maxContent": {
+        "list": 5,
+        "text": 220
+      }
+    }
+  ],
+  "pptx": {
+    "slotOverrides": {}
+  }
+}

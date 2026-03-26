@@ -1,0 +1,115 @@
+{
+  "id": "annotated-image",
+  "name": "Annotated Image",
+  "description": "Large image area with stacked callouts for annotations and supporting notes.",
+  "promptDescription": "Use when an image or diagram should be the focal point and the right rail should provide explanatory callouts.",
+  "editorLabel": "Annotated Image",
+  "editorIcon": "ScanSearch",
+  "thumbnail": "annotated-image.svg",
+  "slots": [
+    {
+      "name": "image",
+      "label": "Image",
+      "kinds": [
+        "image"
+      ],
+      "required": true,
+      "position": {
+        "col": 1,
+        "row": 1,
+        "colSpan": 8,
+        "rowSpan": 6
+      },
+      "maxContent": {
+        "text": 0
+      }
+    },
+    {
+      "name": "callout1",
+      "label": "Callout 1",
+      "kinds": [
+        "heading",
+        "text",
+        "list",
+        "metric"
+      ],
+      "required": true,
+      "position": {
+        "col": 9,
+        "row": 1,
+        "colSpan": 4,
+        "rowSpan": 2
+      },
+      "maxContent": {
+        "list": 3,
+        "text": 110
+      }
+    },
+    {
+      "name": "callout2",
+      "label": "Callout 2",
+      "kinds": [
+        "heading",
+        "text",
+        "list",
+        "metric"
+      ],
+      "required": true,
+      "position": {
+        "col": 9,
+        "row": 2,
+        "colSpan": 4,
+        "rowSpan": 2
+      },
+      "maxContent": {
+        "list": 3,
+        "text": 110
+      }
+    },
+    {
+      "name": "callout3",
+      "label": "Callout 3",
+      "kinds": [
+        "heading",
+        "text",
+        "list",
+        "metric"
+      ],
+      "required": true,
+      "position": {
+        "col": 9,
+        "row": 4,
+        "colSpan": 4,
+        "rowSpan": 2
+      },
+      "maxContent": {
+        "list": 3,
+        "text": 110
+      }
+    },
+    {
+      "name": "callout4",
+      "label": "Callout 4",
+      "kinds": [
+        "heading",
+        "text",
+        "list",
+        "metric"
+      ],
+      "required": true,
+      "position": {
+        "col": 9,
+        "row": 5,
+        "colSpan": 4,
+        "rowSpan": 2
+      },
+      "maxContent": {
+        "list": 3,
+        "text": 110
+      }
+    }
+  ],
+  "pptx": {
+    "slotOverrides": {}
+  }
+}

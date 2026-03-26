@@ -1,0 +1,169 @@
+{
+  "id": "timeline-6",
+  "name": "Timeline 6",
+  "description": "Six sequential steps distributed across two rows.",
+  "promptDescription": "Use for longer process flows that still need consistent step-by-step structure without overwhelming a single row.",
+  "editorLabel": "Timeline 6",
+  "editorIcon": "GitBranchPlus",
+  "thumbnail": "timeline-6.svg",
+  "slots": [
+    {
+      "name": "title",
+      "label": "Title",
+      "kinds": [
+        "heading"
+      ],
+      "required": true,
+      "position": {
+        "col": 1,
+        "row": 1,
+        "colSpan": 12,
+        "rowSpan": 1
+      },
+      "maxContent": {
+        "text": 80
+      }
+    },
+    {
+      "name": "step1",
+      "label": "Step 1",
+      "kinds": [
+        "text",
+        "list",
+        "quote",
+        "metric",
+        "chart",
+        "image"
+      ],
+      "required": true,
+      "position": {
+        "col": 1,
+        "row": 2,
+        "colSpan": 4,
+        "rowSpan": 2
+      },
+      "maxContent": {
+        "list": 4,
+        "text": 160
+      }
+    },
+    {
+      "name": "step2",
+      "label": "Step 2",
+      "kinds": [
+        "text",
+        "list",
+        "quote",
+        "metric",
+        "chart",
+        "image"
+      ],
+      "required": true,
+      "position": {
+        "col": 5,
+        "row": 2,
+        "colSpan": 4,
+        "rowSpan": 2
+      },
+      "maxContent": {
+        "list": 4,
+        "text": 160
+      }
+    },
+    {
+      "name": "step3",
+      "label": "Step 3",
+      "kinds": [
+        "text",
+        "list",
+        "quote",
+        "metric",
+        "chart",
+        "image"
+      ],
+      "required": true,
+      "position": {
+        "col": 9,
+        "row": 2,
+        "colSpan": 4,
+        "rowSpan": 2
+      },
+      "maxContent": {
+        "list": 4,
+        "text": 160
+      }
+    },
+    {
+      "name": "step4",
+      "label": "Step 4",
+      "kinds": [
+        "text",
+        "list",
+        "quote",
+        "metric",
+        "chart",
+        "image"
+      ],
+      "required": true,
+      "position": {
+        "col": 1,
+        "row": 4,
+        "colSpan": 4,
+        "rowSpan": 3
+      },
+      "maxContent": {
+        "list": 4,
+        "text": 190
+      }
+    },
+    {
+      "name": "step5",
+      "label": "Step 5",
+      "kinds": [
+        "text",
+        "list",
+        "quote",
+        "metric",
+        "chart",
+        "image"
+      ],
+      "required": true,
+      "position": {
+        "col": 5,
+        "row": 4,
+        "colSpan": 4,
+        "rowSpan": 3
+      },
+      "maxContent": {
+        "list": 4,
+        "text": 190
+      }
+    },
+    {
+      "name": "step6",
+      "label": "Step 6",
+      "kinds": [
+        "text",
+        "list",
+        "quote",
+        "metric",
+        "chart",
+        "image"
+      ],
+      "required": true,
+      "position": {
+        "col": 9,
+        "row": 4,
+        "colSpan": 4,
+        "rowSpan": 3
+      },
+      "maxContent": {
+        "list": 4,
+        "text": 190
+      }
+    }
+  ],
+  "pptx": {
+    "slotOverrides": {}
+  }
+}

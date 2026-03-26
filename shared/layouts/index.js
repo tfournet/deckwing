@@ -8,8 +8,45 @@ const fourColumn = require('./four-column.json');
 const dashboard = require('./dashboard.json');
 const comparison = require('./comparison.json');
 const imageLeft = require('./image-left.json');
+const twoColumnWideLeft = require('./two-column-wide-left.json');
+const twoColumnWideRight = require('./two-column-wide-right.json');
+const threeColumn = require('./three-column.json');
+const topBottom = require('./top-bottom.json');
+const imageRight = require('./image-right.json');
+const timeline4 = require('./timeline-4.json');
+const timeline6 = require('./timeline-6.json');
+const quoteContext = require('./quote-context.json');
+const featureGrid2x2 = require('./feature-grid-2x2.json');
+const featureGrid2x3 = require('./feature-grid-2x3.json');
+const heroSidebar = require('./hero-sidebar.json');
+const comparisonTable = require('./comparison-table.json');
+const logoWall = require('./logo-wall.json');
+const annotatedImage = require('./annotated-image.json');
+const quadrant = require('./quadrant.json');
 
-const layouts = [singleCenter, twoColumn, fourColumn, dashboard, comparison, imageLeft];
+const layouts = [
+  singleCenter,
+  twoColumn,
+  fourColumn,
+  dashboard,
+  comparison,
+  imageLeft,
+  twoColumnWideLeft,
+  twoColumnWideRight,
+  threeColumn,
+  topBottom,
+  imageRight,
+  timeline4,
+  timeline6,
+  quoteContext,
+  featureGrid2x2,
+  featureGrid2x3,
+  heroSidebar,
+  comparisonTable,
+  logoWall,
+  annotatedImage,
+  quadrant,
+];
 const LAYOUTS = new Map(layouts.map(layout => [layout.id, layout]));
 
 export function getLayout(id) {

@@ -13,6 +13,21 @@ const REGISTERED_LAYOUT_IDS = [
   'dashboard',
   'comparison',
   'image-left',
+  'two-column-wide-left',
+  'two-column-wide-right',
+  'three-column',
+  'top-bottom',
+  'image-right',
+  'timeline-4',
+  'timeline-6',
+  'quote-context',
+  'feature-grid-2x2',
+  'feature-grid-2x3',
+  'hero-sidebar',
+  'comparison-table',
+  'logo-wall',
+  'annotated-image',
+  'quadrant',
 ];
 
 describe('layout registry', () => {
@@ -30,7 +45,11 @@ describe('layout registry', () => {
     expect(getLayoutNames()).toEqual(REGISTERED_LAYOUT_IDS);
   });
 
-  it('each registered layout has all required fields', () => {
+  it('getAllLayouts returns all 21 layouts', () => {
+    expect(getAllLayouts()).toHaveLength(21);
+  });
+
+  it('each registered layout has all required metadata fields', () => {
     for (const layout of getAllLayouts()) {
       expect(layout).toMatchObject({
         id: expect.any(String),
@@ -38,8 +57,31 @@ describe('layout registry', () => {
         description: expect.any(String),
         promptDescription: expect.any(String),
         editorLabel: expect.any(String),
+        editorIcon: expect.any(String),
+        thumbnail: expect.any(String),
         slots: expect.any(Array),
+        pptx: {
+          slotOverrides: expect.any(Object),
+        },
       });
+
+      expect(layout.slots.length).toBeGreaterThan(0);
+
+      for (const slot of layout.slots) {
+        expect(slot).toMatchObject({
+          name: expect.any(String),
+          label: expect.any(String),
+          kinds: expect.any(Array),
+          required: expect.any(Boolean),
+          position: {
+            col: expect.any(Number),
+            row: expect.any(Number),
+            colSpan: expect.any(Number),
+            rowSpan: expect.any(Number),
+          },
+          maxContent: expect.any(Object),
+        });
+      }
     }
   });
 });

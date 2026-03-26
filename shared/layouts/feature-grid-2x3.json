@@ -1,0 +1,169 @@
+{
+  "id": "feature-grid-2x3",
+  "name": "Feature Grid 2x3",
+  "description": "Six feature cards arranged in a two-row by three-column grid.",
+  "promptDescription": "Use for denser capability overviews, category grids, or six-item summaries that still need strong structure.",
+  "editorLabel": "Grid 2x3",
+  "editorIcon": "Grid3x3",
+  "thumbnail": "feature-grid-2x3.svg",
+  "slots": [
+    {
+      "name": "title",
+      "label": "Title",
+      "kinds": [
+        "heading"
+      ],
+      "required": true,
+      "position": {
+        "col": 1,
+        "row": 1,
+        "colSpan": 12,
+        "rowSpan": 1
+      },
+      "maxContent": {
+        "text": 80
+      }
+    },
+    {
+      "name": "card1",
+      "label": "Card 1",
+      "kinds": [
+        "text",
+        "list",
+        "quote",
+        "metric",
+        "chart",
+        "image"
+      ],
+      "required": true,
+      "position": {
+        "col": 1,
+        "row": 2,
+        "colSpan": 4,
+        "rowSpan": 2
+      },
+      "maxContent": {
+        "list": 4,
+        "text": 150
+      }
+    },
+    {
+      "name": "card2",
+      "label": "Card 2",
+      "kinds": [
+        "text",
+        "list",
+        "quote",
+        "metric",
+        "chart",
+        "image"
+      ],
+      "required": true,
+      "position": {
+        "col": 5,
+        "row": 2,
+        "colSpan": 4,
+        "rowSpan": 2
+      },
+      "maxContent": {
+        "list": 4,
+        "text": 150
+      }
+    },
+    {
+      "name": "card3",
+      "label": "Card 3",
+      "kinds": [
+        "text",
+        "list",
+        "quote",
+        "metric",
+        "chart",
+        "image"
+      ],
+      "required": true,
+      "position": {
+        "col": 9,
+        "row": 2,
+        "colSpan": 4,
+        "rowSpan": 2
+      },
+      "maxContent": {
+        "list": 4,
+        "text": 150
+      }
+    },
+    {
+      "name": "card4",
+      "label": "Card 4",
+      "kinds": [
+        "text",
+        "list",
+        "quote",
+        "metric",
+        "chart",
+        "image"
+      ],
+      "required": true,
+      "position": {
+        "col": 1,
+        "row": 4,
+        "colSpan": 4,
+        "rowSpan": 3
+      },
+      "maxContent": {
+        "list": 4,
+        "text": 180
+      }
+    },
+    {
+      "name": "card5",
+      "label": "Card 5",
+      "kinds": [
+        "text",
+        "list",
+        "quote",
+        "metric",
+        "chart",
+        "image"
+      ],
+      "required": true,
+      "position": {
+        "col": 5,
+        "row": 4,
+        "colSpan": 4,
+        "rowSpan": 3
+      },
+      "maxContent": {
+        "list": 4,
+        "text": 180
+      }
+    },
+    {
+      "name": "card6",
+      "label": "Card 6",
+      "kinds": [
+        "text",
+        "list",
+        "quote",
+        "metric",
+        "chart",
+        "image"
+      ],
+      "required": true,
+      "position": {
+        "col": 9,
+        "row": 4,
+        "colSpan": 4,
+        "rowSpan": 3
+      },
+      "maxContent": {
+        "list": 4,
+        "text": 180
+      }
+    }
+  ],
+  "pptx": {
+    "slotOverrides": {}
+  }
+}

@@ -1,0 +1,100 @@
+{
+  "id": "three-column",
+  "name": "Three Columns",
+  "description": "Three equal content columns under a shared title.",
+  "promptDescription": "Use for parallel themes, grouped comparisons, or three-way breakdowns that need equal visual weight.",
+  "editorLabel": "Three Columns",
+  "editorIcon": "Columns3",
+  "thumbnail": "three-column.svg",
+  "slots": [
+    {
+      "name": "title",
+      "label": "Title",
+      "kinds": [
+        "heading"
+      ],
+      "required": true,
+      "position": {
+        "col": 1,
+        "row": 1,
+        "colSpan": 12,
+        "rowSpan": 1
+      },
+      "maxContent": {
+        "text": 80
+      }
+    },
+    {
+      "name": "col1",
+      "label": "Column 1",
+      "kinds": [
+        "text",
+        "list",
+        "quote",
+        "metric",
+        "chart",
+        "image"
+      ],
+      "required": true,
+      "position": {
+        "col": 1,
+        "row": 2,
+        "colSpan": 4,
+        "rowSpan": 5
+      },
+      "maxContent": {
+        "list": 5,
+        "text": 220
+      }
+    },
+    {
+      "name": "col2",
+      "label": "Column 2",
+      "kinds": [
+        "text",
+        "list",
+        "quote",
+        "metric",
+        "chart",
+        "image"
+      ],
+      "required": true,
+      "position": {
+        "col": 5,
+        "row": 2,
+        "colSpan": 4,
+        "rowSpan": 5
+      },
+      "maxContent": {
+        "list": 5,
+        "text": 220
+      }
+    },
+    {
+      "name": "col3",
+      "label": "Column 3",
+      "kinds": [
+        "text",
+        "list",
+        "quote",
+        "metric",
+        "chart",
+        "image"
+      ],
+      "required": true,
+      "position": {
+        "col": 9,
+        "row": 2,
+        "colSpan": 4,
+        "rowSpan": 5
+      },
+      "maxContent": {
+        "list": 5,
+        "text": 220
+      }
+    }
+  ],
+  "pptx": {
+    "slotOverrides": {}
+  }
+}

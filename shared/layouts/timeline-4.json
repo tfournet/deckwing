@@ -1,0 +1,123 @@
+{
+  "id": "timeline-4",
+  "name": "Timeline 4",
+  "description": "Four sequential steps arranged horizontally across the slide.",
+  "promptDescription": "Use for a simple four-step process, maturity model, or chronological sequence with equal emphasis per step.",
+  "editorLabel": "Timeline 4",
+  "editorIcon": "Milestone",
+  "thumbnail": "timeline-4.svg",
+  "slots": [
+    {
+      "name": "title",
+      "label": "Title",
+      "kinds": [
+        "heading"
+      ],
+      "required": true,
+      "position": {
+        "col": 1,
+        "row": 1,
+        "colSpan": 12,
+        "rowSpan": 1
+      },
+      "maxContent": {
+        "text": 80
+      }
+    },
+    {
+      "name": "step1",
+      "label": "Step 1",
+      "kinds": [
+        "text",
+        "list",
+        "quote",
+        "metric",
+        "chart",
+        "image"
+      ],
+      "required": true,
+      "position": {
+        "col": 1,
+        "row": 2,
+        "colSpan": 3,
+        "rowSpan": 5
+      },
+      "maxContent": {
+        "list": 4,
+        "text": 180
+      }
+    },
+    {
+      "name": "step2",
+      "label": "Step 2",
+      "kinds": [
+        "text",
+        "list",
+        "quote",
+        "metric",
+        "chart",
+        "image"
+      ],
+      "required": true,
+      "position": {
+        "col": 4,
+        "row": 2,
+        "colSpan": 3,
+        "rowSpan": 5
+      },
+      "maxContent": {
+        "list": 4,
+        "text": 180
+      }
+    },
+    {
+      "name": "step3",
+      "label": "Step 3",
+      "kinds": [
+        "text",
+        "list",
+        "quote",
+        "metric",
+        "chart",
+        "image"
+      ],
+      "required": true,
+      "position": {
+        "col": 7,
+        "row": 2,
+        "colSpan": 3,
+        "rowSpan": 5
+      },
+      "maxContent": {
+        "list": 4,
+        "text": 180
+      }
+    },
+    {
+      "name": "step4",
+      "label": "Step 4",
+      "kinds": [
+        "text",
+        "list",
+        "quote",
+        "metric",
+        "chart",
+        "image"
+      ],
+      "required": true,
+      "position": {
+        "col": 10,
+        "row": 2,
+        "colSpan": 3,
+        "rowSpan": 5
+      },
+      "maxContent": {
+        "list": 4,
+        "text": 180
+      }
+    }
+  ],
+  "pptx": {
+    "slotOverrides": {}
+  }
+}

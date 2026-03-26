@@ -1,0 +1,83 @@
+{
+  "id": "hero-sidebar",
+  "name": "Hero Sidebar",
+  "description": "Large hero region paired with a narrow stacked sidebar.",
+  "promptDescription": "Use when one dominant message or visual should lead while secondary details sit in a supporting sidebar.",
+  "editorLabel": "Hero Sidebar",
+  "editorIcon": "PanelsTopLeft",
+  "thumbnail": "hero-sidebar.svg",
+  "slots": [
+    {
+      "name": "hero",
+      "label": "Hero",
+      "kinds": [
+        "heading",
+        "text",
+        "list",
+        "quote",
+        "metric",
+        "chart",
+        "image",
+        "table"
+      ],
+      "required": true,
+      "position": {
+        "col": 1,
+        "row": 1,
+        "colSpan": 8,
+        "rowSpan": 6
+      },
+      "maxContent": {
+        "list": 8,
+        "text": 460
+      }
+    },
+    {
+      "name": "sidebar-top",
+      "label": "Sidebar Top",
+      "kinds": [
+        "text",
+        "list",
+        "metric",
+        "chart",
+        "image"
+      ],
+      "required": true,
+      "position": {
+        "col": 9,
+        "row": 1,
+        "colSpan": 4,
+        "rowSpan": 3
+      },
+      "maxContent": {
+        "list": 4,
+        "text": 150
+      }
+    },
+    {
+      "name": "sidebar-bottom",
+      "label": "Sidebar Bottom",
+      "kinds": [
+        "text",
+        "list",
+        "metric",
+        "chart",
+        "image"
+      ],
+      "required": true,
+      "position": {
+        "col": 9,
+        "row": 4,
+        "colSpan": 4,
+        "rowSpan": 3
+      },
+      "maxContent": {
+        "list": 4,
+        "text": 150
+      }
+    }
+  ],
+  "pptx": {
+    "slotOverrides": {}
+  }
+}

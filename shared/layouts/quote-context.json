@@ -1,0 +1,100 @@
+{
+  "id": "quote-context",
+  "name": "Quote Context",
+  "description": "Prominent quote with attribution and supporting metrics beneath it.",
+  "promptDescription": "Use when a testimonial or defining statement should lead the slide, with proof points reinforcing it below.",
+  "editorLabel": "Quote Context",
+  "editorIcon": "Quote",
+  "thumbnail": "quote-context.svg",
+  "slots": [
+    {
+      "name": "quote",
+      "label": "Quote",
+      "kinds": [
+        "quote"
+      ],
+      "required": true,
+      "position": {
+        "col": 1,
+        "row": 1,
+        "colSpan": 12,
+        "rowSpan": 3
+      },
+      "maxContent": {
+        "text": 220
+      }
+    },
+    {
+      "name": "attribution",
+      "label": "Attribution",
+      "kinds": [
+        "text",
+        "heading"
+      ],
+      "required": true,
+      "position": {
+        "col": 1,
+        "row": 4,
+        "colSpan": 12,
+        "rowSpan": 1
+      },
+      "maxContent": {
+        "text": 120
+      }
+    },
+    {
+      "name": "m1",
+      "label": "Metric 1",
+      "kinds": [
+        "metric"
+      ],
+      "required": true,
+      "position": {
+        "col": 1,
+        "row": 5,
+        "colSpan": 4,
+        "rowSpan": 2
+      },
+      "maxContent": {
+        "text": 60
+      }
+    },
+    {
+      "name": "m2",
+      "label": "Metric 2",
+      "kinds": [
+        "metric"
+      ],
+      "required": true,
+      "position": {
+        "col": 5,
+        "row": 5,
+        "colSpan": 4,
+        "rowSpan": 2
+      },
+      "maxContent": {
+        "text": 60
+      }
+    },
+    {
+      "name": "m3",
+      "label": "Metric 3",
+      "kinds": [
+        "metric"
+      ],
+      "required": true,
+      "position": {
+        "col": 9,
+        "row": 5,
+        "colSpan": 4,
+        "rowSpan": 2
+      },
+      "maxContent": {
+        "text": 60
+      }
+    }
+  ],
+  "pptx": {
+    "slotOverrides": {}
+  }
+}
