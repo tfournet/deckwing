@@ -71,8 +71,10 @@ app.get('*', (req, res) => {
 // Stale session cleanup
 setInterval(cleanStaleSessions, 15 * 60 * 1000);
 
+const HOST = process.env.HOST || '127.0.0.1';
+
 function tryListen(port, maxRetries = 5) {
-  const server = app.listen(port, () => {
+  const server = app.listen(port, HOST, () => {
     const url = `http://localhost:${port}`;
     console.log('');
     console.log('  🐔 DeckWing is ready!');
