@@ -1,10 +1,26 @@
 /** @type {import('tailwindcss').Config} */
 
+// Theme classes that use opacity modifiers (/) or gradient stops are
+// constructed dynamically in src/config/themes.js. Tailwind's content
+// scanner can't detect classes containing "/" so we safelist them.
+import { themes } from './src/config/themes.js';
+const themeSafelist = new Set();
+for (const t of Object.values(themes)) {
+  for (const val of Object.values(t)) {
+    if (typeof val === 'string') {
+      val.split(/\s+/).forEach(cls => {
+        if (cls.includes('/')) themeSafelist.add(cls);
+      });
+    }
+  }
+}
+
 export default {
   content: [
     "./index.html",
     "./src/**/*.{js,ts,jsx,tsx}",
   ],
+  safelist: [...themeSafelist],
   theme: {
     extend: {
       fontFamily: {
