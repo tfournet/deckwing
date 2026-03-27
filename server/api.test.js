@@ -53,14 +53,22 @@ afterEach(async () => {
   await new Promise((resolve) => server.close(resolve));
 });
 
-async function request(method, path, body) {
+async function request(method, path, body, options = {}) {
+  const { headers: extraHeaders = {} } = options;
   const res = await fetch(`${baseUrl}${path}`, {
     method,
-    headers: body ? { 'Content-Type': 'application/json' } : {},
+    headers: {
+      ...(body ? { 'Content-Type': 'application/json' } : {}),
+      ...extraHeaders,
+    },
     body: body ? JSON.stringify(body) : undefined,
   });
-  const data = await res.json();
-  return { status: res.status, data };
+  const contentType = res.headers.get('content-type') ?? '';
+  const data = contentType.includes('application/json')
+    ? await res.json()
+    : await res.text();
+
+  return { status: res.status, headers: res.headers, data };
 }
 
 // --- Health check ---
@@ -71,6 +79,40 @@ describe('GET /api/health', () => {
     expect(status).toBe(200);
     expect(data.status).toBe('ok');
     expect(data.service).toBe('deckwing');
+  });
+});
+
+describe('CORS', () => {
+  it('allows requests without an Origin header', async () => {
+    const { status, data, headers } = await request('GET', '/api/health');
+
+    expect(status).toBe(200);
+    expect(data.status).toBe('ok');
+    expect(headers.get('access-control-allow-origin')).toBeNull();
+  });
+
+  it('allows requests from http://localhost:3000', async () => {
+    const { status, headers } = await request('GET', '/api/health', undefined, {
+      headers: { Origin: 'http://localhost:3000' },
+    });
+
+    expect(status).toBe(200);
+    expect(headers.get('access-control-allow-origin')).toBe('http://localhost:3000');
+  });
+
+  it('blocks requests from disallowed origins', async () => {
+    const { status, data, headers } = await request('GET', '/api/health', undefined, {
+      headers: { Origin: 'http://evil.com' },
+    });
+
+    expect(status).toBeGreaterThanOrEqual(400);
+    expect(headers.get('access-control-allow-origin')).toBeNull();
+
+    if (typeof data === 'string') {
+      expect(data).toContain('CORS: origin not allowed');
+    } else {
+      expect(data.error).toContain('CORS');
+    }
   });
 });
 
