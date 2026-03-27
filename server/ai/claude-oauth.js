@@ -68,7 +68,7 @@ async function writeClaudeCredentials(tokenJson) {
   const configDir = claudeConfigDir();
   const filePath = credentialsPath();
 
-  await fs.mkdir(configDir, { recursive: true });
+  await fs.mkdir(configDir, { recursive: true, mode: 0o700 });
 
   let existing = {};
   try {
@@ -99,7 +99,7 @@ async function writeClaudeCredentials(tokenJson) {
       : null,
   };
 
-  await fs.writeFile(filePath, JSON.stringify(existing, null, 2), 'utf8');
+  await fs.writeFile(filePath, JSON.stringify(existing, null, 2), { encoding: 'utf8', mode: 0o600 });
 }
 
 function buildAuthorizeUrl(port, challenge, state) {
@@ -352,4 +352,5 @@ export {
   startOAuthFlow,
   getOAuthStatus,
   cleanupOAuthSessions,
+  writeClaudeCredentials,
 };
