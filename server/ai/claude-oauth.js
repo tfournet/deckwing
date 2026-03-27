@@ -160,8 +160,7 @@ async function exchangeAuthorizationCode(session, code, returnedState) {
   });
 
   if (!response.ok) {
-    const body = await response.text();
-    throw new Error(`Token exchange failed (${response.status}): ${body || response.statusText}`);
+    throw new Error(`Token exchange failed (${response.status})`);
   }
 
   return response.json();
@@ -174,7 +173,7 @@ function createCallbackServer(state) {
   }
 
   const server = http.createServer(async (req, res) => {
-    console.log(`  [oauth] Callback received: ${req.url}`);
+    console.log('  [oauth] Callback received');
     const requestUrl = new URL(req.url || '/', `http://${CALLBACK_HOST}`);
 
     if (requestUrl.pathname !== CALLBACK_PATH) {
@@ -229,14 +228,13 @@ function createCallbackServer(state) {
       res.writeHead(302, { Location: SUCCESS_URL });
       res.end();
     } catch (err) {
-      const errMsg = err instanceof Error ? err.message : 'Token exchange failed.';
-      console.error('  [oauth] Token exchange error:', errMsg);
+      console.error('  [oauth] Token exchange failed');
       finalizeSession(state, {
         status: 'error',
-        error: errMsg,
+        error: 'Token exchange failed.',
       });
       res.writeHead(500, { 'Content-Type': 'text/plain; charset=utf-8' });
-      res.end('Claude sign-in failed. You can close this tab and try again.\n\n' + errMsg);
+      res.end('Claude sign-in failed. You can close this tab and try again.');
     }
   });
 
