@@ -1,0 +1,40 @@
+name: Electron Smoke Test
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'electron/**'
+      - 'server/**'
+      - 'bin/**'
+      - 'shared/settings.js'
+      - 'shared/deck-file.js'
+      - 'shared/autosave.js'
+      - 'package.json'
+
+jobs:
+  electron-smoke:
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Use Node.js 22
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build frontend
+        run: npm run build
+
+      - name: Install Playwright + deps
+        run: |
+          npx playwright install chromium
+          npx playwright install-deps chromium
+
+      - name: Run Electron smoke tests
+        run: xvfb-run --auto-servernum npx playwright test --config=playwright.electron.config.js
