@@ -115,9 +115,13 @@ app.post('/api/auth/start', async (req, res) => {
     const result = await startOAuthFlow();
     res.json({ ok: true, state: result.state, oauthUrl: result.oauthUrl });
   } catch (err) {
+    console.error('  [auth start error]', err instanceof Error ? err.message : err);
+    if (err instanceof Error && err.stack) {
+      console.error('  [auth start stack]', err.stack);
+    }
     res.status(500).json({
       ok: false,
-      error: err instanceof Error ? err.message : 'Could not start Claude sign-in.',
+      error: 'Could not start Claude sign-in.',
     });
   }
 });
@@ -157,7 +161,6 @@ app.post('/api/chat', async (req, res) => {
     console.error('  [chat stack]', err.stack);
     res.status(500).json({
       error: 'Failed to process chat message',
-      detail: err.message,
       reply: 'Something went wrong on my end. Please try again.',
       action: null,
     });

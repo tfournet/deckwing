@@ -3,10 +3,19 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 // Mock the chat engine — the external AI boundary
 const mockChat = vi.fn();
 const mockResetSession = vi.fn();
+const mockStartOAuthFlow = vi.fn();
+const mockGetOAuthStatus = vi.fn();
+const mockCleanupOAuthSessions = vi.fn();
 
 vi.mock('./ai/chat-engine.js', () => ({
   chat: (...args) => mockChat(...args),
   resetSession: (...args) => mockResetSession(...args),
+}));
+
+vi.mock('./ai/claude-oauth.js', () => ({
+  startOAuthFlow: (...args) => mockStartOAuthFlow(...args),
+  getOAuthStatus: (...args) => mockGetOAuthStatus(...args),
+  cleanupOAuthSessions: (...args) => mockCleanupOAuthSessions(...args),
 }));
 
 // Import app after mocks are set up
@@ -18,6 +27,18 @@ let baseUrl;
 beforeEach(async () => {
   mockChat.mockReset();
   mockResetSession.mockReset();
+  mockStartOAuthFlow.mockReset();
+  mockGetOAuthStatus.mockReset();
+  mockCleanupOAuthSessions.mockReset();
+
+  mockStartOAuthFlow.mockResolvedValue({
+    state: 'oauth-state',
+    oauthUrl: 'https://example.com/oauth',
+  });
+  mockGetOAuthStatus.mockReturnValue({
+    status: 'pending',
+    error: null,
+  });
 
   // Start a test server on a random port
   await new Promise((resolve) => {
@@ -54,6 +75,19 @@ describe('GET /api/health', () => {
 });
 
 // --- Chat endpoint ---
+
+describe('POST /api/auth/start', () => {
+  it('returns a generic error when oauth startup fails', async () => {
+    mockStartOAuthFlow.mockRejectedValueOnce(new Error('OAuth port binding failed'));
+
+    const { status, data } = await request('POST', '/api/auth/start');
+
+    expect(status).toBe(500);
+    expect(data.ok).toBe(false);
+    expect(data.error).toBe('Could not start Claude sign-in.');
+    expect(data.error).not.toContain('OAuth port binding failed');
+  });
+});
 
 describe('POST /api/chat', () => {
   it('returns reply and action from chat engine', async () => {
@@ -189,6 +223,7 @@ describe('POST /api/chat', () => {
 
     expect(status).toBe(500);
     expect(data.error).toBe('Failed to process chat message');
+    expect(data.detail).toBeUndefined();
     expect(data.reply).toBeDefined();
     expect(data.action).toBeNull();
   });
