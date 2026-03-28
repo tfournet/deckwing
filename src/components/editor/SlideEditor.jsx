@@ -7,6 +7,7 @@ import { GridItemEditor } from './GridItemEditor';
 import { MetricsEditor } from './MetricsEditor';
 import JsonEditor from './JsonEditor';
 import { SlotEditor } from './SlotEditor';
+import chartConfig from '../../config/design/charts.json';
 
 /* ── shared style tokens ───────────────────────────────────────────── */
 const INPUT_CLS =
@@ -189,6 +190,139 @@ function SectionFields({ slide, update }) {
   );
 }
 
+function ChartFields({ slide, update }) {
+  const data = slide.data || { labels: [], datasets: [] };
+  const options = slide.options || {};
+
+  const updateLabel = (i, value) => {
+    const labels = [...data.labels];
+    labels[i] = value;
+    update({ data: { ...data, labels } });
+  };
+
+  const updateDatasetValue = (di, vi, value) => {
+    const datasets = data.datasets.map((ds, i) => {
+      if (i !== di) return ds;
+      const values = [...ds.values];
+      values[vi] = Number(value) || 0;
+      return { ...ds, values };
+    });
+    update({ data: { ...data, datasets } });
+  };
+
+  const updateDatasetLabel = (di, label) => {
+    const datasets = data.datasets.map((ds, i) =>
+      i === di ? { ...ds, label } : ds
+    );
+    update({ data: { ...data, datasets } });
+  };
+
+  return (
+    <>
+      <Field label="Title">
+        <input type="text" value={slide.title || ''} onChange={(e) => update({ title: e.target.value })} className={INPUT_CLS} placeholder="Chart title" />
+      </Field>
+      <Field label="Subtitle">
+        <input type="text" value={slide.subtitle || ''} onChange={(e) => update({ subtitle: e.target.value })} className={INPUT_CLS} placeholder="Chart subtitle" />
+      </Field>
+      <div className="grid grid-cols-2 gap-3">
+        <Field label="Chart Type">
+          <select value={slide.chartType || 'bar'} onChange={(e) => update({ chartType: e.target.value })} className={`${INPUT_CLS} cursor-pointer`}>
+            <option value="bar">Bar</option>
+            <option value="line">Line</option>
+            <option value="pie">Pie</option>
+            <option value="doughnut">Doughnut</option>
+          </select>
+        </Field>
+        <Field label="Options">
+          <div className="flex gap-4 py-2">
+            <label className="flex items-center gap-1.5 text-xs text-cloud-gray-300 cursor-pointer">
+              <input type="checkbox" checked={options.showLegend !== false} onChange={(e) => update({ options: { ...options, showLegend: e.target.checked } })} className="rounded" />
+              Legend
+            </label>
+            <label className="flex items-center gap-1.5 text-xs text-cloud-gray-300 cursor-pointer">
+              <input type="checkbox" checked={options.showGrid !== false} onChange={(e) => update({ options: { ...options, showGrid: e.target.checked } })} className="rounded" />
+              Grid
+            </label>
+          </div>
+        </Field>
+      </div>
+      <Divider />
+      <div>
+        <p className={SECTION_HEADER_CLS}>Data</p>
+        {/* Labels */}
+        <Field label="Labels (X-axis)">
+          <input
+            type="text"
+            value={(data.labels || []).join(', ')}
+            onChange={(e) => update({ data: { ...data, labels: e.target.value.split(',').map(s => s.trim()).filter(Boolean) } })}
+            className={INPUT_CLS}
+            placeholder="Jan, Feb, Mar, Apr"
+          />
+        </Field>
+        {/* Datasets */}
+        {(data.datasets || []).map((ds, di) => (
+          <div key={di} className="mt-3 p-3 bg-ops-indigo-950/50 rounded-lg space-y-2">
+            <div className="flex gap-3">
+              <div className="flex-1">
+                <Field label={`Dataset ${di + 1} Name`}>
+                  <input type="text" value={ds.label || ''} onChange={(e) => updateDatasetLabel(di, e.target.value)} className={INPUT_CLS} placeholder="Series name" />
+                </Field>
+              </div>
+              <div className="w-32">
+                <Field label="Color">
+                  <div className="flex items-center gap-1.5">
+                    <div
+                      className="w-5 h-5 rounded shrink-0 border border-ops-indigo-600/50"
+                      style={{ backgroundColor: chartConfig.palette.colors[ds.color || chartConfig.palette.order[di % chartConfig.palette.order.length]]?.fill || '#888' }}
+                    />
+                    <select
+                      value={ds.color || ''}
+                      onChange={(e) => {
+                        const datasets = data.datasets.map((d, i) => i === di ? { ...d, color: e.target.value || undefined } : d);
+                        update({ data: { ...data, datasets } });
+                      }}
+                      className={`${INPUT_CLS} cursor-pointer`}
+                    >
+                      <option value="">Auto</option>
+                      {Object.entries(chartConfig.palette.colors).map(([name, c]) => (
+                        <option key={name} value={name}>{name.charAt(0).toUpperCase() + name.slice(1)}</option>
+                      ))}
+                    </select>
+                  </div>
+                </Field>
+              </div>
+            </div>
+            <Field label="Values (comma-separated)">
+              <input
+                type="text"
+                value={(ds.values || []).join(', ')}
+                onChange={(e) => {
+                  const values = e.target.value.split(',').map(s => Number(s.trim()) || 0);
+                  const datasets = data.datasets.map((d, i) => i === di ? { ...d, values } : d);
+                  update({ data: { ...data, datasets } });
+                }}
+                className={INPUT_CLS}
+                placeholder="100, 200, 300, 400"
+              />
+            </Field>
+          </div>
+        ))}
+        <button
+          type="button"
+          className="mt-2 text-bot-teal-400 text-xs hover:text-bot-teal-300 transition-colors"
+          onClick={() => {
+            const newDataset = { label: `Series ${(data.datasets || []).length + 1}`, values: (data.labels || []).map(() => 0) };
+            update({ data: { ...data, datasets: [...(data.datasets || []), newDataset] } });
+          }}
+        >
+          + Add dataset
+        </button>
+      </div>
+    </>
+  );
+}
+
 export const TYPE_FIELDS = {
   title: TitleFields,
   content: ContentFields,
@@ -196,6 +330,7 @@ export const TYPE_FIELDS = {
   image: ImageFields,
   quote: QuoteFields,
   metric: MetricFields,
+  chart: ChartFields,
   section: SectionFields,
   blank: () => null,
 };
@@ -276,10 +411,12 @@ export function SlideEditor({
   return (
     <div className="shrink-0 border-t border-ops-indigo-700/30 min-w-0 overflow-hidden">
       {/* Toggle bar */}
-      <button
-        type="button"
+      <div
+        role="button"
+        tabIndex={0}
         onClick={() => setOpen((v) => !v)}
-        className="w-full flex items-center justify-between px-4 py-2.5 bg-ops-indigo-900/60 hover:bg-ops-indigo-800/40 transition-colors"
+        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setOpen(v => !v); }}}
+        className="w-full flex items-center justify-between px-4 py-2.5 bg-ops-indigo-900/60 hover:bg-ops-indigo-800/40 transition-colors cursor-pointer"
       >
         <div className="flex items-center gap-2 text-cloud-gray-300 text-sm font-display font-semibold">
           <Pencil size={14} className="text-bot-teal-400" />
@@ -329,7 +466,7 @@ export function SlideEditor({
         ) : (
           <ChevronDown size={16} className="text-cloud-gray-500" />
         )}
-      </button>
+      </div>
 
       {/* Editor body — inline panel */}
       {open && !poppedOut && !isDetached && (

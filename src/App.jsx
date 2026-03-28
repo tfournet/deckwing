@@ -149,7 +149,7 @@ function MainLayout() {
           </div>
 
           <div className="flex-1 min-h-0 flex items-center justify-center p-4">
-            <div className="w-full max-h-full aspect-video rounded-xl overflow-hidden shadow-2xl shadow-black/50 border border-ops-indigo-700/30">
+            <div className="max-w-full max-h-full aspect-video rounded-xl overflow-hidden shadow-2xl shadow-black/50 border border-ops-indigo-700/30">
               <SlideFrame slide={currentSlide} defaultTheme={deck.defaultTheme} />
             </div>
           </div>

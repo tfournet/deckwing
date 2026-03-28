@@ -350,6 +350,61 @@ export const EXAMPLE_DECK = createDeck({
       ],
       notes: 'Transition: So where do you start? These three workflows have the fastest payback.\n\nCore: Each of these happens dozens of times per week at most MSPs. They follow a predictable script. And they touch multiple tools that can be connected.\n\nLanding: Start with onboarding. It has the most steps, the most tools, and the highest labor cost per execution.',
     }),
+    createSlide('chart', {
+      chartType: 'line',
+      title: 'Manual vs. Automated Ticket Volume',
+      subtitle: '6-month trend after deploying ticket triage automation',
+      data: {
+        labels: ['Month 1', 'Month 2', 'Month 3', 'Month 4', 'Month 5', 'Month 6'],
+        datasets: [
+          { label: 'Manual tickets', values: [1840, 1710, 1490, 1280, 1090, 940], color: 'coral' },
+          { label: 'Auto-resolved tickets', values: [200, 380, 590, 820, 1040, 1190], color: 'teal' },
+        ],
+      },
+      options: { showLegend: true, showGrid: true },
+      notes: 'Transition: Numbers on a slide are one thing. Watching the trend over time tells the real story.\n\nCore: The crossover happened around month 5. By month 6, automation handles more tickets than humans do.\n\nLanding: This is not a one-time win. The gap keeps widening every month.',
+    }),
+    createSlide('chart', {
+      chartType: 'bar',
+      title: 'Time Spent per Workflow',
+      subtitle: 'Before and after automation (hours per week)',
+      data: {
+        labels: ['User Onboarding', 'Password Resets', 'Ticket Triage', 'Offboarding'],
+        datasets: [
+          { label: 'Before', values: [12.5, 6.8, 15.2, 8.4], color: 'coral' },
+          { label: 'After', values: [1.2, 0.3, 2.1, 0.8], color: 'teal' },
+        ],
+      },
+      options: { showLegend: true, showGrid: true },
+      notes: 'Transition: Let me break down where the time savings come from.\n\nCore: User onboarding went from 12.5 hours per week to 1.2. That is not a 10% improvement. That is a 90% reduction in labor.\n\nLanding: Every bar on the left is money you are spending on scriptable work.',
+    }),
+    createSlide('chart', {
+      chartType: 'pie',
+      title: 'Where Technician Time Goes Today',
+      subtitle: 'Average MSP with 2,000 managed endpoints',
+      data: {
+        labels: ['Scriptable tasks', 'Complex troubleshooting', 'Client communication', 'Documentation', 'Training'],
+        datasets: [
+          { label: 'Time allocation', values: [37, 28, 18, 11, 6] },
+        ],
+      },
+      options: { showLegend: true },
+      notes: 'Transition: Before we talk about what to automate, look at where time actually goes.\n\nCore: 37% on scriptable tasks. That is the automation opportunity. The other 63% is work that requires human judgment.\n\nLanding: You are not replacing technicians. You are freeing them to do the work only humans can do.',
+    }),
+    createSlide('chart', {
+      chartType: 'doughnut',
+      title: 'Client Satisfaction Impact',
+      subtitle: 'CSAT distribution before and after automation',
+      data: {
+        labels: ['Promoters (9-10)', 'Passives (7-8)', 'Detractors (0-6)'],
+        datasets: [
+          { label: 'After automation', values: [62, 28, 10] },
+        ],
+      },
+      options: { showLegend: true },
+      theme: 'highlight',
+      notes: 'Transition: Faster resolution times do not just save money. They change how clients feel about your service.\n\nCore: After automation, promoters jumped from 41% to 62%. Detractors dropped from 19% to 10%. Faster, more consistent service drives satisfaction.\n\nLanding: Happy clients renew. Unhappy clients leave. Automation directly impacts retention.',
+    }),
     createSlide('quote', {
       quote: 'We onboard new client users in 18 minutes now. It used to take half a day.',
       attribution: 'Alex Rivera',

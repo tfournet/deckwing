@@ -4,8 +4,9 @@
   },
   "logoSettings": {
     "defaultLogo": "rewst",
-    "height": "128px",
-    "opacity": 0.6,
+    "height": "80px",
+    "opacity": 0.7,
+    "edgeOffset": "16px",
     "defaultPositions": {
       "title": "none",
       "section": "none",
@@ -14,6 +15,7 @@
       "image": "bottom-right",
       "quote": "bottom-right",
       "metric": "bottom-right",
+      "chart": "bottom-right",
       "blank": "none",
       "layout": "bottom-right"
     }

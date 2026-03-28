@@ -12,6 +12,7 @@ import * as Icons from 'lucide-react';
 import { getTheme } from '../config/themes';
 import { getBlockThemeVars } from './block-theme.js';
 import { LayoutSlide } from './blocks/LayoutSlide.jsx';
+import logoConfig from '../config/design/images.json';
 import { ChartSlide } from './ChartSlide.jsx';
 
 // ── Helpers ──────────────────────────────────────────────────────────
@@ -283,11 +284,12 @@ export function SlideFrame({ slide, defaultTheme = 'rewst', children }) {
   const logoDefault = (slide.type === 'title' || slide.type === 'section') ? 'none' : 'bottom-right';
   const logoPosition = slide.logo || logoDefault;
 
-  const logoPositionClass = {
-    'top-left': 'top-3 left-3',
-    'top-right': 'top-3 right-3',
-    'bottom-left': 'bottom-3 left-3',
-    'bottom-right': 'bottom-3 right-3',
+  const offset = logoConfig.logoSettings.edgeOffset || '16px';
+  const logoPositionStyle = {
+    'top-left': { top: offset, left: offset },
+    'top-right': { top: offset, right: offset },
+    'bottom-left': { bottom: offset, left: offset },
+    'bottom-right': { bottom: offset, right: offset },
   }[logoPosition];
 
   // Merge block-theme CSS vars with an inline fallback background.
@@ -319,15 +321,22 @@ export function SlideFrame({ slide, defaultTheme = 'rewst', children }) {
         className="p-16 relative"
       >
         {children || renderSlide(slide, defaultTheme)}
-        {/* Logo overlay */}
-        {logoPosition !== 'none' && logoPositionClass && (
-          <img
-            src="/images/rewst-logo.png"
-            alt=""
-            className={`absolute ${logoPositionClass} h-32 opacity-60`}
-          />
-        )}
       </div>
+      {/* Logo overlay — positioned relative to the slide frame, not the padded content */}
+      {logoPosition !== 'none' && logoPositionStyle && (
+        <img
+          src={logoConfig.logos[logoConfig.logoSettings.defaultLogo] || '/images/rewst-logo.png'}
+          alt=""
+          style={{
+            ...logoPositionStyle,
+            height: logoConfig.logoSettings.height || '80px',
+            opacity: logoConfig.logoSettings.opacity || 0.7,
+            transform: `scale(${scale})`,
+            transformOrigin: logoPosition.replace('-', ' '),
+          }}
+          className="absolute"
+        />
+      )}
       {/* Overflow fade indicator */}
       <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-black/20 to-transparent pointer-events-none" />
     </div>

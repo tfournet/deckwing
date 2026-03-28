@@ -403,7 +403,7 @@ describe('EXAMPLE_DECK', () => {
   });
 
   it('has expected number of slides', () => {
-    expect(EXAMPLE_DECK.slides.length).toBe(6);
+    expect(EXAMPLE_DECK.slides.length).toBe(10);
   });
 
   it('uses a variety of slide types', () => {
