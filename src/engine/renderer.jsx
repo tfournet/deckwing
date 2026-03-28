@@ -44,7 +44,7 @@ function TitleSlide({ slide, theme: t }) {
         {slide.title}
       </h1>
       {slide.subtitle && (
-        <p className={`text-[36px] ${t.accentColor} font-bold tracking-wide uppercase`}>
+        <p className={`text-[36px] ${t.accentColor} font-bold tracking-wide`}>
           {slide.subtitle}
         </p>
       )}
@@ -69,11 +69,11 @@ function ContentSlide({ slide, theme: t }) {
           </div>
         )}
         <div>
-          <h2 className={`${titleSize(slide.title)} font-black ${t.textOnPage} leading-tight`}>
+          <h2 className={`${titleSize(slide.title)} font-display font-black ${t.textOnPage} leading-tight`}>
             {slide.title}
           </h2>
           {slide.subtitle && (
-            <p className={`text-[28px] ${t.accentColor} font-bold tracking-wide uppercase mt-3`}>
+            <p className={`text-[28px] ${t.accentColor} font-bold tracking-wide mt-3`}>
               {slide.subtitle}
             </p>
           )}
@@ -83,7 +83,7 @@ function ContentSlide({ slide, theme: t }) {
         {slide.points.map((p, i) => (
           <li key={i} className="flex items-start gap-6">
             <div className={`mt-4 w-4 h-4 rounded-full shrink-0 ${t.accentBg} shadow-[0_0_20px] ${t.accentGlow}`} />
-            <span className={`${pointSize} text-cloud-gray-200 font-medium leading-snug`}>{p}</span>
+            <span className={`${pointSize} ${t.textSecondary} font-medium leading-snug`}>{p}</span>
           </li>
         ))}
       </ul>
@@ -96,15 +96,15 @@ function GridSlide({ slide, theme: t }) {
 
   return (
     <div className="h-full flex flex-col">
-      <h2 className={`${titleSize(slide.title)} font-black ${t.textOnPage} mb-3 shrink-0`}>
+      <h2 className={`${titleSize(slide.title)} font-display font-black ${t.textOnPage} mb-3 shrink-0`}>
         {slide.title}
       </h2>
       {slide.subtitle && (
-        <p className={`text-[28px] ${t.accentColor} font-bold tracking-wide uppercase mb-10 shrink-0`}>
+        <p className={`text-[28px] ${t.accentColor} font-bold tracking-wide mb-10 shrink-0`}>
           {slide.subtitle}
         </p>
       )}
-      <div className={`grid ${COL_CLASSES[cols] || 'grid-cols-3'} gap-8 flex-1 min-h-0`}>
+      <div className={`grid ${COL_CLASSES[cols] || 'grid-cols-3'} gap-8 items-start`}>
         {slide.items.map((item, i) => (
           <div key={i} className={`rounded-2xl p-8 border ${t.cardBorder} ${t.cardBg} flex flex-col`}>
             {item.icon && (
@@ -125,7 +125,7 @@ function ImageSlide({ slide, theme: t }) {
   return (
     <div className="flex flex-col items-center justify-center h-full">
       {slide.title && (
-        <h2 className={`text-5xl font-black ${t.textOnPage} mb-8`}>{slide.title}</h2>
+        <h2 className={`${titleSize(slide.title)} font-display font-black ${t.textOnPage} mb-8`}>{slide.title}</h2>
       )}
       <img
         src={slide.src}
@@ -133,7 +133,7 @@ function ImageSlide({ slide, theme: t }) {
         className={`max-h-[70%] rounded-2xl ${slide.fit === 'cover' ? 'object-cover w-full' : 'object-contain'}`}
       />
       {slide.caption && (
-        <p className={`text-xl ${t.textMuted} mt-6`}>{slide.caption}</p>
+        <p className={`text-[28px] ${t.textMuted} mt-6`}>{slide.caption}</p>
       )}
     </div>
   );
@@ -143,7 +143,7 @@ function QuoteSlide({ slide, theme: t }) {
   const quoteSize = slide.quote && slide.quote.length > 120 ? 'text-[36px]' : 'text-[44px]';
   return (
     <div className="flex flex-col items-center justify-center h-full text-center px-20">
-      <div className={`text-[120px] ${t.accentColor} mb-4 leading-none`}>&ldquo;</div>
+      <div className={`text-[120px] ${t.accentColor} mb-8 leading-none`}>&ldquo;</div>
       <blockquote className={`${quoteSize} font-light ${t.textOnPage} leading-relaxed mb-12 max-w-[1400px]`}>
         {slide.quote}
       </blockquote>
@@ -165,12 +165,12 @@ function MetricSlide({ slide, theme: t }) {
   return (
     <div className="h-full flex flex-col">
       {slide.title && (
-        <h2 className={`${titleSize(slide.title)} font-black ${t.textOnPage} mb-3 shrink-0`}>
+        <h2 className={`${titleSize(slide.title)} font-display font-black ${t.textOnPage} mb-3 shrink-0`}>
           {slide.title}
         </h2>
       )}
       {slide.subtitle && (
-        <p className={`text-[28px] ${t.accentColor} font-bold tracking-wide uppercase mb-10 shrink-0`}>
+        <p className={`text-[28px] ${t.accentColor} font-bold tracking-wide mb-10 shrink-0`}>
           {slide.subtitle}
         </p>
       )}
@@ -196,7 +196,7 @@ function SectionSlide({ slide, theme: t }) {
         {slide.title}
       </h2>
       {slide.subtitle && (
-        <p className={`text-[36px] ${t.accentColor} font-bold mt-8`}>{slide.subtitle}</p>
+        <p className={`text-[36px] ${t.accentColor} font-bold tracking-wide mt-8`}>{slide.subtitle}</p>
       )}
     </div>
   );

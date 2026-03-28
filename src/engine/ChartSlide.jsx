@@ -331,7 +331,7 @@ export function ChartSlide({ slide, theme: t }) {
           )}
           {slide.subtitle && (
             <p
-              className={`text-[28px] ${t.accentColor} font-bold tracking-wide uppercase mt-3`}
+              className={`text-[28px] ${t.accentColor} font-bold tracking-wide mt-3`}
             >
               {slide.subtitle}
             </p>
