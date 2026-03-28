@@ -10,6 +10,11 @@ updates:
       - dependencies
     commit-message:
       prefix: "deps:"
+    # Block major version bumps — these require planned migration, not auto-PRs.
+    # The tailwindcss 3→4 auto-merge caused a multi-day Electron CSS regression.
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
 
   - package-ecosystem: github-actions
     directory: /
