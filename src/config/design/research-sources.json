@@ -1,0 +1,24 @@
+{
+  "sources": [
+    {
+      "id": "rewst-main",
+      "domain": "rewst.io",
+      "name": "Rewst Website",
+      "description": "Product features, pricing, company info",
+      "enabled": true
+    },
+    {
+      "id": "rewst-docs",
+      "domain": "docs.rewst.io",
+      "name": "Rewst Documentation",
+      "description": "Technical docs, API reference, workflow guides",
+      "enabled": true
+    }
+  ],
+  "citationFormat": {
+    "style": "notes-only",
+    "template": "Source: {title} ({url})"
+  },
+  "maxFetchesPerGeneration": 3,
+  "fetchTimeoutMs": 5000
+}

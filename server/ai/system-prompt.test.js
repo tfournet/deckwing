@@ -37,4 +37,22 @@ describe('SYSTEM_PROMPT', () => {
   it('contains the customColors JSON format example', () => {
     expect(SYSTEM_PROMPT).toContain('{ "customColors": { "primary": "#hexcolor", "bg": "#hexcolor", "label": "Partner name" } }');
   });
+
+  it('includes chart generation instructions', () => {
+    expect(SYSTEM_PROMPT).toContain('## CHART GENERATION');
+    expect(SYSTEM_PROMPT).toContain('type "chart"');
+    expect(SYSTEM_PROMPT).toContain('Use type "metric" when the user only needs 1-4 headline numbers');
+  });
+
+  it('includes research and citation instructions', () => {
+    expect(SYSTEM_PROMPT).toContain('## RESEARCH AND CITATIONS');
+    expect(SYSTEM_PROMPT).toContain('Citations belong in speaker notes only, never on slide faces');
+    expect(SYSTEM_PROMPT).toContain('Rewst Documentation (docs.rewst.io)');
+  });
+
+  it('includes pre-generation interview instructions', () => {
+    expect(SYSTEM_PROMPT).toContain('## PRE-GENERATION INTERVIEW');
+    expect(SYSTEM_PROMPT).toContain('action to null until you have enough context to generate');
+    expect(SYSTEM_PROMPT).toContain('skip questions');
+  });
 });

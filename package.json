@@ -28,6 +28,8 @@
     "server": "node server/index.js",
     "build": "vite build",
     "preview": "vite preview",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
     "test": "vitest run",
     "test:watch": "vitest",
     "start": "node bin/deckwing.js",
@@ -52,6 +54,7 @@
   "dependencies": {
     "@anthropic-ai/claude-agent-sdk": "^0.2.85",
     "@anthropic-ai/sdk": "^0.80.0",
+    "chart.js": "^4.5.1",
     "clsx": "^2.0.0",
     "cors": "^2.8.6",
     "dotenv": "^17.3.1",
@@ -62,10 +65,12 @@
     "lucide-react": "^0.284.0",
     "pptxgenjs": "^4.0.1",
     "react": "^18.2.0",
+    "react-chartjs-2": "^5.3.1",
     "react-dom": "^18.2.0",
     "tailwind-merge": "^1.14.0"
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
     "@types/react": "^18.2.15",
@@ -75,6 +80,7 @@
     "concurrently": "^9.2.1",
     "electron": "^41.0.4",
     "electron-builder": "^26.8.1",
+    "eslint": "^10.1.0",
     "jsdom": "^29.0.1",
     "postcss": "^8.4.27",
     "tailwindcss": "~3.4.17",

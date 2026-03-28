@@ -6,7 +6,7 @@
  * Loading state: animated typing indicator
  */
 
-import { Bot } from 'lucide-react';
+import { Bot, Search } from 'lucide-react';
 
 /**
  * Formats a Date into a relative time string.
@@ -94,10 +94,59 @@ export function TypingIndicator() {
 }
 
 /**
- * @param {object} props
- * @param {object} props.message - Message object with role, content, action, timestamp, isError
+ * InterviewOptions — Clickable pill buttons for interview question answers.
+ *
+ * Rendered below an AI message when message.interviewOptions is present.
+ * Clicking a pill calls onSelectOption, which sends the value as a user message.
+ * The pills use bot-teal styling consistent with the Deckster accent.
  */
-export function ChatMessage({ message }) {
+function InterviewOptions({ options, onSelectOption }) {
+  if (!options?.length) return null;
+
+  return (
+    <div className="flex flex-wrap gap-2 mt-2">
+      {options.map((opt) => (
+        <button
+          key={opt.value}
+          className="px-3 py-1.5 rounded-full border border-bot-teal-400/50 text-bot-teal-400 text-sm hover:bg-bot-teal-400/20 active:bg-bot-teal-400/30 active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-bot-teal-400/60 cursor-pointer transition-all"
+          onClick={() => onSelectOption(opt.value)}
+        >
+          {opt.label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+/**
+ * ResearchIndicator — Shown when Deckster is researching approved sources.
+ *
+ * Appears as a distinct, muted element in the chat stream with an
+ * animated pulse icon. Disappears when the AI response arrives.
+ */
+function ResearchIndicator({ content }) {
+  return (
+    <div className="flex items-start gap-2 py-2">
+      <div className="w-0.5 self-stretch bg-bot-teal-400/40 rounded-full shrink-0 ml-px" />
+      <div className="flex items-center gap-2 text-cloud-gray-500 text-sm italic">
+        <Search size={14} className="animate-pulse shrink-0" />
+        {content}
+      </div>
+    </div>
+  );
+}
+
+/**
+ * @param {object} props
+ * @param {object} props.message - Message object with role, content, action, timestamp, isError, interviewOptions, type
+ * @param {function} [props.onSelectOption] - Called when user clicks an interview pill
+ */
+export function ChatMessage({ message, onSelectOption }) {
+  // Research status messages get their own minimal treatment
+  if (message.type === 'research') {
+    return <ResearchIndicator content={message.content} />;
+  }
+
   const isUser = message.role === 'user';
   const actionLabel = !isUser ? describeAction(message.action) : null;
 
@@ -155,6 +204,14 @@ export function ChatMessage({ message }) {
             <div className="w-1 h-1 rounded-full bg-bot-teal-400" />
             <span className="text-bot-teal-400 text-xs font-medium">{actionLabel}</span>
           </div>
+        )}
+
+        {/* Interview option pills */}
+        {message.interviewOptions && onSelectOption && (
+          <InterviewOptions
+            options={message.interviewOptions}
+            onSelectOption={onSelectOption}
+          />
         )}
       </div>
     </div>

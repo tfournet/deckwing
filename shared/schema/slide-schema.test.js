@@ -15,10 +15,10 @@ import {
 // --- SLIDE_TYPES ---
 
 describe('SLIDE_TYPES', () => {
-  it('defines all 9 slide types', () => {
+  it('defines all 10 slide types', () => {
     const types = Object.keys(SLIDE_TYPES);
     expect(types).toEqual([
-      'title', 'content', 'grid', 'image', 'quote', 'metric', 'section', 'blank', 'layout',
+      'title', 'content', 'grid', 'image', 'quote', 'metric', 'chart', 'section', 'blank', 'layout',
     ]);
   });
 
@@ -237,6 +237,48 @@ describe('validateSlide', () => {
     expect(validateSlide({ type: 'metric', metrics: [] }).valid).toBe(true);
   });
 
+  it('validates chart slide with enabled chart type and matching data lengths', () => {
+    const result = validateSlide({
+      type: 'chart',
+      chartType: 'line',
+      data: {
+        labels: ['Jan', 'Feb'],
+        datasets: [{ label: 'Automated', values: [10, 20], color: 'teal' }],
+      },
+    });
+
+    expect(result.valid).toBe(true);
+    expect(result.errors).toEqual([]);
+  });
+
+  it('rejects chart slides with disabled chart types', () => {
+    const result = validateSlide({
+      type: 'chart',
+      chartType: 'area',
+      data: {
+        labels: ['Jan'],
+        datasets: [{ label: 'Automated', values: [10] }],
+      },
+    });
+
+    expect(result.valid).toBe(false);
+    expect(result.errors).toContain('Slide type "chart" has unsupported chartType: area');
+  });
+
+  it('rejects chart slides when dataset values do not match labels length', () => {
+    const result = validateSlide({
+      type: 'chart',
+      chartType: 'bar',
+      data: {
+        labels: ['Jan', 'Feb'],
+        datasets: [{ label: 'Automated', values: [10] }],
+      },
+    });
+
+    expect(result.valid).toBe(false);
+    expect(result.errors).toContain('Slide type "chart" data.datasets[0].values length must match labels length');
+  });
+
   it('delegates layout slides to the layout validator', () => {
     const result = validateSlide({
       type: 'layout',
@@ -282,6 +324,33 @@ describe('validateBlock', () => {
     const result = validateBlock({ kind: 'sparkles' });
     expect(result.valid).toBe(false);
     expect(result.errors).toContain('Unknown block kind: sparkles');
+  });
+
+  it('validates chart blocks with enabled chart types', () => {
+    const result = validateBlock({
+      kind: 'chart',
+      type: 'pie',
+      data: {
+        labels: ['P1', 'P2'],
+        datasets: [{ label: 'Tickets', values: [5, 7] }],
+      },
+    });
+
+    expect(result).toEqual({ valid: true, errors: [] });
+  });
+
+  it('rejects chart blocks with invalid dataset lengths', () => {
+    const result = validateBlock({
+      kind: 'chart',
+      type: 'bar',
+      data: {
+        labels: ['Jan', 'Feb'],
+        datasets: [{ label: 'Tickets', values: [5] }],
+      },
+    });
+
+    expect(result.valid).toBe(false);
+    expect(result.errors).toContain('Block kind "chart" data.datasets[0].values length must match labels length');
   });
 });
 

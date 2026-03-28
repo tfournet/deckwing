@@ -14,6 +14,9 @@ import spacingData from './spacing.json';
 import shadowsData from './shadows.json';
 import icons from './icons.json';
 import images from './images.json';
+import chartsData from './charts.json';
+import researchSourcesData from './research-sources.json';
+import interviewQuestionsData from './interview-questions.json';
 
 // Colors
 export const palette = colors;
@@ -45,3 +48,12 @@ export const iconSizes = icons.iconSizes;
 // Images
 export const logos = images.logos;
 export const logoSettings = images.logoSettings;
+
+// Charts
+export const charts = chartsData;
+
+// Research
+export const researchSources = researchSourcesData;
+
+// Interview
+export const interviewQuestions = interviewQuestionsData;

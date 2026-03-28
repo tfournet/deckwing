@@ -1,0 +1,60 @@
+{
+  "chartTypes": {
+    "bar": { "enabled": true, "description": "Vertical bars for comparisons" },
+    "line": { "enabled": true, "description": "Lines for trends over time" },
+    "pie": { "enabled": true, "description": "Pie chart for composition" },
+    "doughnut": { "enabled": true, "description": "Doughnut with center space" },
+    "stacked-bar": { "enabled": false, "description": "Stacked vertical bars (future)" },
+    "horizontal-bar": { "enabled": false, "description": "Horizontal bars (future)" },
+    "area": { "enabled": false, "description": "Filled line chart (future)" }
+  },
+
+  "palette": {
+    "order": ["teal", "coral", "amber", "indigo", "gray"],
+    "colors": {
+      "teal": { "fill": "#1EAFAF", "fillLight": "rgba(30, 175, 175, 0.15)" },
+      "coral": { "fill": "#F15B5B", "fillLight": "rgba(241, 91, 91, 0.15)" },
+      "amber": { "fill": "#F9A100", "fillLight": "rgba(249, 161, 0, 0.15)" },
+      "indigo": { "fill": "#504384", "fillLight": "rgba(80, 67, 132, 0.15)" },
+      "gray": { "fill": "#B3B3B3", "fillLight": "rgba(179, 179, 179, 0.15)" }
+    }
+  },
+
+  "style": {
+    "fontFamily": "Montserrat, system-ui, sans-serif",
+    "fontSize": {
+      "title": 18,
+      "axisLabel": 12,
+      "tickLabel": 11,
+      "legend": 12,
+      "dataLabel": 11
+    },
+    "gridColor": "rgba(255, 255, 255, 0.08)",
+    "axisColor": "rgba(255, 255, 255, 0.2)",
+    "textColor": "#E6E6E6",
+    "textMutedColor": "#B3B3B3",
+    "backgroundColor": "transparent",
+    "borderRadius": 6,
+    "barPercentage": 0.7,
+    "lineWidth": 2.5,
+    "pointRadius": 4,
+    "legendPosition": "bottom"
+  },
+
+  "export": {
+    "pptx": {
+      "renderMode": "native",
+      "notes": "pptxgenjs renders charts natively in PowerPoint. Charts are editable in PowerPoint."
+    },
+    "pdf": {
+      "renderMode": "image",
+      "resolution": 2,
+      "notes": "Chart.js canvas exported as 2x PNG for crisp PDF rendering."
+    },
+    "html": {
+      "renderMode": "image",
+      "resolution": 2,
+      "notes": "Chart.js canvas exported as 2x PNG for self-contained HTML files."
+    }
+  }
+}

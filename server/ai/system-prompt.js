@@ -5,6 +5,9 @@
  * It must be precise about JSON output format to avoid breaking the UI.
  */
 import { getAllLayouts } from '../../shared/layouts/index.js';
+import chartsConfig from '../../src/config/design/charts.json' with { type: 'json' };
+import researchSourcesConfig from '../../src/config/design/research-sources.json' with { type: 'json' };
+import interviewConfig from '../../src/config/design/interview-questions.json' with { type: 'json' };
 
 function buildLayoutSection() {
   const layouts = getAllLayouts();
@@ -43,6 +46,94 @@ Block kinds and required fields:
 - callout: text (required), variant (optional)
 - divider: no required fields, direction (optional)
 - spacer: no required fields`;
+}
+
+const ENABLED_CHART_TYPES = Object.entries(chartsConfig.chartTypes ?? {})
+  .filter(([, config]) => config?.enabled)
+  .map(([type]) => type);
+
+function buildChartInstructions() {
+  const chartTypeList = ENABLED_CHART_TYPES.map(type => `"${type}"`).join(', ');
+
+  return `
+## CHART GENERATION
+
+Use type "chart" when the story depends on trends, comparisons, distributions, or before/after data.
+Use type "metric" when the user only needs 1-4 headline numbers with no axis, categories, or time series.
+
+Chart slide schema:
+- Required: chartType, data
+- Optional: title, subtitle, options, theme, logo, notes
+- chartType must be one of: ${chartTypeList}
+
+data format:
+{
+  "labels": ["Label1", "Label2", ...],
+  "datasets": [
+    { "label": "Series name", "values": [number, ...], "color": "teal" }
+  ]
+}
+
+Rules:
+- labels must be an array of strings
+- datasets must be an array of objects with label, values, and optional color
+- each values array must match the labels length
+- color should reference a named palette key from charts.json when provided
+- Prefer charts for QBRs, internal updates, ROI trends, adoption trends, and category comparisons
+- Prefer metric slides for single proof points, summary stats, and punchy numeric takeaways`;
+}
+
+function buildResearchInstructions() {
+  const sources = (researchSourcesConfig.sources ?? [])
+    .filter(source => source?.enabled)
+    .map(source => `- ${source.name} (${source.domain}): ${source.description}`)
+    .join('\n');
+
+  return `
+## RESEARCH AND CITATIONS
+
+You may reference information from approved sources when generating content about Rewst products, features, pricing, integrations, or company information.
+
+Approved sources:
+${sources}
+
+Rules:
+- Only use or cite approved domains
+- Citations belong in speaker notes only, never on slide faces
+- If you include sourced facts, add a citation in notes using this format: ${researchSourcesConfig.citationFormat.template}
+- Do not fabricate URLs, titles, or research claims
+- If research is unavailable, stay generic rather than inventing specifics`;
+}
+
+function buildInterviewInstructions() {
+  const questions = (interviewConfig.questions ?? []).map(question => {
+    const options = (question.options ?? []).map(option => option.label).join(', ');
+    const optionText = options ? ` Options: ${options}.` : '';
+    const freeformText = question.allowFreeform ? ' Freeform answers are allowed.' : '';
+    const requiredText = question.required ? ' Required when missing.' : ' Optional.';
+    return `- ${question.text}${optionText}${freeformText}${requiredText}`;
+  }).join('\n');
+
+  const skipPhrases = (interviewConfig.skipPhrases ?? []).map(phrase => `"${phrase}"`).join(', ');
+
+  return `
+## PRE-GENERATION INTERVIEW
+
+When a user asks for a new deck and the request is vague or underspecified, ask interview questions before generating slides.
+Treat audience, purpose, and key message as the minimum required context.
+
+Skip the interview when:
+- the request is already specific enough to infer audience, purpose, topic, and likely length
+- or the user message includes one of these phrases: ${skipPhrases}
+
+During the interview:
+- Ask one question at a time
+- Set action to null until you have enough context to generate
+- Use the answers to shape tone, structure, slide count, chart usage, and content depth
+- Summarize what you learned before you generate the deck
+
+Ask questions in this order:
+${questions}`;
 }
 
 export const SYSTEM_PROMPT = `You are the DeckWing AI — a presentation assistant for Rewst, an IT automation platform for Managed Service Providers (MSPs).
@@ -141,7 +232,7 @@ Reorders slides by providing the complete new slide order as an array of current
 
 Every slide has these base fields:
 - "id": string — auto-generated, do NOT set this
-- "type": string — required, must be one of the 9 types below
+- "type": string — required, must be one of the 10 types below
 - "theme": string — optional, overrides deck theme for this slide. Valid values: "rewst", "dramatic", "terminal", "highlight", "warning"
 - "notes": string — optional speaker notes (see SPEAKER NOTES section for structure)
 - "logo": string — optional logo position. Values: "top-left", "top-right", "bottom-left", "bottom-right", "none". Default: "bottom-right" for most slides, "none" for title and section slides. The Rewst logo renders at the specified position.
@@ -284,7 +375,38 @@ Required: (none)
 Optional: theme
 
 ---
+
+**chart** — Data visualization slide. Use for trends, comparisons, distributions, and before/after stories.
+Required: chartType (string), data (object)
+Optional: title (string), subtitle (string), options (object), theme, logo, notes
+
+Example:
+{
+  "type": "chart",
+  "title": "Automation Reduces Manual Ticket Work",
+  "subtitle": "6-month trend across all clients",
+  "chartType": "line",
+  "data": {
+    "labels": ["Jan", "Feb", "Mar", "Apr"],
+    "datasets": [
+      { "label": "Automated tickets", "values": [120, 145, 167, 198], "color": "teal" },
+      { "label": "Manual tickets", "values": [340, 312, 289, 245], "color": "coral" }
+    ]
+  },
+  "options": { "showLegend": true, "showGrid": true, "stacked": false }
+}
+
+---
+${buildChartInstructions()}
+
+---
 ${buildLayoutSection()}
+
+---
+${buildResearchInstructions()}
+
+---
+${buildInterviewInstructions()}
 
 ---
 

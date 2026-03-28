@@ -1,0 +1,58 @@
+{
+  "enabled": true,
+  "skipPhrases": ["just make it", "skip questions", "no questions"],
+  "questions": [
+    {
+      "id": "audience",
+      "text": "Who is the audience for this presentation?",
+      "options": [
+        {"label": "MSP owners/leadership", "value": "msp-owners"},
+        {"label": "Technical engineers", "value": "engineers"},
+        {"label": "Executive/C-suite", "value": "executives"},
+        {"label": "Partners/vendors", "value": "partners"},
+        {"label": "Internal team", "value": "internal"}
+      ],
+      "allowFreeform": true,
+      "required": true
+    },
+    {
+      "id": "purpose",
+      "text": "What is the purpose of this presentation?",
+      "options": [
+        {"label": "Sales pitch", "value": "sales"},
+        {"label": "Quarterly business review", "value": "qbr"},
+        {"label": "Training/education", "value": "training"},
+        {"label": "Conference talk", "value": "conference"},
+        {"label": "Team update/all-hands", "value": "all-hands"}
+      ],
+      "allowFreeform": true,
+      "required": true
+    },
+    {
+      "id": "keyMessage",
+      "text": "What is the one key message you want the audience to take away?",
+      "options": [],
+      "allowFreeform": true,
+      "required": true
+    },
+    {
+      "id": "duration",
+      "text": "How long is the presentation?",
+      "options": [
+        {"label": "5 minutes (5-7 slides)", "value": "5min"},
+        {"label": "15 minutes (10-12 slides)", "value": "15min"},
+        {"label": "30 minutes (15-20 slides)", "value": "30min"},
+        {"label": "60 minutes (25-35 slides)", "value": "60min"}
+      ],
+      "allowFreeform": false,
+      "required": false
+    },
+    {
+      "id": "data",
+      "text": "Any specific data, stories, or topics to include?",
+      "options": [],
+      "allowFreeform": true,
+      "required": false
+    }
+  ]
+}

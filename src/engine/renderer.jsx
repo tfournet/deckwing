@@ -12,6 +12,7 @@ import * as Icons from 'lucide-react';
 import { getTheme } from '../config/themes';
 import { getBlockThemeVars } from './block-theme.js';
 import { LayoutSlide } from './blocks/LayoutSlide.jsx';
+import { ChartSlide } from './ChartSlide.jsx';
 
 // ── Helpers ──────────────────────────────────────────────────────────
 
@@ -24,14 +25,7 @@ function getIcon(name, size = 32) {
   return Icon ? <Icon size={size} /> : null;
 }
 
-/** Pick a font size class based on text length to prevent overflow.
- *  Sizes are designed for the 1920x1080 virtual canvas. */
-function titleSize(text, base = 'text-[80px]', shrink = 'text-[60px]', tiny = 'text-[48px]') {
-  if (!text) return base;
-  if (text.length > 60) return tiny;
-  if (text.length > 35) return shrink;
-  return base;
-}
+import { titleSize } from './slide-utils.js';
 
 const COL_CLASSES = {
   1: 'grid-cols-1',
@@ -88,7 +82,7 @@ function ContentSlide({ slide, theme: t }) {
         {slide.points.map((p, i) => (
           <li key={i} className="flex items-start gap-6">
             <div className={`mt-4 w-4 h-4 rounded-full shrink-0 ${t.accentBg} shadow-[0_0_20px] ${t.accentGlow}`} />
-            <span className={`${pointSize} text-slate-200 font-medium leading-snug`}>{p}</span>
+            <span className={`${pointSize} text-cloud-gray-200 font-medium leading-snug`}>{p}</span>
           </li>
         ))}
       </ul>
@@ -223,6 +217,7 @@ const RENDERERS = {
   section: SectionSlide,
   blank: BlankSlide,
   layout: LayoutSlide,
+  chart: ChartSlide,
 };
 
 /**
@@ -289,10 +284,10 @@ export function SlideFrame({ slide, defaultTheme = 'rewst', children }) {
   const logoPosition = slide.logo || logoDefault;
 
   const logoPositionClass = {
-    'top-left': 'top-6 left-6',
-    'top-right': 'top-6 right-6',
-    'bottom-left': 'bottom-6 left-6',
-    'bottom-right': 'bottom-6 right-6',
+    'top-left': 'top-3 left-3',
+    'top-right': 'top-3 right-3',
+    'bottom-left': 'bottom-3 left-3',
+    'bottom-right': 'bottom-3 right-3',
   }[logoPosition];
 
   // Merge block-theme CSS vars with an inline fallback background.
@@ -329,7 +324,7 @@ export function SlideFrame({ slide, defaultTheme = 'rewst', children }) {
           <img
             src="/images/rewst-logo.png"
             alt=""
-            className={`absolute ${logoPositionClass} h-8 opacity-60`}
+            className={`absolute ${logoPositionClass} h-32 opacity-60`}
           />
         )}
       </div>

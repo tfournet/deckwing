@@ -139,7 +139,11 @@ export function ChatPanel({ messages, isLoading, onSendMessage, onResetChat, onC
         ) : (
           <>
             {messages.map((msg) => (
-              <ChatMessage key={msg.id} message={msg} />
+              <ChatMessage
+                key={msg.id}
+                message={msg}
+                onSelectOption={(value) => onSendMessage(value)}
+              />
             ))}
             {isLoading && <TypingIndicator />}
             <div ref={messagesEndRef} />

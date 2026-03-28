@@ -1,4 +1,5 @@
 import { validateLayoutSlide } from '../layouts/index.js';
+import chartsConfig from '../../src/config/design/charts.json' with { type: 'json' };
 
 /**
  * Slide Schema - DeckWing
@@ -55,6 +56,10 @@ export const SLIDE_TYPES = {
   metric: {
     required: ['metrics'],
     optional: ['title', 'subtitle', 'theme', 'logo'],
+  },
+  chart: {
+    required: ['chartType', 'data'],
+    optional: ['title', 'subtitle', 'options', 'theme', 'logo', 'notes'],
   },
   section: {
     required: ['title'],
@@ -145,6 +150,48 @@ export function migrateDeck(deck) {
   return migrated;
 }
 
+const ENABLED_CHART_TYPES = Object.entries(chartsConfig.chartTypes ?? {})
+  .filter(([, config]) => config?.enabled)
+  .map(([type]) => type);
+
+function validateChartData(data, errors, label = 'Chart data') {
+  if (!data || typeof data !== 'object' || Array.isArray(data)) {
+    errors.push(`${label} must be an object with labels and datasets`);
+    return;
+  }
+
+  if (!Array.isArray(data.labels) || data.labels.some(value => typeof value !== 'string')) {
+    errors.push(`${label}.labels must be an array of strings`);
+  }
+
+  if (!Array.isArray(data.datasets)) {
+    errors.push(`${label}.datasets must be an array`);
+    return;
+  }
+
+  const labelCount = Array.isArray(data.labels) ? data.labels.length : null;
+
+  data.datasets.forEach((dataset, index) => {
+    if (!dataset || typeof dataset !== 'object' || Array.isArray(dataset)) {
+      errors.push(`${label}.datasets[${index}] must be an object`);
+      return;
+    }
+
+    if (typeof dataset.label !== 'string') {
+      errors.push(`${label}.datasets[${index}].label must be a string`);
+    }
+
+    if (!Array.isArray(dataset.values)) {
+      errors.push(`${label}.datasets[${index}].values must be an array`);
+      return;
+    }
+
+    if (labelCount !== null && dataset.values.length !== labelCount) {
+      errors.push(`${label}.datasets[${index}].values length must match labels length`);
+    }
+  });
+}
+
 /**
  * Validate a slide against its type schema
  * @param {object} slide - Slide to validate
@@ -174,6 +221,16 @@ export function validateSlide(slide) {
     }
   }
 
+  if (slide.type === 'chart') {
+    if (slide.chartType !== undefined && slide.chartType !== null && !ENABLED_CHART_TYPES.includes(slide.chartType)) {
+      errors.push(`Slide type "chart" has unsupported chartType: ${slide.chartType}`);
+    }
+
+    if (slide.data !== undefined && slide.data !== null) {
+      validateChartData(slide.data, errors, 'Slide type "chart" data');
+    }
+  }
+
   return { valid: errors.length === 0, errors };
 }
 
@@ -199,6 +256,16 @@ export function validateBlock(block) {
   for (const field of schema.required) {
     if (block[field] === undefined || block[field] === null) {
       errors.push(`Block kind "${block.kind}" missing required field: ${field}`);
+    }
+  }
+
+  if (block.kind === 'chart') {
+    if (block.type !== undefined && block.type !== null && !ENABLED_CHART_TYPES.includes(block.type)) {
+      errors.push(`Block kind "chart" has unsupported type: ${block.type}`);
+    }
+
+    if (block.data !== undefined && block.data !== null) {
+      validateChartData(block.data, errors, 'Block kind "chart" data');
     }
   }
 
