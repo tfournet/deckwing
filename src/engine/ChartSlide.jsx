@@ -247,7 +247,7 @@ function ChartEmpty({ theme: t }) {
         className={`border border-dashed ${t.cardBorder} rounded-2xl px-16 py-12 text-center`}
       >
         <p className={`text-[32px] ${t.textMuted}`}>No chart data provided</p>
-        <p className={`text-[24px] ${t.textMuted} mt-3 opacity-60`}>
+        <p className={`text-[28px] ${t.textMuted} mt-3 opacity-60`}>
           Add labels and datasets to render a chart
         </p>
       </div>
@@ -258,9 +258,9 @@ function ChartEmpty({ theme: t }) {
 function ChartError({ message, theme: t }) {
   return (
     <div className="flex-1 flex items-center justify-center">
-      <div className="border border-dashed border-alert-coral-400/40 rounded-2xl px-16 py-12 text-center">
-        <p className="text-[32px] text-alert-coral-300">Chart data format error</p>
-        <p className={`text-[24px] ${t.textMuted} mt-3`}>{message}</p>
+      <div className={`border border-dashed ${t.cardBorder} rounded-2xl px-16 py-12 text-center`}>
+        <p className={`text-[32px] ${t.textPrimary}`}>Chart data format error</p>
+        <p className={`text-[28px] ${t.textMuted} mt-3`}>{message}</p>
       </div>
     </div>
   );

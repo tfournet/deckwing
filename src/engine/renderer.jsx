@@ -110,7 +110,7 @@ function GridSlide({ slide, theme: t }) {
             {item.icon && (
               <div className={`${t.accentColor} mb-5`}>{getIcon(item.icon, 40)}</div>
             )}
-            <h3 className={`text-[32px] font-bold ${t.textPrimary} mb-3`}>{item.title}</h3>
+            <h3 className={`text-[32px] font-display font-bold ${t.textPrimary} mb-3`}>{item.title}</h3>
             {item.description && (
               <p className={`text-[28px] ${t.textSecondary} leading-relaxed`}>{item.description}</p>
             )}
@@ -144,7 +144,7 @@ function QuoteSlide({ slide, theme: t }) {
   return (
     <div className="flex flex-col items-center justify-center h-full text-center px-20">
       <div className={`text-[120px] ${t.accentColor} mb-8 leading-none`}>&ldquo;</div>
-      <blockquote className={`${quoteSize} font-light ${t.textOnPage} leading-relaxed mb-12 max-w-[1400px]`}>
+      <blockquote className={`${quoteSize} font-normal ${t.textOnPage} leading-relaxed mb-12 max-w-[1400px]`}>
         {slide.quote}
       </blockquote>
       {slide.attribution && (
@@ -228,7 +228,7 @@ export function renderSlide(slide, defaultTheme = 'rewst') {
   const Renderer = RENDERERS[slide.type];
   if (!Renderer) {
     return (
-      <div className="flex items-center justify-center h-full text-red-400 text-2xl">
+      <div className="flex items-center justify-center h-full text-[32px]" style={{ color: '#F15B5B' }}>
         Unknown slide type: {slide.type}
       </div>
     );
