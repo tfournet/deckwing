@@ -9,7 +9,7 @@ import { getAllLayouts } from '../../shared/layouts/index.js';
 function buildLayoutSection() {
   const layouts = getAllLayouts();
   const layoutList = layouts.map(layout =>
-    `- ${layout.id}: ${layout.promptDescription}\n  Slots: ${layout.slots.map(slot => slot.name).join(', ')}`
+    `- ${layout.id}: ${layout.promptDescription}\n  Slots: ${layout.slots.map(slot => `${slot.name} (${slot.kinds.join('/')})`).join(', ')}`
   ).join('\n');
 
   return `

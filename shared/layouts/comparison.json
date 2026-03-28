@@ -10,42 +10,99 @@
     {
       "name": "title",
       "label": "Title",
-      "kinds": ["heading"],
+      "kinds": [
+        "heading"
+      ],
       "required": true,
-      "position": { "col": 1, "row": 1, "colSpan": 12, "rowSpan": 1 },
-      "maxContent": { "text": 80 }
+      "position": {
+        "col": 1,
+        "row": 1,
+        "colSpan": 12,
+        "rowSpan": 1
+      },
+      "maxContent": {
+        "text": 80
+      }
     },
     {
       "name": "left-header",
       "label": "Left Header",
-      "kinds": ["heading"],
+      "kinds": [
+        "heading"
+      ],
       "required": true,
-      "position": { "col": 1, "row": 2, "colSpan": 6, "rowSpan": 1 },
-      "maxContent": { "text": 50 }
+      "position": {
+        "col": 1,
+        "row": 2,
+        "colSpan": 6,
+        "rowSpan": 1
+      },
+      "maxContent": {
+        "text": 50
+      }
     },
     {
       "name": "right-header",
       "label": "Right Header",
-      "kinds": ["heading"],
+      "kinds": [
+        "heading"
+      ],
       "required": true,
-      "position": { "col": 7, "row": 2, "colSpan": 6, "rowSpan": 1 },
-      "maxContent": { "text": 50 }
+      "position": {
+        "col": 7,
+        "row": 2,
+        "colSpan": 6,
+        "rowSpan": 1
+      },
+      "maxContent": {
+        "text": 50
+      }
     },
     {
       "name": "left-body",
       "label": "Left Body",
-      "kinds": ["text", "list", "metric", "chart", "image"],
+      "kinds": [
+        "text",
+        "list",
+        "metric",
+        "chart",
+        "image",
+        "callout"
+      ],
       "required": true,
-      "position": { "col": 1, "row": 3, "colSpan": 6, "rowSpan": 4 },
-      "maxContent": { "list": 6, "text": 260 }
+      "position": {
+        "col": 1,
+        "row": 3,
+        "colSpan": 6,
+        "rowSpan": 4
+      },
+      "maxContent": {
+        "list": 6,
+        "text": 260
+      }
     },
     {
       "name": "right-body",
       "label": "Right Body",
-      "kinds": ["text", "list", "metric", "chart", "image"],
+      "kinds": [
+        "text",
+        "list",
+        "metric",
+        "chart",
+        "image",
+        "callout"
+      ],
       "required": true,
-      "position": { "col": 7, "row": 3, "colSpan": 6, "rowSpan": 4 },
-      "maxContent": { "list": 6, "text": 260 }
+      "position": {
+        "col": 7,
+        "row": 3,
+        "colSpan": 6,
+        "rowSpan": 4
+      },
+      "maxContent": {
+        "list": 6,
+        "text": 260
+      }
     }
   ],
   "pptx": {

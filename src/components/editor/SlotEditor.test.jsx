@@ -47,7 +47,7 @@ describe('SlotEditor', () => {
     const kindSelect = within(leftEditor).getByLabelText('Left Column block kind');
     const optionValues = Array.from(kindSelect.options).map((option) => option.value);
 
-    expect(optionValues).toEqual(['list', 'text', 'metric', 'chart', 'image']);
+    expect(optionValues).toEqual(['list', 'text', 'metric', 'chart', 'image', 'callout']);
   });
 
   it('editing a text field calls onUpdateBlocks with the correct data', () => {

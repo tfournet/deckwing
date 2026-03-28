@@ -29,7 +29,8 @@
       "label": "Attribution",
       "kinds": [
         "text",
-        "heading"
+        "heading",
+        "callout"
       ],
       "required": true,
       "position": {

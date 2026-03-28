@@ -10,18 +10,43 @@
     {
       "name": "title",
       "label": "Title",
-      "kinds": ["heading"],
+      "kinds": [
+        "heading"
+      ],
       "required": true,
-      "position": { "col": 1, "row": 1, "colSpan": 12, "rowSpan": 1 },
-      "maxContent": { "text": 80 }
+      "position": {
+        "col": 1,
+        "row": 1,
+        "colSpan": 12,
+        "rowSpan": 1
+      },
+      "maxContent": {
+        "text": 80
+      }
     },
     {
       "name": "body",
       "label": "Body",
-      "kinds": ["text", "list", "quote", "metric", "chart", "image"],
+      "kinds": [
+        "text",
+        "list",
+        "quote",
+        "metric",
+        "chart",
+        "image",
+        "callout"
+      ],
       "required": true,
-      "position": { "col": 2, "row": 2, "colSpan": 10, "rowSpan": 4 },
-      "maxContent": { "list": 6, "text": 400 }
+      "position": {
+        "col": 2,
+        "row": 2,
+        "colSpan": 10,
+        "rowSpan": 4
+      },
+      "maxContent": {
+        "list": 6,
+        "text": 400
+      }
     }
   ],
   "pptx": {

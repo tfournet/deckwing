@@ -30,7 +30,8 @@
       "kinds": [
         "text",
         "list",
-        "metric"
+        "metric",
+        "callout"
       ],
       "required": true,
       "position": {

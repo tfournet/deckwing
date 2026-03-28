@@ -31,7 +31,8 @@
         "heading",
         "text",
         "list",
-        "metric"
+        "metric",
+        "callout"
       ],
       "required": true,
       "position": {
@@ -52,7 +53,8 @@
         "heading",
         "text",
         "list",
-        "metric"
+        "metric",
+        "callout"
       ],
       "required": true,
       "position": {
@@ -73,7 +75,8 @@
         "heading",
         "text",
         "list",
-        "metric"
+        "metric",
+        "callout"
       ],
       "required": true,
       "position": {
@@ -94,7 +97,8 @@
         "heading",
         "text",
         "list",
-        "metric"
+        "metric",
+        "callout"
       ],
       "required": true,
       "position": {

@@ -18,7 +18,8 @@
         "metric",
         "chart",
         "image",
-        "table"
+        "table",
+        "callout"
       ],
       "required": true,
       "position": {
@@ -40,7 +41,8 @@
         "list",
         "metric",
         "chart",
-        "image"
+        "image",
+        "callout"
       ],
       "required": true,
       "position": {
@@ -62,7 +64,8 @@
         "list",
         "metric",
         "chart",
-        "image"
+        "image",
+        "callout"
       ],
       "required": true,
       "position": {

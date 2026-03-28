@@ -10,26 +10,65 @@
     {
       "name": "title",
       "label": "Title",
-      "kinds": ["heading"],
+      "kinds": [
+        "heading"
+      ],
       "required": true,
-      "position": { "col": 1, "row": 1, "colSpan": 12, "rowSpan": 1 },
-      "maxContent": { "text": 80 }
+      "position": {
+        "col": 1,
+        "row": 1,
+        "colSpan": 12,
+        "rowSpan": 1
+      },
+      "maxContent": {
+        "text": 80
+      }
     },
     {
       "name": "left",
       "label": "Left Column",
-      "kinds": ["list", "text", "metric", "chart", "image"],
+      "kinds": [
+        "list",
+        "text",
+        "metric",
+        "chart",
+        "image",
+        "callout"
+      ],
       "required": true,
-      "position": { "col": 1, "row": 2, "colSpan": 6, "rowSpan": 5 },
-      "maxContent": { "list": 5, "text": 300 }
+      "position": {
+        "col": 1,
+        "row": 2,
+        "colSpan": 6,
+        "rowSpan": 5
+      },
+      "maxContent": {
+        "list": 5,
+        "text": 300
+      }
     },
     {
       "name": "right",
       "label": "Right Column",
-      "kinds": ["list", "text", "metric", "chart", "image"],
+      "kinds": [
+        "list",
+        "text",
+        "metric",
+        "chart",
+        "image",
+        "callout"
+      ],
       "required": true,
-      "position": { "col": 7, "row": 2, "colSpan": 6, "rowSpan": 5 },
-      "maxContent": { "list": 5, "text": 300 }
+      "position": {
+        "col": 7,
+        "row": 2,
+        "colSpan": 6,
+        "rowSpan": 5
+      },
+      "maxContent": {
+        "list": 5,
+        "text": 300
+      }
     }
   ],
   "pptx": {
