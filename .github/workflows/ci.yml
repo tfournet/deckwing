@@ -49,3 +49,23 @@ jobs:
           pwsh -Command "Get-Content scripts/install.ps1 | Out-Null" 2>/dev/null || true
           grep -q "tfournet" scripts/install.sh || (echo "ERROR: install.sh missing repo reference" && exit 1)
           grep -q "tfournet" scripts/install.ps1 || (echo "ERROR: install.ps1 missing repo reference" && exit 1)
+
+      - name: Notify Slack on failure (main only)
+        if: failure() && github.ref == 'refs/heads/main'
+        uses: slackapi/slack-github-action@b0fa283ad8fea605de13dc3f449259339835fc52 # v2
+        with:
+          webhook: ${{ secrets.SLACK_WEBHOOK_URL }}
+          webhook-type: incoming-webhook
+          payload: |
+            {
+              "text": "DeckWing CI failed on main",
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": ":red_circle: *DeckWing CI failed on main*\n<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View run>"
+                  }
+                }
+              ]
+            }

@@ -8,12 +8,15 @@ updates:
     open-pull-requests-limit: 5
     labels:
       - dependencies
+      - automerge
     commit-message:
       prefix: "deps:"
+    # Block ALL major version bumps — the tailwindcss 3→4 auto-merge
+    # caused a multi-day Electron CSS regression. Major upgrades require
+    # planned migration, not auto-PRs.
     ignore:
-      - dependency-name: "tailwindcss"
+      - dependency-name: "*"
         update-types: ["version-update:semver-major"]
-      - dependency-name: "@tailwindcss/*"
 
   - package-ecosystem: github-actions
     directory: /
@@ -22,5 +25,6 @@ updates:
       day: monday
     labels:
       - ci
+      - automerge
     commit-message:
       prefix: "ci:"
