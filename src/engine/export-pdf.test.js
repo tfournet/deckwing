@@ -3,21 +3,13 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 const {
   mockAddImage,
   mockAddPage,
-  mockHtml2canvas,
   mockJsPDF,
   mockOutput,
-  mockToDataURL,
 } = vi.hoisted(() => ({
   mockAddImage: vi.fn(),
   mockAddPage: vi.fn(),
-  mockHtml2canvas: vi.fn(),
   mockJsPDF: vi.fn(),
   mockOutput: vi.fn(() => new Blob(['pdf'], { type: 'application/pdf' })),
-  mockToDataURL: vi.fn(() => 'data:image/png;base64,fake'),
-}));
-
-vi.mock('html2canvas', () => ({
-  default: mockHtml2canvas,
 }));
 
 vi.mock('jspdf', () => ({
@@ -38,6 +30,10 @@ function createDeck(slideCount) {
   };
 }
 
+function mockCaptureSlide() {
+  return vi.fn(() => Promise.resolve('data:image/png;base64,fake'));
+}
+
 describe('export-pdf', () => {
   let anchor;
   let createObjectURL;
@@ -46,10 +42,6 @@ describe('export-pdf', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-
-    mockHtml2canvas.mockResolvedValue({
-      toDataURL: mockToDataURL,
-    });
 
     mockJsPDF.mockImplementation(function jsPDFMock() {
       return {
@@ -104,9 +96,9 @@ describe('export-pdf', () => {
     const onProgress = vi.fn();
 
     await exportDeckToPDF({
-      slideContainer: {},
       deck: createDeck(3),
       defaultTheme: 'rewst',
+      captureSlide: mockCaptureSlide(),
       onProgress,
     });
 
@@ -118,9 +110,9 @@ describe('export-pdf', () => {
 
   it('exportDeckToPDF returns a Blob', async () => {
     const result = await exportDeckToPDF({
-      slideContainer: {},
       deck: createDeck(2),
       defaultTheme: 'rewst',
+      captureSlide: mockCaptureSlide(),
     });
 
     expect(mockOutput).toHaveBeenCalledWith('blob');
@@ -129,9 +121,9 @@ describe('export-pdf', () => {
 
   it('exportDeckToPDF adds pages for multi-slide decks', async () => {
     await exportDeckToPDF({
-      slideContainer: {},
       deck: createDeck(3),
       defaultTheme: 'rewst',
+      captureSlide: mockCaptureSlide(),
     });
 
     expect(mockAddPage).toHaveBeenCalledTimes(2);
@@ -140,9 +132,9 @@ describe('export-pdf', () => {
 
   it('exportDeckToPDF handles single slide without addPage', async () => {
     await exportDeckToPDF({
-      slideContainer: {},
       deck: createDeck(1),
       defaultTheme: 'rewst',
+      captureSlide: mockCaptureSlide(),
     });
 
     expect(mockAddPage).not.toHaveBeenCalled();
@@ -152,9 +144,9 @@ describe('export-pdf', () => {
   it('exportDeckToPDF works with no onProgress callback', async () => {
     await expect(
       exportDeckToPDF({
-        slideContainer: {},
         deck: createDeck(2),
         defaultTheme: 'rewst',
+        captureSlide: mockCaptureSlide(),
       }),
     ).resolves.toBeInstanceOf(Blob);
   });

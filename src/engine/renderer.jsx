@@ -7,7 +7,7 @@
  * container's actual dimensions.
  */
 
-import React, { useRef, useState, useEffect } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import * as Icons from 'lucide-react';
 import { getTheme } from '../config/themes';
 import { getBlockThemeVars } from './block-theme.js';
@@ -252,7 +252,7 @@ export function renderSlide(slide, defaultTheme = 'rewst') {
 export function SlideFrame({ slide, defaultTheme = 'rewst', children }) {
   const theme = getTheme(slide.theme || defaultTheme);
   const containerRef = useRef(null);
-  const [scale, setScale] = useState(1);
+  const [scale, setScale] = useState(0);
   const blockVars = slide.type === 'layout'
     ? getBlockThemeVars(slide.theme || defaultTheme, slide.customColors)
     : {};
@@ -267,11 +267,21 @@ export function SlideFrame({ slide, defaultTheme = 'rewst', children }) {
       setScale(Math.min(width / SLIDE_W, height / SLIDE_H));
     }
 
+    // In production builds (Electron), layout may not be resolved when the
+    // effect first runs because the CSS file is still being parsed.  Call
+    // updateScale eagerly, but also schedule a retry so we don't stay at
+    // scale-0 if the first call bails due to zero dimensions.
     updateScale();
+    const retryId = requestAnimationFrame(() => {
+      updateScale();
+    });
 
     const observer = new ResizeObserver(updateScale);
     observer.observe(el);
-    return () => observer.disconnect();
+    return () => {
+      cancelAnimationFrame(retryId);
+      observer.disconnect();
+    };
   }, []);
 
   // Logo defaults: title/section slides get none, everything else gets bottom-right
@@ -285,11 +295,23 @@ export function SlideFrame({ slide, defaultTheme = 'rewst', children }) {
     'bottom-right': 'bottom-6 right-6',
   }[logoPosition];
 
+  // Merge block-theme CSS vars with an inline fallback background.
+  // The Tailwind class (theme.bg) is the primary source of truth, but
+  // in Electron production builds a CSS-load race can leave the utility
+  // class momentarily un-styled.  The inline backgroundColor guarantees
+  // the dark backdrop is visible even before Tailwind's stylesheet is
+  // parsed — the utility class wins as soon as it loads because it sets
+  // --tw-bg-opacity which changes the computed value.
+  const containerStyle = {
+    ...blockVars,
+    backgroundColor: theme.hex.bg,
+  };
+
   return (
     <div
       ref={containerRef}
       className={`w-full h-full ${theme.bg} bg-gradient-to-br ${theme.gradient} overflow-hidden relative`}
-      style={blockVars}
+      style={containerStyle}
     >
       <div
         style={{
@@ -297,6 +319,7 @@ export function SlideFrame({ slide, defaultTheme = 'rewst', children }) {
           height: SLIDE_H,
           transform: `scale(${scale})`,
           transformOrigin: 'top left',
+          color: theme.hex.text,
         }}
         className="p-16 relative"
       >

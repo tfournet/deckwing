@@ -1,38 +1,40 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import { exportDeckToPDF, downloadBlob } from '../engine/export-pdf';
 import { exportDeckToPPTX } from '../engine/export-pptx';
 import { exportDeckToHTML, downloadHTMLFile } from '../engine/export-html';
+import { useOffscreenRenderer } from './useOffscreenRenderer';
 
 export function useExport({ deck }) {
   const [exporting, setExporting] = useState(false);
   const [exportType, setExportType] = useState(null); // 'pdf' | 'pptx' | 'html'
   const [exportError, setExportError] = useState(null);
-  const slideContainerRef = useRef(null);
+  const { captureSlide, cleanup } = useOffscreenRenderer();
 
   const handleExportPDF = useCallback(async () => {
-    const container = slideContainerRef.current;
-    if (!container || exporting) return;
+    if (exporting) return;
 
     setExportError(null);
     setExporting(true);
     setExportType('pdf');
     try {
       const blob = await exportDeckToPDF({
-        slideContainer: container,
         deck,
         defaultTheme: deck.defaultTheme,
-        onProgress: () => {},
+        captureSlide,
       });
       downloadBlob(blob, `${deck.title || 'presentation'}.pdf`);
     } catch (err) {
       console.error('PDF export failed:', err);
       setExportError(err instanceof Error ? err.message : 'PDF export failed.');
     } finally {
+      cleanup();
       setExporting(false);
       setExportType(null);
     }
-  }, [deck, exporting]);
+  }, [deck, exporting, captureSlide, cleanup]);
 
+  // PPTX export builds slides natively via PptxGenJS from structured slide
+  // data, so it does not need the offscreen DOM renderer (captureSlide/cleanup).
   const handleExportPPTX = useCallback(async () => {
     if (exporting) return;
 
@@ -52,34 +54,32 @@ export function useExport({ deck }) {
   }, [deck, exporting]);
 
   const handleExportHTML = useCallback(async () => {
-    const container = slideContainerRef.current;
-    if (!container || exporting) return;
+    if (exporting) return;
 
     setExportError(null);
     setExporting(true);
     setExportType('html');
     try {
       const html = await exportDeckToHTML({
-        slideContainer: container,
         deck,
         defaultTheme: deck.defaultTheme,
-        onProgress: () => {},
+        captureSlide,
       });
       downloadHTMLFile(html, `${deck.title || 'presentation'}.html`);
     } catch (err) {
       console.error('HTML export failed:', err);
       setExportError(err instanceof Error ? err.message : 'HTML export failed.');
     } finally {
+      cleanup();
       setExporting(false);
       setExportType(null);
     }
-  }, [deck, exporting]);
+  }, [deck, exporting, captureSlide, cleanup]);
 
   return {
     exporting,
     exportType,
     exportError,
-    slideContainerRef,
     handleExportPDF,
     handleExportPPTX,
     handleExportHTML,
