@@ -1,5 +1,8 @@
-import html2canvas from 'html2canvas';
 import { THEME_COLORS } from '../../shared/theme-colors.js';
+
+// Re-export the shared download helper so existing call sites that import
+// `downloadHTMLFile` from this module continue to work without changes.
+export { downloadHTMLFile } from './download.js';
 
 function formatHexColor(color) {
   const cleaned = String(color).replace(/^#/, '');
@@ -34,17 +37,6 @@ function escapeHTML(value) {
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#39;');
-}
-
-function waitForNextPaint() {
-  return new Promise((resolve) => {
-    if (typeof requestAnimationFrame === 'function') {
-      requestAnimationFrame(() => resolve());
-      return;
-    }
-
-    setTimeout(resolve, 0);
-  });
 }
 
 function buildHTMLDocument({ deckTitle, slides, themeName, theme }) {
@@ -392,14 +384,19 @@ function buildHTMLDocument({ deckTitle, slides, themeName, theme }) {
 
 /**
  * Export a deck as a self-contained offline HTML presentation.
+ *
+ * Each slide is rendered off-screen via the supplied `captureSlide`
+ * function (from useOffscreenRenderer) so that every slide is captured
+ * independently -- not just the currently-visible one.
+ *
  * @param {object} params
- * @param {HTMLElement} params.slideContainer
  * @param {object} params.deck
  * @param {string} params.defaultTheme
+ * @param {(slide:object, theme:string)=>Promise<string>} params.captureSlide
  * @param {(currentSlide:number,totalSlides:number)=>void} [params.onProgress]
  * @returns {Promise<string>}
  */
-export async function exportDeckToHTML({ slideContainer, deck, defaultTheme, onProgress }) {
+export async function exportDeckToHTML({ deck, defaultTheme, captureSlide, onProgress }) {
   const slides = deck?.slides ?? [];
   const totalSlides = slides.length;
   const themeName = defaultTheme || deck?.defaultTheme || 'rewst';
@@ -411,22 +408,15 @@ export async function exportDeckToHTML({ slideContainer, deck, defaultTheme, onP
       onProgress(i + 1, totalSlides);
     }
 
-    await waitForNextPaint();
-
-    let canvas;
+    let imageDataURI;
     try {
-      canvas = await html2canvas(slideContainer, {
-        scale: 2,
-        useCORS: true,
-        backgroundColor: null,
-      });
+      imageDataURI = await captureSlide(slides[i], themeName);
     } catch (err) {
       throw new Error(
         `Failed to render slide ${i + 1} ("${slides[i]?.title || 'Untitled'}"): ${err.message}`
       );
     }
 
-    const imageDataURI = canvas.toDataURL('image/png');
     if (!imageDataURI || !imageDataURI.startsWith('data:image/')) {
       throw new Error(
         `Slide ${i + 1} ("${slides[i]?.title || 'Untitled'}") produced an empty image. ` +
@@ -450,12 +440,3 @@ export async function exportDeckToHTML({ slideContainer, deck, defaultTheme, onP
   });
 }
 
-export function downloadHTMLFile(htmlString, filename) {
-  const blob = new Blob([htmlString], { type: 'text/html' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = filename;
-  a.click();
-  URL.revokeObjectURL(url);
-}

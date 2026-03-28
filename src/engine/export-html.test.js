@@ -4,15 +4,6 @@
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-const { mockHtml2canvas, mockToDataURL } = vi.hoisted(() => ({
-  mockHtml2canvas: vi.fn(),
-  mockToDataURL: vi.fn(() => 'data:image/png;base64,fake-slide'),
-}));
-
-vi.mock('html2canvas', () => ({
-  default: mockHtml2canvas,
-}));
-
 import { downloadHTMLFile, exportDeckToHTML } from './export-html.js';
 
 function createDeck(slideCount) {
@@ -28,6 +19,10 @@ function createDeck(slideCount) {
   };
 }
 
+function mockCaptureSlide() {
+  return vi.fn(() => Promise.resolve('data:image/png;base64,fake-slide'));
+}
+
 describe('export-html', () => {
   let anchor;
   let createElement;
@@ -36,10 +31,6 @@ describe('export-html', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-
-    mockHtml2canvas.mockResolvedValue({
-      toDataURL: mockToDataURL,
-    });
 
     anchor = {
       href: '',
@@ -78,34 +69,31 @@ describe('export-html', () => {
 
   it('exportDeckToHTML returns a string starting with doctype', async () => {
     const html = await exportDeckToHTML({
-      slideContainer: {},
       deck: createDeck(1),
       defaultTheme: 'rewst',
+      captureSlide: mockCaptureSlide(),
     });
 
     expect(html.startsWith('<!DOCTYPE html>')).toBe(true);
   });
 
   it('output contains base64 image data', async () => {
+    const captureSlide = mockCaptureSlide();
     const html = await exportDeckToHTML({
-      slideContainer: {},
       deck: createDeck(2),
       defaultTheme: 'rewst',
+      captureSlide,
     });
 
     expect(html).toContain('data:image/png;base64,fake-slide');
-    expect(mockHtml2canvas).toHaveBeenCalledTimes(2);
-    expect(mockHtml2canvas).toHaveBeenCalledWith(
-      {},
-      expect.objectContaining({ scale: 2 }),
-    );
+    expect(captureSlide).toHaveBeenCalledTimes(2);
   });
 
   it('output contains speaker notes from the deck', async () => {
     const html = await exportDeckToHTML({
-      slideContainer: {},
       deck: createDeck(2),
       defaultTheme: 'rewst',
+      captureSlide: mockCaptureSlide(),
     });
 
     expect(html).toContain('Speaker note 1');
@@ -114,9 +102,9 @@ describe('export-html', () => {
 
   it('output contains keyboard navigation listener code', async () => {
     const html = await exportDeckToHTML({
-      slideContainer: {},
       deck: createDeck(1),
       defaultTheme: 'rewst',
+      captureSlide: mockCaptureSlide(),
     });
 
     expect(html).toContain("window.addEventListener('keydown'");
@@ -127,9 +115,9 @@ describe('export-html', () => {
 
   it('output contains the presenter mode toggle button', async () => {
     const html = await exportDeckToHTML({
-      slideContainer: {},
       deck: createDeck(1),
       defaultTheme: 'rewst',
+      captureSlide: mockCaptureSlide(),
     });
 
     expect(html).toContain('id="mode-toggle"');
@@ -151,9 +139,9 @@ describe('export-html', () => {
     const onProgress = vi.fn();
 
     await exportDeckToHTML({
-      slideContainer: {},
       deck: createDeck(3),
       defaultTheme: 'rewst',
+      captureSlide: mockCaptureSlide(),
       onProgress,
     });
 
@@ -182,11 +170,10 @@ describe('export-html', () => {
       ],
     };
 
-    const container = document.createElement('div');
     const html = await exportDeckToHTML({
-      slideContainer: container,
       deck,
       defaultTheme: 'rewst',
+      captureSlide: mockCaptureSlide(),
       onProgress: vi.fn(),
     });
 

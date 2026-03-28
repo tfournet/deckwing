@@ -18,14 +18,22 @@ vi.mock('../engine/renderer', () => ({
 import { useOffscreenRenderer } from './useOffscreenRenderer';
 
 describe('useOffscreenRenderer', () => {
+  const originalGetBCR = Element.prototype.getBoundingClientRect;
+
   beforeEach(() => {
     vi.mocked(html2canvas).mockReset();
     vi.mocked(html2canvas).mockResolvedValue({
       toDataURL: () => 'data:image/png;base64,mockPNG',
     });
+    // jsdom returns 0x0 for getBoundingClientRect — stub non-zero
+    // dimensions so waitForRenderSettle resolves immediately.
+    Element.prototype.getBoundingClientRect = function () {
+      return { width: 1920, height: 1080, x: 0, y: 0, top: 0, left: 0, right: 1920, bottom: 1080, toJSON() {} };
+    };
   });
 
   afterEach(() => {
+    Element.prototype.getBoundingClientRect = originalGetBCR;
     document.querySelectorAll('[style*="-9999px"]').forEach((element) => element.remove());
   });
 
@@ -93,7 +101,8 @@ describe('useOffscreenRenderer', () => {
     let firstCapture;
     await act(async () => {
       firstCapture = result.current.captureSlide({ type: 'title', title: 'Slow' }, 'rewst');
-      await new Promise(resolve => setTimeout(resolve, 70));
+      // Let waitForRenderSettle resolve so html2canvas is called (and blocked)
+      await new Promise(resolve => setTimeout(resolve, 50));
     });
 
     await act(async () => {

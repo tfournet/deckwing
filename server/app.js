@@ -22,11 +22,24 @@ const app = express();
 
 app.use(cors({
   origin(origin, callback) {
-    if (!origin || ALLOWED_ORIGINS.has(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error('CORS: origin not allowed'));
+    // No origin header → same-origin or non-browser request, always allow
+    if (!origin) return callback(null, true);
+
+    // Exact match for known dev ports
+    if (ALLOWED_ORIGINS.has(origin)) return callback(null, true);
+
+    // In Electron, Express listens on a random port.  The page and the
+    // API share the same localhost origin, so allow any localhost origin.
+    try {
+      const url = new URL(origin);
+      if (url.hostname === 'localhost' || url.hostname === '127.0.0.1') {
+        return callback(null, true);
+      }
+    } catch {
+      // Malformed origin — fall through to reject
     }
+
+    callback(new Error('CORS: origin not allowed'));
   },
 }));
 app.use(express.json({ limit: '10mb' }));

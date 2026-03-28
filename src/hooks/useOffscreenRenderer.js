@@ -6,15 +6,33 @@ import { SlideFrame } from '../engine/renderer';
 const RENDER_WIDTH = 1920;
 const RENDER_HEIGHT = 1080;
 
-function waitForNextPaint() {
+/**
+ * Wait for the offscreen container to finish rendering by polling for
+ * non-zero layout dimensions. Falls back to a timeout so we never hang
+ * indefinitely if the element stays hidden (e.g., in a test environment).
+ */
+const SETTLE_POLL_INTERVAL_MS = 10;
+const SETTLE_TIMEOUT_MS = 2000;
+
+function waitForRenderSettle(container) {
   return new Promise((resolve) => {
+    const deadline = Date.now() + SETTLE_TIMEOUT_MS;
+
+    function check() {
+      const { width } = container.getBoundingClientRect();
+      if (width > 0 || Date.now() >= deadline) {
+        resolve();
+        return;
+      }
+      setTimeout(check, SETTLE_POLL_INTERVAL_MS);
+    }
+
+    // Kick off the first check after the browser has had a
+    // chance to lay out the newly-rendered React tree.
     const schedule = typeof requestAnimationFrame === 'function'
       ? requestAnimationFrame
-      : (callback) => setTimeout(callback, 0);
-
-    schedule(() => {
-      setTimeout(resolve, 50);
-    });
+      : (cb) => setTimeout(cb, 0);
+    schedule(check);
   });
 }
 
@@ -80,7 +98,7 @@ export function useOffscreenRenderer() {
         }),
       );
 
-      await waitForNextPaint();
+      await waitForRenderSettle(container);
 
       const canvas = await html2canvas(container, {
         scale: 2,

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight, MessageSquare, Play, FolderOpen, Download, ChevronDown } from 'lucide-react';
 import { MODELS, DEFAULT_MODEL } from '../shared/models.js';
 import { SlideFrame } from './engine/renderer';
@@ -37,7 +37,7 @@ function MainLayout() {
     updateSlide,
     applyAction,
   } = useDeckState();
-  const { exporting, exportType, exportError, slideContainerRef, handleExportPDF, handleExportPPTX, handleExportHTML } = useExport({ deck });
+  const { exporting, exportType, exportError, handleExportPDF, handleExportPPTX, handleExportHTML } = useExport({ deck });
   const { messages, isLoading, sendMessage, resetChat } = useChat({ deck, onAction: applyAction, model: selectedModel });
 
   // Persist model selection
@@ -149,7 +149,7 @@ function MainLayout() {
           </div>
 
           <div className="flex-1 min-h-0 flex items-center justify-center p-4">
-            <div ref={slideContainerRef} className="w-full max-h-full aspect-video rounded-xl overflow-hidden shadow-2xl shadow-black/50 border border-ops-indigo-700/30">
+            <div className="w-full max-h-full aspect-video rounded-xl overflow-hidden shadow-2xl shadow-black/50 border border-ops-indigo-700/30">
               <SlideFrame slide={currentSlide} defaultTheme={deck.defaultTheme} />
             </div>
           </div>
