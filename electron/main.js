@@ -2,7 +2,7 @@
 // and will crash silently if they're set (e.g. --max-old-space-size)
 delete process.env.NODE_OPTIONS;
 
-const { app, BrowserWindow, Tray, Menu, nativeImage, dialog } = require('electron');
+const { app, BrowserWindow, Tray, Menu, nativeImage, dialog, shell } = require('electron');
 const path = require('path');
 const { existsSync } = require('fs');
 const { pathToFileURL } = require('url');
@@ -84,6 +84,31 @@ function showWindow() {
         nodeIntegration: false,
         sandbox: false,
       },
+    });
+
+    // Block navigation away from the app origin
+    mainWindow.webContents.on('will-navigate', (event, url) => {
+      try {
+        const parsed = new URL(url);
+        if (parsed.hostname !== 'localhost' && parsed.hostname !== '127.0.0.1') {
+          event.preventDefault();
+        }
+      } catch {
+        event.preventDefault();
+      }
+    });
+
+    // Control window.open — allow localhost + OAuth, open everything else in system browser
+    const ALLOWED_POPUP_HOSTS = ['localhost', '127.0.0.1', 'claude.com', 'platform.claude.com'];
+    mainWindow.webContents.setWindowOpenHandler(({ url }) => {
+      try {
+        const parsed = new URL(url);
+        if (ALLOWED_POPUP_HOSTS.includes(parsed.hostname)) {
+          return { action: 'allow' };
+        }
+      } catch { /* malformed URL — deny */ }
+      shell.openExternal(url);
+      return { action: 'deny' };
     });
 
     mainWindow.once('ready-to-show', () => {
