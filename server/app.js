@@ -169,6 +169,30 @@ app.post('/api/chat/session', (req, res) => {
   }
 });
 
+// Simple per-session rate limiter: max 10 requests per 60 seconds
+const RATE_LIMIT_WINDOW_MS = 60_000;
+const RATE_LIMIT_MAX = 10;
+const rateLimitMap = new Map();
+
+function checkRateLimit(sessionId) {
+  const now = Date.now();
+  let bucket = rateLimitMap.get(sessionId);
+  if (!bucket || now - bucket.windowStart > RATE_LIMIT_WINDOW_MS) {
+    bucket = { windowStart: now, count: 0 };
+    rateLimitMap.set(sessionId, bucket);
+  }
+  bucket.count++;
+
+  // Purge expired buckets to prevent unbounded growth
+  if (rateLimitMap.size > 200) {
+    for (const [key, b] of rateLimitMap) {
+      if (now - b.windowStart > RATE_LIMIT_WINDOW_MS) rateLimitMap.delete(key);
+    }
+  }
+
+  return bucket.count <= RATE_LIMIT_MAX;
+}
+
 // AI chat endpoint — generates and modifies slide decks via conversation
 app.post('/api/chat', async (req, res) => {
   const { message, deck, currentSlideIndex, sessionId } = req.body;
@@ -179,6 +203,14 @@ app.post('/api/chat', async (req, res) => {
 
   if (!sessionId || typeof sessionId !== 'string') {
     return res.status(400).json({ error: 'sessionId is required' });
+  }
+
+  if (!checkRateLimit(sessionId)) {
+    return res.status(429).json({
+      error: 'Too many requests',
+      reply: 'You\'re sending messages too quickly. Please wait a moment.',
+      action: null,
+    });
   }
 
   try {

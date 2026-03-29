@@ -67,6 +67,7 @@ const sessions = new Map();
 const SESSION_TTL_MS = 60 * 60 * 1000;
 
 const MAX_SESSIONS = 100;
+const MAX_HISTORY_MESSAGES = 100; // 50 exchanges (user + assistant)
 
 export function createSession() {
   cleanStaleSessions();
@@ -288,6 +289,11 @@ export async function chat({ sessionId, message, deck, currentSlideIndex, model 
 
   const userContent = buildUserMessage(message, deck, currentSlideIndex);
   session.messages.push({ role: 'user', content: userContent });
+
+  // Trim oldest messages if history exceeds cap (keep recent context)
+  if (session.messages.length > MAX_HISTORY_MESSAGES) {
+    session.messages.splice(0, session.messages.length - MAX_HISTORY_MESSAGES);
+  }
 
   const selectedModel = typeof model === 'string' && model.trim() ? model : DEFAULT_MODEL;
 
