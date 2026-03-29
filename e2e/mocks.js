@@ -93,6 +93,15 @@ export async function mockAPIs(page, { authenticated = true, chatMode = 'reply' 
     });
   });
 
+  // Chat session creation
+  await page.route('**/api/chat/session', (route) => {
+    route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({ sessionId: 'mock-session-001' }),
+    });
+  });
+
   // Chat endpoint
   await page.route('**/api/chat', (route) => {
     const body = chatMode === 'create' ? MOCK_CHAT_RESPONSE : MOCK_CHAT_REPLY;

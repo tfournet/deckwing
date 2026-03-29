@@ -16,7 +16,7 @@ vi.mock('@anthropic-ai/sdk', () => ({
   },
 }));
 
-import { chat, resetSession, cleanStaleSessions } from './chat-engine.js';
+import { chat, createSession, resetSession, cleanStaleSessions } from './chat-engine.js';
 
 // Track snapshots of messages at call time, since session.messages is
 // passed by reference and mutated after the API call returns.
@@ -36,10 +36,12 @@ function stubClaudeRawText(text) {
   });
 }
 
+let testSessionId;
+
 beforeEach(() => {
   mockCreate.mockReset();
   messageSnapshots = [];
-  resetSession('test-session');
+  testSessionId = createSession();
 });
 
 // --- Basic chat flow ---
@@ -49,7 +51,7 @@ describe('chat', () => {
     stubClaudeResponse({ reply: 'Hello! How can I help?' });
 
     const result = await chat({
-      sessionId: 'test-session',
+      sessionId: testSessionId,
       message: 'Hi',
       deck: null,
       currentSlideIndex: 0,
@@ -73,7 +75,7 @@ describe('chat', () => {
     stubClaudeResponse({ reply: 'Here is your deck!', action });
 
     const result = await chat({
-      sessionId: 'test-session',
+      sessionId: testSessionId,
       message: 'Create a deck about MSP automation',
       deck: null,
       currentSlideIndex: 0,
@@ -89,7 +91,7 @@ describe('chat', () => {
 
     const deck = { title: 'Test', slides: [{ type: 'title', title: 'Test' }] };
     await chat({
-      sessionId: 'test-session',
+      sessionId: testSessionId,
       message: 'Change the title',
       deck,
       currentSlideIndex: 0,
@@ -105,7 +107,7 @@ describe('chat', () => {
     stubClaudeResponse({ reply: 'No deck yet' });
 
     await chat({
-      sessionId: 'test-session',
+      sessionId: testSessionId,
       message: 'Hello',
       deck: null,
       currentSlideIndex: 0,
@@ -120,7 +122,7 @@ describe('chat', () => {
     stubClaudeResponse({ reply: 'Custom model response' });
 
     await chat({
-      sessionId: 'test-session',
+      sessionId: testSessionId,
       message: 'Use Opus',
       deck: null,
       currentSlideIndex: 0,
@@ -136,7 +138,7 @@ describe('chat', () => {
     stubClaudeResponse({ reply: 'Default model response' });
 
     await chat({
-      sessionId: 'test-session',
+      sessionId: testSessionId,
       message: 'Use default',
       deck: null,
       currentSlideIndex: 0,
@@ -156,7 +158,7 @@ describe('chat - response parsing', () => {
     stubClaudeRawText('```json\n' + json + '\n```');
 
     const result = await chat({
-      sessionId: 'test-session',
+      sessionId: testSessionId,
       message: 'test',
       deck: null,
       currentSlideIndex: 0,
@@ -170,7 +172,7 @@ describe('chat - response parsing', () => {
     stubClaudeRawText('Here is the result: ' + json + ' hope that helps!');
 
     const result = await chat({
-      sessionId: 'test-session',
+      sessionId: testSessionId,
       message: 'test',
       deck: null,
       currentSlideIndex: 0,
@@ -183,7 +185,7 @@ describe('chat - response parsing', () => {
     stubClaudeRawText('This is just plain text with no JSON at all.');
 
     const result = await chat({
-      sessionId: 'test-session',
+      sessionId: testSessionId,
       message: 'test',
       deck: null,
       currentSlideIndex: 0,
@@ -197,7 +199,7 @@ describe('chat - response parsing', () => {
     stubClaudeRawText(JSON.stringify({ action: null }));
 
     const result = await chat({
-      sessionId: 'test-session',
+      sessionId: testSessionId,
       message: 'test',
       deck: null,
       currentSlideIndex: 0,
@@ -224,7 +226,7 @@ describe('chat - action validation', () => {
     });
 
     const result = await chat({
-      sessionId: 'test-session',
+      sessionId: testSessionId,
       message: 'make a deck',
       deck: null,
       currentSlideIndex: 0,
@@ -246,7 +248,7 @@ describe('chat - action validation', () => {
     });
 
     const result = await chat({
-      sessionId: 'test-session',
+      sessionId: testSessionId,
       message: 'add a slide',
       deck: null,
       currentSlideIndex: 0,
@@ -268,7 +270,7 @@ describe('chat - action validation', () => {
     });
 
     const result = await chat({
-      sessionId: 'test-session',
+      sessionId: testSessionId,
       message: 'add a quote slide',
       deck: null,
       currentSlideIndex: 0,
@@ -288,7 +290,7 @@ describe('chat - action validation', () => {
     });
 
     const result = await chat({
-      sessionId: 'test-session',
+      sessionId: testSessionId,
       message: 'change the title',
       deck: null,
       currentSlideIndex: 0,
@@ -318,7 +320,7 @@ describe('chat - block validation in updates', () => {
     });
 
     const result = await chat({
-      sessionId: 'test-session',
+      sessionId: testSessionId,
       message: 'update blocks',
       deck: null,
       currentSlideIndex: 0,
@@ -345,7 +347,7 @@ describe('chat - block validation in updates', () => {
     });
 
     const result = await chat({
-      sessionId: 'test-session',
+      sessionId: testSessionId,
       message: 'update blocks',
       deck: null,
       currentSlideIndex: 0,
@@ -373,7 +375,7 @@ describe('chat - block validation in updates', () => {
     });
 
     const result = await chat({
-      sessionId: 'test-session',
+      sessionId: testSessionId,
       message: 'update blocks',
       deck: null,
       currentSlideIndex: 0,
@@ -401,7 +403,7 @@ describe('chat - block validation in updates', () => {
     });
 
     const result = await chat({
-      sessionId: 'test-session',
+      sessionId: testSessionId,
       message: 'update layout blocks',
       deck: null,
       currentSlideIndex: 0,
@@ -421,12 +423,12 @@ describe('session management', () => {
   // so the messages array sent to Claude includes the current message.
 
   it('maintains conversation history across calls', async () => {
-    resetSession('s1');
+    const sid = createSession();
     stubClaudeResponse({ reply: 'First response' });
-    await chat({ sessionId: 's1', message: 'Hello', deck: null, currentSlideIndex: 0 });
+    await chat({ sessionId: sid, message: 'Hello', deck: null, currentSlideIndex: 0 });
 
     stubClaudeResponse({ reply: 'Second response' });
-    await chat({ sessionId: 's1', message: 'Follow up', deck: null, currentSlideIndex: 0 });
+    await chat({ sessionId: sid, message: 'Follow up', deck: null, currentSlideIndex: 0 });
 
     // Second call snapshot: user1, assistant1, user2 (current)
     const msgs = messageSnapshots[1];
@@ -437,14 +439,14 @@ describe('session management', () => {
   });
 
   it('isolates sessions from each other', async () => {
-    resetSession('iso-a');
-    resetSession('iso-b');
+    const sidA = createSession();
+    const sidB = createSession();
 
     stubClaudeResponse({ reply: 'A' });
-    await chat({ sessionId: 'iso-a', message: 'Hello A', deck: null, currentSlideIndex: 0 });
+    await chat({ sessionId: sidA, message: 'Hello A', deck: null, currentSlideIndex: 0 });
 
     stubClaudeResponse({ reply: 'B' });
-    await chat({ sessionId: 'iso-b', message: 'Hello B', deck: null, currentSlideIndex: 0 });
+    await chat({ sessionId: sidB, message: 'Hello B', deck: null, currentSlideIndex: 0 });
 
     // Session B snapshot should only have its own message
     const msgs = messageSnapshots[1];
@@ -452,31 +454,29 @@ describe('session management', () => {
     expect(msgs[0].content).toBe('Hello B');
   });
 
-  it('resetSession clears history', async () => {
-    resetSession('r1');
+  it('resetSession clears history and rejects further use', async () => {
+    const sid = createSession();
     stubClaudeResponse({ reply: 'First' });
-    await chat({ sessionId: 'r1', message: 'Hello', deck: null, currentSlideIndex: 0 });
+    await chat({ sessionId: sid, message: 'Hello', deck: null, currentSlideIndex: 0 });
 
-    resetSession('r1');
+    resetSession(sid);
 
-    stubClaudeResponse({ reply: 'After reset' });
-    await chat({ sessionId: 'r1', message: 'Fresh start', deck: null, currentSlideIndex: 0 });
-
-    const msgs = messageSnapshots[1];
-    expect(msgs).toHaveLength(1);
+    await expect(
+      chat({ sessionId: sid, message: 'Fresh start', deck: null, currentSlideIndex: 0 })
+    ).rejects.toThrow('Invalid or expired session');
   });
 
   it('removes user message from history on API error', async () => {
-    resetSession('err');
+    const sid = createSession();
     mockCreate.mockRejectedValueOnce(new Error('API down'));
 
     await expect(
-      chat({ sessionId: 'err', message: 'Fail', deck: null, currentSlideIndex: 0 })
+      chat({ sessionId: sid, message: 'Fail', deck: null, currentSlideIndex: 0 })
     ).rejects.toThrow('Claude API call failed');
 
     // Next call should have clean history (failed message was rolled back)
     stubClaudeResponse({ reply: 'Recovered' });
-    await chat({ sessionId: 'err', message: 'Try again', deck: null, currentSlideIndex: 0 });
+    await chat({ sessionId: sid, message: 'Try again', deck: null, currentSlideIndex: 0 });
 
     // messageSnapshots[0] is the recovered call (the rejected call didn't snapshot)
     const msgs = messageSnapshots[0];
@@ -487,29 +487,21 @@ describe('session management', () => {
 
 describe('cleanStaleSessions', () => {
   it('evicts sessions idle beyond TTL', async () => {
-    // Create a session by chatting
-    resetSession('stale-1');
+    const staleSid = createSession();
     stubClaudeResponse({ reply: 'Old message' });
-    await chat({ sessionId: 'stale-1', message: 'Hi', deck: null, currentSlideIndex: 0 });
-
-    // Fast-forward past the 1-hour TTL by manipulating the session's lastActivity
-    // We can't directly access the sessions Map, but we can verify via behavior:
-    // after cleanStaleSessions, a new chat on the same session should have no history.
-    // To simulate staleness, we need to call cleanStaleSessions after enough time.
-    // Since we can't advance real time, we instead verify the function runs without error
-    // and that fresh sessions are unaffected.
+    await chat({ sessionId: staleSid, message: 'Hi', deck: null, currentSlideIndex: 0 });
 
     // Create a "fresh" session
-    resetSession('fresh-1');
+    const freshSid = createSession();
     stubClaudeResponse({ reply: 'New message' });
-    await chat({ sessionId: 'fresh-1', message: 'Hello', deck: null, currentSlideIndex: 0 });
+    await chat({ sessionId: freshSid, message: 'Hello', deck: null, currentSlideIndex: 0 });
 
     // Clean should not evict fresh sessions (lastActivity is now)
     cleanStaleSessions();
 
-    // fresh-1 should still have history
+    // freshSid should still have history
     stubClaudeResponse({ reply: 'Follow up' });
-    await chat({ sessionId: 'fresh-1', message: 'Again', deck: null, currentSlideIndex: 0 });
+    await chat({ sessionId: freshSid, message: 'Again', deck: null, currentSlideIndex: 0 });
 
     // Second call should have 3 messages (user, assistant, user) — history preserved
     const msgs = messageSnapshots[messageSnapshots.length - 1];

@@ -5,7 +5,7 @@ import { promisify } from 'util';
 import { existsSync, readFileSync } from 'fs';
 import { join } from 'path';
 import { homedir } from 'os';
-import { chat, resetSession } from './ai/chat-engine.js';
+import { chat, createSession, resetSession } from './ai/chat-engine.js';
 import { reviewDeck } from './ai/review-agent.js';
 import { startOAuthFlow, getOAuthStatus, cleanupOAuthSessions } from './ai/claude-oauth.js';
 import { findClaudeBinary, checkClaudeVersion } from './ai/find-claude.js';
@@ -159,6 +159,16 @@ app.get('/api/auth/status/:state', (req, res) => {
   res.json({ ok: true, status: result.status, error: result.error });
 });
 
+// Create a new chat session — returns a server-generated session ID
+app.post('/api/chat/session', (req, res) => {
+  try {
+    const sessionId = createSession();
+    res.json({ sessionId });
+  } catch (err) {
+    res.status(429).json({ error: err.message });
+  }
+});
+
 // AI chat endpoint — generates and modifies slide decks via conversation
 app.post('/api/chat', async (req, res) => {
   const { message, deck, currentSlideIndex, sessionId } = req.body;
@@ -183,7 +193,13 @@ app.post('/api/chat', async (req, res) => {
 
     res.json({ reply: result.reply, action: result.action });
   } catch (err) {
-    // Log for debugging, not user-facing (the API returns a friendly message)
+    if (err.message.includes('Invalid or expired session')) {
+      return res.status(400).json({
+        error: err.message,
+        reply: err.message,
+        action: null,
+      });
+    }
     console.error('  [chat error]', err.message);
     console.error('  [chat stack]', err.stack);
     res.status(500).json({

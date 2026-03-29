@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
 // Mock the chat engine — the external AI boundary
 const mockChat = vi.fn();
+const mockCreateSession = vi.fn(() => 'mock-session-id');
 const mockResetSession = vi.fn();
 const mockStartOAuthFlow = vi.fn();
 const mockGetOAuthStatus = vi.fn();
@@ -9,6 +10,7 @@ const mockCleanupOAuthSessions = vi.fn();
 
 vi.mock('./ai/chat-engine.js', () => ({
   chat: (...args) => mockChat(...args),
+  createSession: (...args) => mockCreateSession(...args),
   resetSession: (...args) => mockResetSession(...args),
 }));
 
