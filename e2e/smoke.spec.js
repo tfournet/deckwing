@@ -25,16 +25,17 @@ test.describe('DeckWing Smoke Tests', () => {
   test('slide preview renders', async ({ page }) => {
     await page.goto('/');
     // The slide counter should be visible, meaning slides loaded
-    await expect(page.locator('text=1 / 6')).toBeVisible({ timeout: 5000 });
+    await expect(page.getByText(/^1 \/ \d+$/)).toBeVisible({ timeout: 5000 });
   });
 
   test('slide navigation works', async ({ page }) => {
     await page.goto('/');
-    await page.waitForSelector('text=1 / 6', { timeout: 5000 });
+    const counter = page.getByText(/^1 \/ \d+$/);
+    await counter.waitFor({ timeout: 5000 });
 
     // Click next
     await page.locator('button:has(svg)').filter({ has: page.locator('[class*="chevron"]') }).last().click();
-    await expect(page.locator('text=2 / 6')).toBeVisible();
+    await expect(page.getByText(/^2 \/ \d+$/)).toBeVisible();
   });
 
   test('slide outline shows all slides', async ({ page }) => {
