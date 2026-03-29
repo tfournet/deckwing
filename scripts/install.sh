@@ -156,11 +156,39 @@ else
     mkdir -p "$CLAUDE_DIR"
     DOWNLOAD_URL="$GCS_BUCKET/$LATEST_VERSION/$PLAT/claude"
 
+    # Fetch expected checksum from manifest
+    MANIFEST_URL="$GCS_BUCKET/$LATEST_VERSION/manifest.json"
+    EXPECTED_CHECKSUM=$(curl -fsSL "$MANIFEST_URL" 2>/dev/null \
+      | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('platforms',{}).get('$PLAT',{}).get('checksum',''))" 2>/dev/null \
+      || echo "")
+
     if run_with_spinner "Downloading Claude Code v${LATEST_VERSION}" curl -fsSL "$DOWNLOAD_URL" -o "$CLAUDE_BIN"; then
-      chmod +x "$CLAUDE_BIN"
-      # Run install to set up shell integration
-      "$CLAUDE_BIN" install 2>/dev/null || true
-      info "Claude Code v${LATEST_VERSION} — installed to $CLAUDE_DIR"
+      if [ -n "$EXPECTED_CHECKSUM" ]; then
+        # Compute actual checksum (sha256sum on Linux, shasum on macOS)
+        if command -v sha256sum &>/dev/null; then
+          ACTUAL_CHECKSUM=$(sha256sum "$CLAUDE_BIN" | cut -d' ' -f1)
+        elif command -v shasum &>/dev/null; then
+          ACTUAL_CHECKSUM=$(shasum -a 256 "$CLAUDE_BIN" | cut -d' ' -f1)
+        else
+          warn "Cannot verify checksum (sha256sum/shasum not found)"
+          rm -f "$CLAUDE_BIN"
+          ACTUAL_CHECKSUM=""
+        fi
+
+        if [ -n "$ACTUAL_CHECKSUM" ]; then
+          if [ "$ACTUAL_CHECKSUM" != "$EXPECTED_CHECKSUM" ]; then
+            rm -f "$CLAUDE_BIN"
+            warn "Claude Code download failed checksum verification"
+          else
+            chmod +x "$CLAUDE_BIN"
+            "$CLAUDE_BIN" install 2>/dev/null || true
+            info "Claude Code v${LATEST_VERSION} — installed to $CLAUDE_DIR"
+          fi
+        fi
+      else
+        warn "Could not verify Claude Code checksum — skipping install"
+        rm -f "$CLAUDE_BIN"
+      fi
     else
       warn "Claude Code download failed — the app will prompt you to install it"
     fi
