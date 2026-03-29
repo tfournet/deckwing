@@ -86,11 +86,11 @@ function showWindow() {
       },
     });
 
-    // Block navigation away from the app origin
+    // Block navigation away from the exact app origin (scheme + host + port)
+    const appOrigin = new URL(getAppURL()).origin;
     mainWindow.webContents.on('will-navigate', (event, url) => {
       try {
-        const parsed = new URL(url);
-        if (parsed.hostname !== 'localhost' && parsed.hostname !== '127.0.0.1') {
+        if (new URL(url).origin !== appOrigin) {
           event.preventDefault();
         }
       } catch {
@@ -98,17 +98,43 @@ function showWindow() {
       }
     });
 
-    // Control window.open — allow localhost + OAuth, open everything else in system browser
+    // Control window.open — allow localhost + OAuth, open https: URLs in system browser
     const ALLOWED_POPUP_HOSTS = ['localhost', '127.0.0.1', 'claude.com', 'platform.claude.com'];
     mainWindow.webContents.setWindowOpenHandler(({ url }) => {
       try {
         const parsed = new URL(url);
         if (ALLOWED_POPUP_HOSTS.includes(parsed.hostname)) {
-          return { action: 'allow' };
+          return {
+            action: 'allow',
+            overrideBrowserWindowOptions: {
+              webPreferences: {
+                contextIsolation: true,
+                nodeIntegration: false,
+                sandbox: true,
+              },
+            },
+          };
         }
-      } catch { /* malformed URL — deny */ }
-      shell.openExternal(url);
+        if (parsed.protocol === 'https:') {
+          shell.openExternal(url);
+        }
+      } catch { /* malformed or non-parseable URL — silently deny */ }
       return { action: 'deny' };
+    });
+
+    // Harden child windows (detached editor, OAuth popup)
+    mainWindow.webContents.on('did-create-window', (childWindow) => {
+      childWindow.webContents.on('will-navigate', (event, url) => {
+        try {
+          const parsed = new URL(url);
+          if (parsed.origin !== appOrigin && !ALLOWED_POPUP_HOSTS.includes(parsed.hostname)) {
+            event.preventDefault();
+          }
+        } catch {
+          event.preventDefault();
+        }
+      });
+      childWindow.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
     });
 
     mainWindow.once('ready-to-show', () => {
