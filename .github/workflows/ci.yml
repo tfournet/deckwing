@@ -27,9 +27,9 @@ jobs:
       - name: Check for merge conflict markers
         run: |
           CONFLICT_RE='<{7} '
-          if grep -rqP "$CONFLICT_RE" --include='*.yml' --include='*.yaml' --include='*.js' --include='*.jsx' --include='*.json' --include='*.ts' .; then
+          if grep -rqP "$CONFLICT_RE" --exclude-dir=node_modules --exclude-dir=.git --include='*.yml' --include='*.yaml' --include='*.js' --include='*.jsx' --include='*.json' --include='*.ts' .; then
             echo "ERROR: Found unresolved merge conflict markers:"
-            grep -rnP "$CONFLICT_RE" --include='*.yml' --include='*.yaml' --include='*.js' --include='*.jsx' --include='*.json' --include='*.ts' .
+            grep -rnP "$CONFLICT_RE" --exclude-dir=node_modules --exclude-dir=.git --include='*.yml' --include='*.yaml' --include='*.js' --include='*.jsx' --include='*.json' --include='*.ts' .
             exit 1
           fi
 
