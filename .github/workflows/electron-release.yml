@@ -41,6 +41,12 @@ jobs:
       - name: Build Electron package
         run: npm run electron:build -- ${{ matrix.args }} --publish never
 
+      - name: Generate checksums
+        run: |
+          cd electron-dist
+          sha256sum DeckWing-Setup.exe DeckWing*.dmg DeckWing.AppImage 2>/dev/null | tee ELECTRON-SHA256SUMS.txt || true
+        shell: bash
+
       - name: Upload Electron artifacts to GitHub Release
         uses: softprops/action-gh-release@153bb8e04406b158c6c84fc1615b65b24149a1fe # v2
         with:
@@ -50,3 +56,4 @@ jobs:
             electron-dist/DeckWing.dmg
             electron-dist/DeckWing-*.dmg
             electron-dist/DeckWing.AppImage
+            electron-dist/ELECTRON-SHA256SUMS.txt
