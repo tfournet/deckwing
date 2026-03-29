@@ -68,6 +68,24 @@ function ensureExecutable(filePath) {
   }
 }
 
+function getChecksumPath(binaryPath) {
+  return binaryPath + '.sha256';
+}
+
+function verifyBinaryChecksum(binaryPath) {
+  const checksumPath = getChecksumPath(binaryPath);
+  if (!fs.existsSync(checksumPath)) {
+    return false;
+  }
+  const expected = fs.readFileSync(checksumPath, 'utf-8').trim().toLowerCase();
+  const actual = crypto.createHash('sha256').update(fs.readFileSync(binaryPath)).digest('hex');
+  return actual === expected;
+}
+
+function saveChecksum(binaryPath, checksum) {
+  fs.writeFileSync(getChecksumPath(binaryPath), checksum.toLowerCase() + '\n');
+}
+
 function syncLegacyLocation(sourcePath) {
   const legacyPath = getLegacyClaudePath();
   fs.mkdirSync(path.dirname(legacyPath), { recursive: true });
@@ -91,18 +109,43 @@ function syncLegacyLocation(sourcePath) {
 
 async function ensurePrimaryLocation() {
   const targetPath = getClaudePath();
+
+  // If binary exists, verify its integrity before trusting it
   if (fs.existsSync(targetPath)) {
-    return targetPath;
+    if (verifyBinaryChecksum(targetPath)) {
+      return targetPath;
+    }
+    // Quarantine instead of delete — restore if re-download fails
+    console.log('[claude-manager] Cached binary failed integrity check, re-downloading');
+    const quarantinePath = targetPath + '.quarantine';
+    fs.renameSync(targetPath, quarantinePath);
+    const checksumPath = getChecksumPath(targetPath);
+    if (fs.existsSync(checksumPath)) fs.unlinkSync(checksumPath);
+
+    try {
+      const freshPath = await downloadVerifiedBinary(targetPath);
+      if (fs.existsSync(quarantinePath)) fs.unlinkSync(quarantinePath);
+      return freshPath;
+    } catch (err) {
+      console.warn('[claude-manager] Re-download failed, restoring cached binary:', err.message);
+      fs.renameSync(quarantinePath, targetPath);
+      return targetPath;
+    }
   }
 
+  // Migrate from legacy location if available (verify after copy)
   const legacyPath = getLegacyClaudePath();
   if (fs.existsSync(legacyPath)) {
     fs.mkdirSync(path.dirname(targetPath), { recursive: true });
     fs.copyFileSync(legacyPath, targetPath);
     ensureExecutable(targetPath);
-    return targetPath;
+    // Legacy binaries have no sidecar — fetch manifest to create one
   }
 
+  return downloadVerifiedBinary(targetPath);
+}
+
+async function downloadVerifiedBinary(targetPath) {
   const version = (await fetchText(`${GCS_BUCKET}/latest`)).trim();
   if (!version) {
     throw new Error('Claude Code latest version endpoint returned an empty response.');
@@ -111,21 +154,33 @@ async function ensurePrimaryLocation() {
   const platformKey = getPlatformKey();
   const manifest = await fetchJson(`${GCS_BUCKET}/${version}/manifest.json`);
   const checksum = manifest?.platforms?.[platformKey]?.checksum;
-  if (!checksum) {
-    throw new Error(`Claude Code manifest missing checksum for ${platformKey}.`);
+  if (typeof checksum !== 'string' || !/^[0-9a-f]{64}$/i.test(checksum)) {
+    throw new Error(`Claude Code manifest has invalid checksum for ${platformKey}.`);
+  }
+
+  // If target exists (legacy migration), verify against manifest
+  if (fs.existsSync(targetPath)) {
+    const digest = crypto.createHash('sha256').update(fs.readFileSync(targetPath)).digest('hex');
+    if (digest === checksum.toLowerCase()) {
+      saveChecksum(targetPath, checksum);
+      return targetPath;
+    }
+    // Legacy binary doesn't match current manifest — re-download
+    fs.unlinkSync(targetPath);
   }
 
   const binaryName = getBinaryName();
   const downloadUrl = `${GCS_BUCKET}/${version}/${platformKey}/${binaryName}`;
   const payload = await fetchBuffer(downloadUrl);
   const digest = crypto.createHash('sha256').update(payload).digest('hex');
-  if (digest !== String(checksum).toLowerCase()) {
+  if (digest !== checksum.toLowerCase()) {
     throw new Error(`Claude Code checksum mismatch for ${platformKey}.`);
   }
 
   fs.mkdirSync(path.dirname(targetPath), { recursive: true });
   fs.writeFileSync(targetPath, payload);
   ensureExecutable(targetPath);
+  saveChecksum(targetPath, checksum);
 
   return targetPath;
 }
