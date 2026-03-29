@@ -5,14 +5,17 @@
  * for the AI chat panel.
  */
 
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 
 function generateId() {
   return Math.random().toString(36).substring(2, 10);
 }
 
-function generateSessionId() {
-  return 'session_' + Date.now().toString(36) + '_' + Math.random().toString(36).substring(2, 6);
+async function fetchSessionId() {
+  const res = await fetch('/api/chat/session', { method: 'POST' });
+  if (!res.ok) throw new Error('Failed to create chat session');
+  const { sessionId } = await res.json();
+  return sessionId;
 }
 
 /**
@@ -24,10 +27,14 @@ function generateSessionId() {
 export function useChat({ deck, onAction, model }) {
   const [messages, setMessages] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
-  const sessionIdRef = useRef(generateSessionId());
+  const sessionIdRef = useRef(null);
+
+  useEffect(() => {
+    fetchSessionId().then(id => { sessionIdRef.current = id; });
+  }, []);
 
   const sendMessage = useCallback(async (text) => {
-    if (!text.trim() || isLoading) return;
+    if (!text.trim() || isLoading || !sessionIdRef.current) return;
 
     const userMsg = {
       id: generateId(),
@@ -88,7 +95,6 @@ export function useChat({ deck, onAction, model }) {
 
   const resetChat = useCallback(async () => {
     const oldSessionId = sessionIdRef.current;
-    sessionIdRef.current = generateSessionId();
     setMessages([]);
     setIsLoading(false);
 
@@ -100,6 +106,12 @@ export function useChat({ deck, onAction, model }) {
       });
     } catch {
       // Reset is best-effort — local state already cleared
+    }
+
+    try {
+      sessionIdRef.current = await fetchSessionId();
+    } catch {
+      sessionIdRef.current = null;
     }
   }, []);
 

@@ -7,6 +7,7 @@
  *   2. Claude Agent SDK (no key) — uses local Claude Code OAuth session
  */
 
+import crypto from 'crypto';
 import { existsSync } from 'fs';
 import { join } from 'path';
 import { SYSTEM_PROMPT } from './system-prompt.js';
@@ -65,9 +66,21 @@ if (HAS_API_KEY) {
 const sessions = new Map();
 const SESSION_TTL_MS = 60 * 60 * 1000;
 
+const MAX_SESSIONS = 100;
+
+export function createSession() {
+  cleanStaleSessions();
+  if (sessions.size >= MAX_SESSIONS) {
+    throw new Error('Too many active sessions');
+  }
+  const id = crypto.randomUUID();
+  sessions.set(id, { messages: [], lastActivity: new Date() });
+  return id;
+}
+
 function getSession(sessionId) {
   if (!sessions.has(sessionId)) {
-    sessions.set(sessionId, { messages: [], lastActivity: new Date() });
+    return null;
   }
   const session = sessions.get(sessionId);
   session.lastActivity = new Date();
@@ -269,6 +282,9 @@ async function callAgentSDK(messages, model = DEFAULT_MODEL) {
  */
 export async function chat({ sessionId, message, deck, currentSlideIndex, model }) {
   const session = getSession(sessionId);
+  if (!session) {
+    throw new Error('Invalid or expired session. Please start a new chat.');
+  }
 
   const userContent = buildUserMessage(message, deck, currentSlideIndex);
   session.messages.push({ role: 'user', content: userContent });
