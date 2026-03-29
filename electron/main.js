@@ -214,16 +214,29 @@ function stopServer() {
 // ── Auto-update ──────────────────────────────────────────────────────
 
 function checkForUpdates() {
-  autoUpdater.autoDownload = true;
+  autoUpdater.autoDownload = false;
   autoUpdater.autoInstallOnAppQuit = true;
 
   autoUpdater.on('update-available', (info) => {
     console.log(`[update] New version available: ${info.version}`);
+    if (!mainWindow || mainWindow.isDestroyed()) return;
+    dialog.showMessageBox(mainWindow, {
+      type: 'info',
+      title: 'Update Available',
+      message: `DeckWing ${info.version} is available.`,
+      detail: 'Would you like to download it now?',
+      buttons: ['Download', 'Later'],
+      defaultId: 1,
+    }).then(({ response }) => {
+      if (response === 0) {
+        autoUpdater.downloadUpdate();
+      }
+    });
   });
 
   autoUpdater.on('update-downloaded', (info) => {
     console.log(`[update] Update downloaded: ${info.version}`);
-    // Show a non-intrusive dialog
+    if (!mainWindow || mainWindow.isDestroyed()) return;
     dialog.showMessageBox(mainWindow, {
       type: 'info',
       title: 'Update Ready',
@@ -241,10 +254,8 @@ function checkForUpdates() {
 
   autoUpdater.on('error', (err) => {
     console.log('[update] Auto-update error:', err.message);
-    // Silent — don't bother the user if update check fails
   });
 
-  // Check after a short delay so the app feels responsive on startup
   setTimeout(() => {
     autoUpdater.checkForUpdates().catch(() => {});
   }, 5000);
