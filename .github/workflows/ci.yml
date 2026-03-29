@@ -26,9 +26,10 @@ jobs:
 
       - name: Check for merge conflict markers
         run: |
-          if grep -rq '<<<<<<< ' --include='*.yml' --include='*.yaml' --include='*.js' --include='*.jsx' --include='*.json' --include='*.ts' .; then
+          CONFLICT_RE='<{7} '
+          if grep -rqP "$CONFLICT_RE" --include='*.yml' --include='*.yaml' --include='*.js' --include='*.jsx' --include='*.json' --include='*.ts' .; then
             echo "ERROR: Found unresolved merge conflict markers:"
-            grep -rn '<<<<<<< ' --include='*.yml' --include='*.yaml' --include='*.js' --include='*.jsx' --include='*.json' --include='*.ts' .
+            grep -rnP "$CONFLICT_RE" --include='*.yml' --include='*.yaml' --include='*.js' --include='*.jsx' --include='*.json' --include='*.ts' .
             exit 1
           fi
 
