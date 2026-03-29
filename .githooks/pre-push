@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+#
+# Pre-push hook: runs unit tests and e2e smoke tests before pushing.
+# If any tests fail, the push is blocked.
+#
+set -euo pipefail
+
+echo "Running pre-push checks..."
+
+# Unit tests
+echo "  Running unit tests..."
+if ! npm test 2>&1 | tail -3; then
+  echo ""
+  echo "  BLOCKED: Unit tests failed. Fix before pushing."
+  exit 1
+fi
+
+# E2E smoke tests (only if playwright is installed)
+if npx playwright --version &>/dev/null 2>&1; then
+  echo "  Running e2e smoke tests..."
+  if ! npx playwright test 2>&1 | tail -5; then
+    echo ""
+    echo "  BLOCKED: E2E tests failed. Fix before pushing."
+    exit 1
+  fi
+else
+  echo "  Skipping e2e tests (Playwright not installed)"
+fi
+
+echo "  All checks passed."
