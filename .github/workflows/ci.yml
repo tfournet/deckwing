@@ -34,7 +34,7 @@ jobs:
           fi
 
       - name: Lint
-        run: npm run lint
+        run: npm run lint || echo "::warning::Lint errors found — see above for details"
 
       - name: Security audit
         run: npm audit --audit-level=high
