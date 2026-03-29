@@ -6,7 +6,7 @@
 import { existsSync } from 'fs';
 import { join } from 'path';
 import { homedir } from 'os';
-import { execFileSync } from 'child_process';
+import { execFileSync } from 'child_process';  // used by checkClaudeVersion
 
 const MIN_CLAUDE_VERSION = '2.0.0';
 
@@ -37,67 +37,32 @@ export function findClaudeBinary({ skipCache = false } = {}) {
   if (!skipCache && cached !== undefined) return cached;
 
   const home = homedir();
+  const binaryName = process.platform === 'win32' ? 'claude.exe' : 'claude';
 
-  // Check DeckWing's own installation FIRST — known location, always native binary
-  const deckwingClaude = process.platform === 'win32'
-    ? join(home, '.deckwing', 'claude', 'claude.exe')
-    : join(home, '.deckwing', 'claude', 'claude');
-  if (existsSync(deckwingClaude)) {
-    cached = deckwingClaude;
-    return cached;
-  }
+  // Only trust DeckWing-managed locations where binaries are checksum-verified.
+  // System PATH, npm global, and other unverified locations are intentionally
+  // excluded to prevent binary planting attacks.
+  const trustedLocations = [
+    join(home, '.deckwing', 'claude', binaryName),
+  ];
 
-  // Common locations — native installer + npm global
-  // On Windows, also check .claude/downloads for the latest native binary
-  let nativeDownload = null;
+  // Electron appData location (used by claude-manager.js in desktop builds)
   if (process.platform === 'win32') {
-    const downloadDir = join(home, '.claude', 'downloads');
-    try {
-      const files = require('fs').readdirSync(downloadDir)
-        .filter(f => f.startsWith('claude-') && f.endsWith('.exe'))
-        .sort()
-        .reverse();
-      if (files.length > 0) {
-        nativeDownload = join(downloadDir, files[0]);
-      }
-    } catch { /* no downloads dir */ }
+    const appData = process.env.APPDATA || join(home, 'AppData', 'Roaming');
+    trustedLocations.push(join(appData, 'deckwing', 'claude', binaryName));
+  } else if (process.platform === 'darwin') {
+    trustedLocations.push(join(home, 'Library', 'Application Support', 'deckwing', 'claude', binaryName));
+  } else {
+    const xdgConfig = process.env.XDG_CONFIG_HOME || join(home, '.config');
+    trustedLocations.push(join(xdgConfig, 'deckwing', 'claude', binaryName));
   }
 
-  const candidates = process.platform === 'win32'
-    ? [
-        join(home, '.claude', 'local', 'claude.exe'),
-        nativeDownload,
-        join(home, 'AppData', 'Local', 'Programs', 'Claude', 'claude.exe'),
-        join(home, 'AppData', 'Local', 'claude', 'claude.exe'),
-        'C:\\Program Files\\Claude\\claude.exe',
-        // npm paths last — SDK prefers native binary
-        join(home, 'AppData', 'Roaming', 'npm', 'claude.cmd'),
-      ].filter(Boolean)
-    : [
-        join(home, '.local', 'bin', 'claude'),          // native installer location
-        '/usr/local/bin/claude',
-        '/opt/homebrew/bin/claude',
-        join(home, '.npm-global', 'bin', 'claude'),
-      ];
-
-  for (const p of candidates) {
+  for (const p of trustedLocations) {
     if (existsSync(p)) {
       cached = p;
       return cached;
     }
   }
-
-  // Last resort: check npm global prefix
-  try {
-    const prefix = execFileSync('npm', ['config', 'get', 'prefix'], { encoding: 'utf-8', timeout: 3000 }).trim();
-    const npmBin = process.platform === 'win32'
-      ? join(prefix, 'claude.cmd')
-      : join(prefix, 'bin', 'claude');
-    if (existsSync(npmBin)) {
-      cached = npmBin;
-      return cached;
-    }
-  } catch { /* npm not available */ }
 
   cached = null;
   return null;
