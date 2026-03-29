@@ -35,6 +35,11 @@ jobs:
       - name: Package tarball
         run: npm pack
 
+      - name: Generate checksums
+        run: |
+          sha256sum deckwing-*.tgz scripts/install.sh scripts/install.ps1 > SHA256SUMS.txt
+          cat SHA256SUMS.txt
+
       - name: Create GitHub Release
         uses: softprops/action-gh-release@153bb8e04406b158c6c84fc1615b65b24149a1fe # v2
         with:
@@ -43,3 +48,4 @@ jobs:
             scripts/install.sh
             scripts/install.ps1
             deckwing-*.tgz
+            SHA256SUMS.txt
