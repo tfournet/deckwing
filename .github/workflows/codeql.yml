@@ -15,23 +15,12 @@ jobs:
   analyze:
     runs-on: ubuntu-latest
     steps:
-<<<<<<< HEAD
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
       - name: Initialize CodeQL
         uses: github/codeql-action/init@73f1e6275fd719a09d77cfd049469e05e0366e01 # v4
-=======
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
-
-      - name: Initialize CodeQL
-        uses: github/codeql-action/init@ebcb5b36ded6beda4ceefea6a8bc4cc885255bb3 # v3
->>>>>>> e065a4e (ci: pin all GitHub Actions to immutable commit SHAs)
         with:
           languages: javascript-typescript
 
       - name: Run CodeQL Analysis
-<<<<<<< HEAD
         uses: github/codeql-action/analyze@73f1e6275fd719a09d77cfd049469e05e0366e01 # v4
-=======
-        uses: github/codeql-action/analyze@ebcb5b36ded6beda4ceefea6a8bc4cc885255bb3 # v3
->>>>>>> e065a4e (ci: pin all GitHub Actions to immutable commit SHAs)
