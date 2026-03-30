@@ -78,7 +78,7 @@ export const SLIDE_TYPES = {
 export const BLOCK_KINDS = {
   heading: { required: ['text'], optional: ['size'] },
   text: { required: ['text'], optional: ['style'] },
-  list: { required: ['items'], optional: ['style'] },
+  list: { required: ['items'], optional: ['style', 'size'] },
   metric: { required: ['value', 'label'], optional: ['color'] },
   chart: { required: ['type', 'data'], optional: [] },
   table: { required: ['headers', 'rows'], optional: [] },
