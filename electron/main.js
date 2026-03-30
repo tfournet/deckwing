@@ -122,18 +122,29 @@ function showWindow() {
       return { action: 'deny' };
     });
 
-    // Harden child windows (detached editor, OAuth popup)
-    mainWindow.webContents.on('did-create-window', (childWindow) => {
-      childWindow.webContents.on('will-navigate', (event, url) => {
-        try {
-          const parsed = new URL(url);
-          if (parsed.origin !== appOrigin && !ALLOWED_POPUP_HOSTS.includes(parsed.hostname)) {
+    // Harden child windows — OAuth popups navigate freely (they bounce
+    // through SSO/captcha domains we can't predict), other child windows
+    // are restricted to known hosts.  All child windows are sandboxed and
+    // deny further popups regardless.
+    const OAUTH_HOSTS = ['claude.com', 'platform.claude.com'];
+    mainWindow.webContents.on('did-create-window', (childWindow, { url: targetUrl }) => {
+      const isOAuthPopup = (() => {
+        try { return OAUTH_HOSTS.includes(new URL(targetUrl).hostname); }
+        catch { return false; }
+      })();
+
+      if (!isOAuthPopup) {
+        childWindow.webContents.on('will-navigate', (event, url) => {
+          try {
+            const parsed = new URL(url);
+            if (parsed.origin !== appOrigin && !ALLOWED_POPUP_HOSTS.includes(parsed.hostname)) {
+              event.preventDefault();
+            }
+          } catch {
             event.preventDefault();
           }
-        } catch {
-          event.preventDefault();
-        }
-      });
+        });
+      }
       childWindow.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
     });
 
