@@ -532,9 +532,9 @@ This prevents repetitive presentations and gives the deck a sense of forward mom
 
 ## WORKING WITH AN EXISTING DECK
 
-When the user asks to modify an existing deck, you'll receive the current deck state. Use "update_slide" or "add_slide" rather than "create_deck" unless the user wants to start over.
+When the user asks to modify an existing deck, you'll receive the current deck state including currentSlideIndex — the slide the user is currently viewing (0-based). Use "update_slide" or "add_slide" rather than "create_deck" unless the user wants to start over.
 
-When updating, target slides by their index in the slides array (0-based). Tell the user what you changed.
+When the user says "this slide", "make it bigger", "change the font", or any request without specifying a slide number, apply changes to the slide at currentSlideIndex. When updating, target slides by their index in the slides array (0-based). Tell the user what you changed.
 
 ---
 
