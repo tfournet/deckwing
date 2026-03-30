@@ -21,7 +21,7 @@ describe('SYSTEM_PROMPT', () => {
 
   it('includes block kind field requirements', () => {
     expect(SYSTEM_PROMPT).toContain('Block kinds and required fields:');
-    expect(SYSTEM_PROMPT).toContain('- heading: text (required), size (sm/md/lg/xl)');
+    expect(SYSTEM_PROMPT).toContain('- heading: text (required), size (sm/md/lg/xl');
     expect(SYSTEM_PROMPT).toContain('- metric: value (required), label (required), color (optional)');
     expect(SYSTEM_PROMPT).toContain('- image: src (required), fit (optional), alt (optional)');
   });

@@ -14,7 +14,7 @@ function sanitizeUrl(url) {
 }
 
 function HeadingBlock({ block }) {
-  const sizes = { sm: '24px', md: '36px', lg: '52px', xl: '72px' };
+  const sizes = { sm: '36px', md: '52px', lg: '72px', xl: '96px' };
 
   return (
     <h2
@@ -34,9 +34,9 @@ function HeadingBlock({ block }) {
 
 function TextBlock({ block }) {
   const variants = {
-    body: { fontSize: '28px', color: 'var(--block-text)' },
-    caption: { fontSize: '20px', color: 'var(--block-text-muted)' },
-    small: { fontSize: '16px', color: 'var(--block-text-muted)' },
+    body: { fontSize: '36px', color: 'var(--block-text)' },
+    caption: { fontSize: '28px', color: 'var(--block-text-muted)' },
+    small: { fontSize: '28px', color: 'var(--block-text-muted)' },
   };
 
   return (
@@ -47,6 +47,11 @@ function TextBlock({ block }) {
 }
 
 function ListBlock({ block }) {
+  const sizes = { sm: '28px', md: '32px', lg: '36px', xl: '44px' };
+  const fontSize = sizes[block.size] || sizes.md;
+  const bulletSize = parseInt(fontSize) >= 36 ? 14 : 12;
+  const bulletMarginTop = Math.round(parseInt(fontSize) * 0.38);
+
   return (
     <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
       {(block.items || []).map((item, i) => (
@@ -56,8 +61,8 @@ function ListBlock({ block }) {
             display: 'flex',
             alignItems: 'flex-start',
             gap: '16px',
-            marginBottom: '16px',
-            fontSize: '28px',
+            marginBottom: '18px',
+            fontSize,
             color: 'var(--block-text)',
             lineHeight: 1.4,
           }}
@@ -65,11 +70,11 @@ function ListBlock({ block }) {
           <span
             aria-hidden="true"
             style={{
-              width: 12,
-              height: 12,
+              width: bulletSize,
+              height: bulletSize,
               borderRadius: '50%',
               backgroundColor: 'var(--block-accent)',
-              marginTop: 10,
+              marginTop: bulletMarginTop,
               flexShrink: 0,
             }}
           />
@@ -85,7 +90,7 @@ function MetricBlock({ block }) {
     <div style={{ textAlign: 'center', padding: '16px' }}>
       <div
         style={{
-          fontSize: '64px',
+          fontSize: '72px',
           fontWeight: 900,
           color: sanitizeColor(block.color) || 'var(--block-accent)',
           lineHeight: 1.1,
@@ -95,7 +100,7 @@ function MetricBlock({ block }) {
       </div>
       <div
         style={{
-          fontSize: '20px',
+          fontSize: '28px',
           color: 'var(--block-text-muted)',
           marginTop: '8px',
         }}
@@ -154,7 +159,7 @@ function QuoteBlock({ block }) {
       <div style={{ fontSize: '80px', color: 'var(--block-accent)', lineHeight: 1 }}>&quot;</div>
       <blockquote
         style={{
-          fontSize: '36px',
+          fontSize: '44px',
           fontStyle: 'italic',
           color: 'var(--block-text)',
           lineHeight: 1.4,
@@ -165,11 +170,11 @@ function QuoteBlock({ block }) {
       </blockquote>
       {block.attribution && (
         <div>
-          <span style={{ fontSize: '24px', fontWeight: 700, color: 'var(--block-accent)' }}>
+          <span style={{ fontSize: '28px', fontWeight: 700, color: 'var(--block-accent)' }}>
             {block.attribution}
           </span>
           {block.role && (
-            <span style={{ fontSize: '20px', color: 'var(--block-text-muted)', marginLeft: '8px' }}>
+            <span style={{ fontSize: '28px', color: 'var(--block-text-muted)', marginLeft: '8px' }}>
               {block.role}
             </span>
           )}
@@ -195,7 +200,7 @@ function CalloutBlock({ block }) {
         borderRadius: '12px',
         padding: '20px',
         color: variant.text,
-        fontSize: '24px',
+        fontSize: '28px',
         fontWeight: 600,
         display: 'flex',
         alignItems: 'center',
@@ -260,7 +265,7 @@ function ChartBlock() {
 function TableBlock({ block }) {
   return (
     <div style={{ overflow: 'hidden', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.12)' }}>
-      <table style={{ width: '100%', borderCollapse: 'collapse', color: 'var(--block-text)', fontSize: '18px' }}>
+      <table style={{ width: '100%', borderCollapse: 'collapse', color: 'var(--block-text)', fontSize: '28px' }}>
         <thead>
           <tr>
             {(block.headers || []).map((header, i) => (

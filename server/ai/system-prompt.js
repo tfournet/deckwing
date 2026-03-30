@@ -34,9 +34,9 @@ Rules:
 - Use presets for standard slides, named layouts for common patterns, custom only when neither fits
 
 Block kinds and required fields:
-- heading: text (required), size (sm/md/lg/xl)
+- heading: text (required), size (sm/md/lg/xl — default lg, use xl for main titles)
 - text: text (required), style (body/caption/small)
-- list: items[] (required), style (bullet/numbered/check)
+- list: items[] (required), style (bullet/numbered/check), size (sm/md/lg/xl — default md, use lg for prominent lists)
 - metric: value (required), label (required), color (optional)
 - chart: type (required), data (required)
 - table: headers (required), rows (required)
