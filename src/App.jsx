@@ -38,7 +38,7 @@ function MainLayout() {
     applyAction,
   } = useDeckState();
   const { exporting, exportType, exportError, handleExportPDF, handleExportPPTX, handleExportHTML } = useExport({ deck });
-  const { messages, isLoading, sendMessage, resetChat } = useChat({ deck, onAction: applyAction, model: selectedModel });
+  const { messages, isLoading, sendMessage, resetChat } = useChat({ deck, onAction: applyAction, model: selectedModel, currentSlideIndex });
 
   // Persist model selection
   useEffect(() => {
