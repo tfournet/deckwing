@@ -1,18 +1,29 @@
 import { useState, useEffect, useRef } from 'react';
-import { X, Plus, Trash2 } from 'lucide-react';
+import { X, Plus, Trash2, LayoutTemplate, ChevronLeft, TrendingUp, Shield, Rocket, MonitorSmartphone, Users } from 'lucide-react';
 import { listDecks, deleteDeck } from '../../store/deck-store';
 import { createDeck } from '../../schema/slide-schema';
+import { TEMPLATES } from '../../data/templates';
+
+const TEMPLATE_ICONS = {
+  qbr: TrendingUp,
+  security: Shield,
+  onboarding: Rocket,
+  demo: MonitorSmartphone,
+  'all-hands': Users,
+};
 
 /**
- * Modal for managing saved decks: New, Open, Delete.
+ * Modal for managing saved decks and browsing starter templates.
  *
  * Props:
  *   onOpenDeck(deck)  — called with a deck object to load
  *   onNewDeck(deck)   — called with a fresh deck
  *   onClose()         — dismiss the modal
+ *   initialView       — 'decks' | 'templates' (default: 'decks')
  */
-export function DeckListModal({ onOpenDeck, onNewDeck, onClose }) {
+export function DeckListModal({ onOpenDeck, onNewDeck, onClose, initialView = 'decks' }) {
   const [decks, setDecks] = useState([]);
+  const [view, setView] = useState(initialView);
   const backdropRef = useRef(null);
 
   useEffect(() => {
@@ -24,6 +35,10 @@ export function DeckListModal({ onOpenDeck, onNewDeck, onClose }) {
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
   }, [onClose]);
+
+  useEffect(() => {
+    backdropRef.current?.focus();
+  }, []);
 
   function handleBackdropClick(e) {
     if (e.target === backdropRef.current) onClose();
@@ -40,72 +55,164 @@ export function DeckListModal({ onOpenDeck, onNewDeck, onClose }) {
     setDecks(listDecks());
   }
 
+  function handleSelectTemplate(template) {
+    const cloned = JSON.parse(JSON.stringify(template.deck));
+    cloned.id = crypto.randomUUID();
+    cloned.createdAt = new Date().toISOString();
+    cloned.updatedAt = new Date().toISOString();
+    onNewDeck(cloned);
+    onClose();
+  }
+
   return (
     <div
       ref={backdropRef}
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm"
       onClick={handleBackdropClick}
+      tabIndex={-1}
+      aria-modal="true"
+      role="dialog"
+      aria-label={view === 'decks' ? 'Your decks' : 'Choose a template'}
     >
-      <div className="bg-ops-indigo-900 border border-ops-indigo-600/50 rounded-xl p-5 shadow-2xl w-[520px] max-w-[calc(100vw-2rem)] max-h-[70vh] flex flex-col">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-4 shrink-0">
-          <h2 className="text-white font-bold text-sm tracking-wide uppercase">Your Decks</h2>
-          <button
-            className="text-cloud-gray-500 hover:text-cloud-gray-300 transition-colors p-1 rounded"
-            onClick={onClose}
-          >
-            <X size={16} />
-          </button>
-        </div>
-
-        {/* New deck button */}
-        <button
-          className="w-full flex items-center gap-3 p-3 rounded-lg mb-3
-                     bg-bot-teal-400/10 border border-bot-teal-400/30
-                     hover:bg-bot-teal-400/20 transition-colors text-left"
-          onClick={handleNewDeck}
-        >
-          <Plus size={16} className="text-bot-teal-400" />
-          <span className="text-bot-teal-400 text-sm font-semibold">New Presentation</span>
-        </button>
-
-        {/* Deck list */}
-        <div className="flex-1 overflow-y-auto space-y-1">
-          {decks.length === 0 ? (
-            <p className="text-cloud-gray-500 text-sm text-center py-6">
-              No saved presentations yet
-            </p>
-          ) : (
-            decks.map((d) => (
-              <div
-                key={d.id}
-                className="flex items-center gap-3 p-3 rounded-lg
-                           bg-ops-indigo-800/60 border border-ops-indigo-600/30
-                           hover:bg-ops-indigo-700/60 transition-colors group"
+      <div className="bg-ops-indigo-900 border border-ops-indigo-600/50 rounded-xl p-5 shadow-2xl w-[520px] max-w-[calc(100vw-2rem)] max-h-[80vh] flex flex-col">
+        {view === 'decks' ? (
+          /* ── Deck list view ── */
+          <>
+            {/* Header */}
+            <div className="flex items-center justify-between mb-4 shrink-0">
+              <h2 className="text-white font-bold text-sm tracking-wide uppercase">Your Decks</h2>
+              <button
+                className="text-cloud-gray-500 hover:text-cloud-gray-300 transition-colors p-1 rounded"
+                onClick={onClose}
               >
+                <X size={16} />
+              </button>
+            </div>
+
+            {/* New deck buttons */}
+            <div className="flex gap-2 mb-3 shrink-0">
+              <button
+                className="flex-1 flex items-center justify-center gap-2 p-3 rounded-lg
+                           bg-bot-teal-400/10 border border-bot-teal-400/30
+                           hover:bg-bot-teal-400/20 transition-colors"
+                onClick={handleNewDeck}
+              >
+                <Plus size={16} className="text-bot-teal-400" />
+                <span className="text-bot-teal-400 text-sm font-semibold">Blank</span>
+              </button>
+              <button
+                className="flex-1 flex items-center justify-center gap-2 p-3 rounded-lg
+                           bg-ops-indigo-800/60 border border-ops-indigo-600/30
+                           hover:bg-ops-indigo-700/60 transition-colors"
+                onClick={() => setView('templates')}
+              >
+                <LayoutTemplate size={16} className="text-cloud-gray-400" />
+                <span className="text-cloud-gray-300 text-sm font-semibold">From Template</span>
+              </button>
+            </div>
+
+            {/* Deck list */}
+            <div className="flex-1 overflow-y-auto space-y-1">
+              {decks.length === 0 ? (
+                <p className="text-cloud-gray-500 text-sm text-center py-6">
+                  No saved presentations yet
+                </p>
+              ) : (
+                decks.map((d) => (
+                  <div
+                    key={d.id}
+                    className="flex items-center gap-3 p-3 rounded-lg
+                               bg-ops-indigo-800/60 border border-ops-indigo-600/30
+                               hover:bg-ops-indigo-700/60 transition-colors group"
+                  >
+                    <button
+                      className="flex-1 text-left min-w-0"
+                      onClick={() => { onOpenDeck(d.id); onClose(); }}
+                    >
+                      <span className="text-cloud-gray-200 text-sm font-semibold truncate block">
+                        {d.title}
+                      </span>
+                      <span className="text-cloud-gray-500 text-xs">
+                        {d.slideCount} slides
+                        {d.updatedAt && ` · ${new Date(d.updatedAt).toLocaleDateString()}`}
+                      </span>
+                    </button>
+                    <button
+                      className="text-transparent group-hover:text-cloud-gray-500 hover:!text-alert-coral-400 transition-colors p-1"
+                      onClick={() => handleDelete(d.id)}
+                      title="Delete deck"
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
+                ))
+              )}
+            </div>
+          </>
+        ) : (
+          /* ── Template picker view ── */
+          <>
+            {/* Header */}
+            <div className="flex items-center justify-between mb-4 shrink-0">
+              <div className="flex items-center gap-2">
                 <button
-                  className="flex-1 text-left min-w-0"
-                  onClick={() => { onOpenDeck(d.id); onClose(); }}
+                  className="text-cloud-gray-500 hover:text-cloud-gray-300 transition-colors p-1 rounded"
+                  onClick={() => setView('decks')}
+                  aria-label="Back to deck list"
                 >
-                  <span className="text-cloud-gray-200 text-sm font-semibold truncate block">
-                    {d.title}
-                  </span>
-                  <span className="text-cloud-gray-500 text-xs">
-                    {d.slideCount} slides
-                    {d.updatedAt && ` · ${new Date(d.updatedAt).toLocaleDateString()}`}
-                  </span>
+                  <ChevronLeft size={16} />
                 </button>
-                <button
-                  className="text-transparent group-hover:text-cloud-gray-500 hover:!text-alert-coral-400 transition-colors p-1"
-                  onClick={() => handleDelete(d.id)}
-                  title="Delete deck"
-                >
-                  <Trash2 size={14} />
-                </button>
+                <h2 className="text-white font-bold text-sm tracking-wide uppercase">Choose a Template</h2>
               </div>
-            ))
-          )}
-        </div>
+              <button
+                className="text-cloud-gray-500 hover:text-cloud-gray-300 transition-colors p-1 rounded"
+                onClick={onClose}
+              >
+                <X size={16} />
+              </button>
+            </div>
+
+            {/* Template grid */}
+            <div className="flex-1 overflow-y-auto">
+              <div className="grid grid-cols-2 gap-2">
+                {TEMPLATES.map((template) => {
+                  const Icon = TEMPLATE_ICONS[template.id] || LayoutTemplate;
+                  const slideCount = template.deck?.slides?.length ?? 0;
+
+                  return (
+                    <button
+                      key={template.id}
+                      className="flex items-start gap-3 p-3 rounded-lg text-left
+                                 bg-ops-indigo-800/60 border border-ops-indigo-600/30
+                                 hover:bg-bot-teal-400/10 hover:border-bot-teal-400/30
+                                 focus-visible:border-bot-teal-400/50 focus-visible:ring-1 focus-visible:ring-bot-teal-400/30
+                                 transition-colors group"
+                      onClick={() => handleSelectTemplate(template)}
+                    >
+                      <span className="mt-0.5 p-1.5 rounded-md bg-ops-indigo-700/60
+                                       text-cloud-gray-400 group-hover:text-bot-teal-400
+                                       transition-colors shrink-0">
+                        <Icon size={14} />
+                      </span>
+                      <span className="flex flex-col gap-0.5 min-w-0">
+                        <span className="text-cloud-gray-200 text-sm font-semibold
+                                         group-hover:text-white transition-colors">
+                          {template.name}
+                        </span>
+                        <span className="text-cloud-gray-500 text-xs leading-snug line-clamp-2">
+                          {template.description}
+                        </span>
+                        <span className="text-cloud-gray-500 text-xs tabular-nums mt-0.5">
+                          {slideCount} slides
+                        </span>
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </>
+        )}
       </div>
     </div>
   );
