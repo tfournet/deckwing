@@ -17,7 +17,7 @@ import { ChatMessage, TypingIndicator } from './ChatMessage';
  * @param {function} props.onResetChat - Called to reset conversation
  * @param {function} props.onClose - Called when close button clicked
  */
-export function ChatPanel({ messages, isLoading, onSendMessage, onResetChat, onClose, models, selectedModel, onModelChange }) {
+export function ChatPanel({ messages, isLoading, thinkingStatus, onSendMessage, onResetChat, onClose, models, selectedModel, onModelChange }) {
   const [inputValue, setInputValue] = useState('');
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
@@ -145,7 +145,7 @@ export function ChatPanel({ messages, isLoading, onSendMessage, onResetChat, onC
                 onSelectOption={(value) => onSendMessage(value)}
               />
             ))}
-            {isLoading && <TypingIndicator />}
+            {isLoading && <TypingIndicator thinkingStatus={thinkingStatus} />}
             <div ref={messagesEndRef} />
           </>
         )}

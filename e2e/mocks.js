@@ -102,13 +102,26 @@ export async function mockAPIs(page, { authenticated = true, chatMode = 'reply' 
     });
   });
 
-  // Chat endpoint
+  // Chat endpoint (non-streaming fallback)
   await page.route('**/api/chat', (route) => {
+    if (route.request().url().includes('/chat/stream') || route.request().url().includes('/chat/session') || route.request().url().includes('/chat/reset')) return route.fallback();
     const body = chatMode === 'create' ? MOCK_CHAT_RESPONSE : MOCK_CHAT_REPLY;
     route.fulfill({
       status: 200,
       contentType: 'application/json',
       body: JSON.stringify(body),
+    });
+  });
+
+  // Chat streaming endpoint (SSE format)
+  await page.route('**/api/chat/stream', (route) => {
+    const body = chatMode === 'create' ? MOCK_CHAT_RESPONSE : MOCK_CHAT_REPLY;
+    const sseData = `data: ${JSON.stringify({ type: 'result', reply: body.reply, action: body.action })}\n\n`;
+    route.fulfill({
+      status: 200,
+      contentType: 'text/event-stream',
+      headers: { 'Cache-Control': 'no-cache', 'Connection': 'keep-alive' },
+      body: sseData,
     });
   });
 

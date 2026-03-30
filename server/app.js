@@ -242,6 +242,53 @@ app.post('/api/chat', async (req, res) => {
   }
 });
 
+// Streaming chat endpoint — SSE with thinking status updates
+app.post('/api/chat/stream', async (req, res) => {
+  const { message, deck, currentSlideIndex, sessionId, model } = req.body;
+
+  if (!message || typeof message !== 'string' || message.trim() === '') {
+    return res.status(400).json({ error: 'message is required' });
+  }
+
+  if (!sessionId || typeof sessionId !== 'string') {
+    return res.status(400).json({ error: 'sessionId is required' });
+  }
+
+  if (!checkRateLimit(sessionId)) {
+    return res.status(429).json({ error: 'Too many requests' });
+  }
+
+  res.setHeader('Content-Type', 'text/event-stream');
+  res.setHeader('Cache-Control', 'no-cache');
+  res.setHeader('Connection', 'keep-alive');
+  res.flushHeaders();
+
+  try {
+    const result = await chat({
+      sessionId,
+      message: message.trim(),
+      deck: deck == null ? null : deck,
+      currentSlideIndex: Number.isFinite(currentSlideIndex) && currentSlideIndex >= 0
+        ? Math.floor(currentSlideIndex)
+        : 0,
+      model,
+      onThinking: (status) => {
+        res.write(`data: ${JSON.stringify({ type: 'thinking', status })}\n\n`);
+      },
+    });
+
+    res.write(`data: ${JSON.stringify({ type: 'result', reply: result.reply, action: result.action })}\n\n`);
+  } catch (err) {
+    console.error('  [chat stream error]', err.message);
+    const reply = err.message.includes('Invalid or expired session')
+      ? err.message
+      : 'Something went wrong on my end. Please try again.';
+    res.write(`data: ${JSON.stringify({ type: 'error', error: reply })}\n\n`);
+  }
+
+  res.end();
+});
+
 // Reset conversation history for a session
 app.post('/api/chat/reset', (req, res) => {
   const { sessionId } = req.body;

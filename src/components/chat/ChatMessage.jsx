@@ -62,8 +62,9 @@ function describeAction(action) {
 
 /**
  * Animated typing indicator shown while the AI is processing.
+ * Shows a thinking status line when available, bouncing dots otherwise.
  */
-export function TypingIndicator() {
+export function TypingIndicator({ thinkingStatus }) {
   return (
     <div className="flex items-start gap-2 mb-3">
       {/* Teal accent bar */}
@@ -74,19 +75,25 @@ export function TypingIndicator() {
           <Bot size={11} className="text-bot-teal-400 shrink-0" />
           <span className="text-cloud-gray-500 text-xs font-medium">Deckster</span>
         </div>
-        <div className="bg-ops-indigo-800/60 border border-ops-indigo-600/30 rounded-lg px-3 py-2.5 inline-flex items-center gap-1">
-          <span
-            className="w-1.5 h-1.5 rounded-full bg-bot-teal-400/70 animate-bounce"
-            style={{ animationDelay: '0ms', animationDuration: '1s' }}
-          />
-          <span
-            className="w-1.5 h-1.5 rounded-full bg-bot-teal-400/70 animate-bounce"
-            style={{ animationDelay: '150ms', animationDuration: '1s' }}
-          />
-          <span
-            className="w-1.5 h-1.5 rounded-full bg-bot-teal-400/70 animate-bounce"
-            style={{ animationDelay: '300ms', animationDuration: '1s' }}
-          />
+        <div className="bg-ops-indigo-800/60 border border-ops-indigo-600/30 rounded-lg px-3 py-2.5">
+          {thinkingStatus ? (
+            <p className="text-cloud-gray-400 text-xs italic leading-relaxed">{thinkingStatus}</p>
+          ) : (
+            <div className="inline-flex items-center gap-1">
+              <span
+                className="w-1.5 h-1.5 rounded-full bg-bot-teal-400/70 animate-bounce"
+                style={{ animationDelay: '0ms', animationDuration: '1s' }}
+              />
+              <span
+                className="w-1.5 h-1.5 rounded-full bg-bot-teal-400/70 animate-bounce"
+                style={{ animationDelay: '150ms', animationDuration: '1s' }}
+              />
+              <span
+                className="w-1.5 h-1.5 rounded-full bg-bot-teal-400/70 animate-bounce"
+                style={{ animationDelay: '300ms', animationDuration: '1s' }}
+              />
+            </div>
+          )}
         </div>
       </div>
     </div>
