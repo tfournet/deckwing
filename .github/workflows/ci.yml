@@ -64,7 +64,7 @@ jobs:
 
       - name: Notify Slack on failure (main only)
         if: failure() && github.ref == 'refs/heads/main'
-        uses: slackapi/slack-github-action@b0fa283ad8fea605de13dc3f449259339835fc52 # v2
+        uses: slackapi/slack-github-action@af78098f536edbc4de71162a307590698245be95 # v2
         with:
           webhook: ${{ secrets.SLACK_WEBHOOK_URL }}
           webhook-type: incoming-webhook
