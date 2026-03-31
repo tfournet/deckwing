@@ -8,7 +8,6 @@ import { SlideEditor } from './components/editor/SlideEditor';
 import { DetachedEditorView } from './components/editor/DetachedEditorView';
 import { SlideOutline } from './components/editor/SlideOutline';
 import { DeckListModal } from './components/editor/DeckListModal';
-import { WelcomeScreen } from './components/WelcomeScreen';
 import { PresenterMode } from './components/presenter/PresenterMode';
 import { useChat } from './hooks/useChat';
 import { useDeckState } from './hooks/useDeckState';
@@ -37,7 +36,7 @@ function MainLayout() {
     updateSlide,
     applyAction,
   } = useDeckState();
-  const { exporting, exportType, exportError, handleExportPDF, handleExportPPTX, handleExportHTML } = useExport({ deck });
+  const { exporting, exportType, exportError, handleExportPDF, handleExportPPTX, handleExportHTML, handleExportDeckwing } = useExport({ deck });
   const { messages, isLoading, sendMessage, resetChat } = useChat({ deck, onAction: applyAction, model: selectedModel, currentSlideIndex });
 
   // Persist model selection
@@ -104,6 +103,13 @@ function MainLayout() {
                 onClick={() => { setExportMenuOpen(false); handleExportHTML(); }}
               >
                 Export as HTML Presentation
+              </button>
+              <div className="border-t border-ops-indigo-600/30 my-1" />
+              <button
+                className="w-full text-left px-3 py-2 text-sm text-cloud-gray-200 hover:bg-ops-indigo-700/60 hover:text-white transition-colors"
+                onClick={() => { setExportMenuOpen(false); handleExportDeckwing(); }}
+              >
+                Save as .deckwing
               </button>
             </div>
           )}
@@ -197,23 +203,6 @@ function MainLayout() {
   );
 }
 
-function AppWithSetup() {
-  const [projectFolder, setProjectFolder] = useState(() =>
-    localStorage.getItem('deckwing-projectFolder')
-  );
-
-  if (!projectFolder) {
-    return (
-      <WelcomeScreen onFolderSelected={(folder) => {
-        localStorage.setItem('deckwing-projectFolder', folder);
-        setProjectFolder(folder);
-      }} />
-    );
-  }
-
-  return <MainLayout />;
-}
-
 export default function App() {
   const isDetachedEditor = new URLSearchParams(window.location.search).get('editor') === 'detached';
 
@@ -223,7 +212,7 @@ export default function App() {
 
   return (
     <AuthGate>
-      <AppWithSetup />
+      <MainLayout />
     </AuthGate>
   );
 }

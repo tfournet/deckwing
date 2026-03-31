@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
-import { X, Plus, Trash2, LayoutTemplate, ChevronLeft, TrendingUp, Shield, Rocket, MonitorSmartphone, Users } from 'lucide-react';
+import { X, Plus, Trash2, LayoutTemplate, ChevronLeft, FolderOpen, TrendingUp, Shield, Rocket, MonitorSmartphone, Users } from 'lucide-react';
 import { listDecks, deleteDeck } from '../../store/deck-store';
 import { createDeck } from '../../schema/slide-schema';
+import { deserializeDeck } from '../../../shared/deck-file';
 import { TEMPLATES } from '../../data/templates';
 
 const TEMPLATE_ICONS = {
@@ -24,7 +25,9 @@ const TEMPLATE_ICONS = {
 export function DeckListModal({ onOpenDeck, onNewDeck, onClose, initialView = 'decks' }) {
   const [decks, setDecks] = useState([]);
   const [view, setView] = useState(initialView);
+  const [fileError, setFileError] = useState(null);
   const backdropRef = useRef(null);
+  const fileInputRef = useRef(null);
 
   useEffect(() => {
     setDecks(listDecks());
@@ -62,6 +65,26 @@ export function DeckListModal({ onOpenDeck, onNewDeck, onClose, initialView = 'd
     cloned.updatedAt = new Date().toISOString();
     onNewDeck(cloned);
     onClose();
+  }
+
+  async function handleFileOpen(e) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setFileError(null);
+    try {
+      const text = await file.text();
+      const deck = deserializeDeck(text);
+      deck.id = crypto.randomUUID();
+      deck.createdAt = new Date().toISOString();
+      deck.updatedAt = new Date().toISOString();
+      onNewDeck(deck);
+      onClose();
+    } catch (err) {
+      setFileError(err.message || 'Could not open this file.');
+    } finally {
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
   }
 
   return (
@@ -109,7 +132,36 @@ export function DeckListModal({ onOpenDeck, onNewDeck, onClose, initialView = 'd
                 <LayoutTemplate size={16} className="text-cloud-gray-400" />
                 <span className="text-cloud-gray-300 text-sm font-semibold">From Template</span>
               </button>
+              <button
+                className="flex-1 flex items-center justify-center gap-2 p-3 rounded-lg
+                           bg-ops-indigo-800/60 border border-ops-indigo-600/30
+                           hover:bg-ops-indigo-700/60 transition-colors"
+                onClick={() => fileInputRef.current?.click()}
+              >
+                <FolderOpen size={16} className="text-cloud-gray-400" />
+                <span className="text-cloud-gray-300 text-sm font-semibold">Open File</span>
+              </button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".deckwing,.json"
+                className="hidden"
+                onChange={handleFileOpen}
+              />
             </div>
+
+            {/* File error */}
+            {fileError && (
+              <div className="mb-2 px-3 py-2 rounded-lg bg-alert-coral-400/10 border border-alert-coral-400/30 flex items-center justify-between">
+                <span className="text-alert-coral-300 text-xs">{fileError}</span>
+                <button
+                  className="text-alert-coral-400 hover:text-alert-coral-300 text-xs ml-2"
+                  onClick={() => setFileError(null)}
+                >
+                  Dismiss
+                </button>
+              </div>
+            )}
 
             {/* Deck list */}
             <div className="flex-1 overflow-y-auto space-y-1">

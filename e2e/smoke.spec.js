@@ -5,9 +5,7 @@ test.describe('DeckWing Smoke Tests', () => {
 
   test.beforeEach(async ({ page }) => {
     await mockAPIs(page, { authenticated: true });
-    // Clear localStorage so welcome screen doesn't block
     await page.addInitScript(() => {
-      localStorage.setItem('deckwing-projectFolder', '/tmp/test');
       localStorage.setItem('deckwing-model', 'sonnet');
     });
   });
@@ -93,9 +91,6 @@ test.describe('DeckWing Smoke Tests', () => {
 
   test('chat sends message and gets response', async ({ page }) => {
     await mockAPIs(page, { authenticated: true, chatMode: 'reply' });
-    await page.addInitScript(() => {
-      localStorage.setItem('deckwing-projectFolder', '/tmp/test');
-    });
     await page.goto('/');
 
     // Type a message
@@ -110,9 +105,6 @@ test.describe('DeckWing Smoke Tests', () => {
 
   test('chat generates a deck', async ({ page }) => {
     await mockAPIs(page, { authenticated: true, chatMode: 'create' });
-    await page.addInitScript(() => {
-      localStorage.setItem('deckwing-projectFolder', '/tmp/test');
-    });
     await page.goto('/');
 
     const input = page.locator('textarea[placeholder*="Describe"], input[placeholder*="Describe"]');
@@ -127,22 +119,8 @@ test.describe('DeckWing Smoke Tests', () => {
 
 test.describe('Auth Flow', () => {
 
-  test('shows welcome screen when no project folder set', async ({ page }) => {
-    await mockAPIs(page, { authenticated: true });
-    // Don't set projectFolder in localStorage
-    await page.addInitScript(() => {
-      localStorage.removeItem('deckwing-projectFolder');
-    });
-    await page.goto('/');
-
-    await expect(page.locator('text=Welcome to DeckWing')).toBeVisible({ timeout: 5000 });
-  });
-
   test('shows sign-in when not authenticated', async ({ page }) => {
     await mockAPIs(page, { authenticated: false });
-    await page.addInitScript(() => {
-      localStorage.setItem('deckwing-projectFolder', '/tmp/test');
-    });
     await page.goto('/');
 
     await expect(page.locator('text=Sign in with Claude')).toBeVisible({ timeout: 5000 });

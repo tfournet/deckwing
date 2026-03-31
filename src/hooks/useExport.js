@@ -2,6 +2,8 @@ import { useState, useCallback } from 'react';
 import { exportDeckToPDF, downloadBlob } from '../engine/export-pdf';
 import { exportDeckToPPTX } from '../engine/export-pptx';
 import { exportDeckToHTML, downloadHTMLFile } from '../engine/export-html';
+import { downloadFile } from '../engine/download';
+import { serializeDeck } from '../../shared/deck-file';
 import { useOffscreenRenderer } from './useOffscreenRenderer';
 
 export function useExport({ deck }) {
@@ -76,6 +78,12 @@ export function useExport({ deck }) {
     }
   }, [deck, exporting, captureSlide, cleanup]);
 
+  const handleExportDeckwing = useCallback(() => {
+    const json = serializeDeck(deck);
+    const blob = new Blob([json], { type: 'application/json' });
+    downloadFile(blob, `${deck.title || 'presentation'}.deckwing`);
+  }, [deck]);
+
   return {
     exporting,
     exportType,
@@ -83,6 +91,7 @@ export function useExport({ deck }) {
     handleExportPDF,
     handleExportPPTX,
     handleExportHTML,
+    handleExportDeckwing,
   };
 }
 
