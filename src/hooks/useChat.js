@@ -27,6 +27,7 @@ async function fetchSessionId() {
 export function useChat({ deck, onAction, model, currentSlideIndex }) {
   const [messages, setMessages] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [thinkingStatus, setThinkingStatus] = useState(null);
   const sessionIdRef = useRef(null);
 
   useEffect(() => {
@@ -46,9 +47,10 @@ export function useChat({ deck, onAction, model, currentSlideIndex }) {
 
     setMessages(prev => [...prev, userMsg]);
     setIsLoading(true);
+    setThinkingStatus(null);
 
     try {
-      const response = await fetch('/api/chat', {
+      const response = await fetch('/api/chat/stream', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -64,26 +66,60 @@ export function useChat({ deck, onAction, model, currentSlideIndex }) {
         throw new Error(`Server error: ${response.status}`);
       }
 
-      const data = await response.json();
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = '';
+      let result = null;
 
-      const assistantMsg = {
-        id: generateId(),
-        role: 'assistant',
-        content: data.reply || '',
-        action: data.action || null,
-        timestamp: new Date(),
-      };
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
 
-      setMessages(prev => [...prev, assistantMsg]);
+        buffer += decoder.decode(value, { stream: true });
+        const parts = buffer.split('\n\n');
+        buffer = parts.pop();
 
-      if (data.action && onAction) {
-        onAction(data.action);
+        for (const part of parts) {
+          const line = part.trim();
+          if (!line.startsWith('data: ')) continue;
+          try {
+            const data = JSON.parse(line.slice(6));
+            if (data.type === 'thinking') {
+              setThinkingStatus(data.status);
+            } else if (data.type === 'result') {
+              result = data;
+            } else if (data.type === 'error') {
+              throw new Error(data.error);
+            }
+          } catch (parseErr) {
+            if (parseErr.message && !parseErr.message.includes('JSON')) throw parseErr;
+          }
+        }
+      }
+
+      setThinkingStatus(null);
+
+      if (result) {
+        const assistantMsg = {
+          id: generateId(),
+          role: 'assistant',
+          content: result.reply || '',
+          action: result.action || null,
+          timestamp: new Date(),
+        };
+
+        setMessages(prev => [...prev, assistantMsg]);
+
+        if (result.action && onAction) {
+          onAction(result.action);
+        }
       }
     } catch (err) {
+      setThinkingStatus(null);
       const errorMsg = {
         id: generateId(),
         role: 'assistant',
-        content: 'Something went wrong. Please try again.',
+        content: err.message || 'Something went wrong. Please try again.',
         action: null,
         timestamp: new Date(),
         isError: true,
@@ -91,6 +127,7 @@ export function useChat({ deck, onAction, model, currentSlideIndex }) {
       setMessages(prev => [...prev, errorMsg]);
     } finally {
       setIsLoading(false);
+      setThinkingStatus(null);
     }
   }, [currentSlideIndex, deck, isLoading, model, onAction]);
 
@@ -119,6 +156,7 @@ export function useChat({ deck, onAction, model, currentSlideIndex }) {
   return {
     messages,
     isLoading,
+    thinkingStatus,
     sendMessage,
     resetChat,
     sessionId: sessionIdRef.current,

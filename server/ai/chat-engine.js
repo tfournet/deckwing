@@ -36,6 +36,9 @@ function findGitBash() {
 }
 
 const MAX_TOKENS = 8192;
+const THINKING_MAX_TOKENS = 16384;
+const THINKING_BUDGET = 4096;
+const THINKING_MODELS = new Set(['sonnet', 'opus']);
 
 // Determine auth mode at startup
 const HAS_API_KEY = !!process.env.ANTHROPIC_API_KEY;
@@ -233,6 +236,58 @@ async function callDirectAPI(messages, model = DEFAULT_MODEL) {
 }
 
 /**
+ * Extract a short status line from accumulated thinking text.
+ * Takes the last complete sentence, capped at 100 chars.
+ */
+function extractThinkingStatus(thinkingText) {
+  const sentences = thinkingText
+    .split(/(?<=[.!?:\n])\s+/)
+    .map(s => s.trim())
+    .filter(s => s.length > 10);
+  if (sentences.length === 0) return null;
+  const latest = sentences[sentences.length - 1].replace(/\n/g, ' ');
+  return latest.length > 100 ? latest.substring(0, 97) + '...' : latest;
+}
+
+/**
+ * Call Claude via direct API with streaming + extended thinking.
+ * Calls onThinking(statusText) as thinking progresses.
+ */
+async function callDirectAPIStreaming(messages, model, onThinking) {
+  const stream = directClient.messages.stream({
+    model: resolveModelId(model),
+    max_tokens: THINKING_MAX_TOKENS,
+    thinking: { type: 'enabled', budget_tokens: THINKING_BUDGET },
+    system: SYSTEM_PROMPT,
+    messages,
+  });
+
+  let thinkingText = '';
+  let lastStatusTime = 0;
+
+  stream.on('thinking', (chunk) => {
+    thinkingText += chunk;
+    const now = Date.now();
+    // Debounce: update at most once per second
+    if (now - lastStatusTime >= 1000) {
+      lastStatusTime = now;
+      const status = extractThinkingStatus(thinkingText);
+      if (status) onThinking(status);
+    }
+  });
+
+  const finalMessage = await stream.finalMessage();
+
+  // Send one last status update from complete thinking
+  const finalStatus = extractThinkingStatus(thinkingText);
+  if (finalStatus) onThinking(finalStatus);
+
+  const textBlock = finalMessage.content.find(b => b.type === 'text');
+  if (!textBlock?.text) throw new Error('Claude returned an empty response');
+  return textBlock.text;
+}
+
+/**
  * Call Claude via Agent SDK (uses local Claude Code binary with its own auth).
  */
 async function callAgentSDK(messages, model = DEFAULT_MODEL) {
@@ -281,7 +336,7 @@ async function callAgentSDK(messages, model = DEFAULT_MODEL) {
 /**
  * Send a message to Claude and return the parsed response.
  */
-export async function chat({ sessionId, message, deck, currentSlideIndex, model }) {
+export async function chat({ sessionId, message, deck, currentSlideIndex, model, onThinking }) {
   const session = getSession(sessionId);
   if (!session) {
     throw new Error('Invalid or expired session. Please start a new chat.');
@@ -307,9 +362,14 @@ export async function chat({ sessionId, message, deck, currentSlideIndex, model 
         throw new Error('Not authenticated. Please sign in with Claude first.');
       }
     }
-    rawResponse = directClient
-      ? await callDirectAPI(session.messages, selectedModel)
-      : await callAgentSDK(session.messages, selectedModel);
+    const useThinking = directClient && onThinking && THINKING_MODELS.has(selectedModel);
+    if (useThinking) {
+      rawResponse = await callDirectAPIStreaming(session.messages, selectedModel, onThinking);
+    } else if (directClient) {
+      rawResponse = await callDirectAPI(session.messages, selectedModel);
+    } else {
+      rawResponse = await callAgentSDK(session.messages, selectedModel);
+    }
   } catch (apiError) {
     session.messages.pop();
     throw new Error(`Claude API call failed: ${apiError.message}`);

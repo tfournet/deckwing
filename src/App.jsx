@@ -37,7 +37,7 @@ function MainLayout() {
     applyAction,
   } = useDeckState();
   const { exporting, exportType, exportError, handleExportPDF, handleExportPPTX, handleExportHTML, handleExportDeckwing } = useExport({ deck });
-  const { messages, isLoading, sendMessage, resetChat } = useChat({ deck, onAction: applyAction, model: selectedModel, currentSlideIndex });
+  const { messages, isLoading, thinkingStatus, sendMessage, resetChat } = useChat({ deck, onAction: applyAction, model: selectedModel, currentSlideIndex });
 
   // Persist model selection
   useEffect(() => {
@@ -174,6 +174,7 @@ function MainLayout() {
           <ChatPanel
             messages={messages}
             isLoading={isLoading}
+            thinkingStatus={thinkingStatus}
             onSendMessage={sendMessage}
             onResetChat={resetChat}
             onClose={() => setChatOpen(false)}
