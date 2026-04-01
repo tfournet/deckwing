@@ -1,10 +1,10 @@
 #
 # DeckWing Installer — Windows (PowerShell)
-# Usage: irm https://raw.githubusercontent.com/tfournet/deckwing/main/scripts/install.ps1 | iex
+# Usage: irm https://raw.githubusercontent.com/rewstapp/deckwing/main/scripts/install.ps1 | iex
 #
 
 $ErrorActionPreference = "Stop"
-$GithubRepo = "tfournet/deckwing"
+$GithubRepo = "rewstapp/deckwing"
 
 function Write-Info($msg)  { Write-Host "    " -NoNewline; Write-Host "[OK]" -ForegroundColor Green -NoNewline; Write-Host " $msg" }
 function Write-Warn($msg)  { Write-Host "    " -NoNewline; Write-Host "[!!]" -ForegroundColor Yellow -NoNewline; Write-Host " $msg" }
