@@ -9,6 +9,7 @@ import {
   validateBlock,
   validateSlide,
   validateDeck,
+  validateImageUrl,
   EXAMPLE_DECK,
 } from './slide-schema.js';
 
@@ -391,6 +392,119 @@ describe('validateDeck', () => {
     const result = validateDeck(deck);
     expect(result.valid).toBe(false);
     expect(result.errors.some(e => e.startsWith('Slide 2:'))).toBe(true);
+  });
+});
+
+// --- validateImageUrl ---
+
+describe('validateImageUrl', () => {
+  it('allows https:// URLs', () => {
+    expect(validateImageUrl('https://example.com/image.png')).toEqual({ valid: true });
+  });
+
+  it('allows data:image/ data URLs', () => {
+    expect(validateImageUrl('data:image/png;base64,abc123')).toEqual({ valid: true });
+  });
+
+  it('allows relative paths starting with /', () => {
+    expect(validateImageUrl('/images/logo.png')).toEqual({ valid: true });
+  });
+
+  it('allows relative paths starting with ./', () => {
+    expect(validateImageUrl('./assets/photo.jpg')).toEqual({ valid: true });
+  });
+
+  it('allows relative paths starting with ../', () => {
+    expect(validateImageUrl('../shared/icon.svg')).toEqual({ valid: true });
+  });
+
+  it('blocks http:// URLs', () => {
+    const result = validateImageUrl('http://example.com/image.png');
+    expect(result.valid).toBe(false);
+    expect(result.error).toContain('HTTPS');
+  });
+
+  it('blocks javascript: URLs', () => {
+    const result = validateImageUrl('javascript:alert(1)');
+    expect(result.valid).toBe(false);
+    expect(result.error).toContain('javascript:');
+  });
+
+  it('blocks file:// URLs', () => {
+    const result = validateImageUrl('file:///etc/passwd');
+    expect(result.valid).toBe(false);
+    expect(result.error).toContain('file://');
+  });
+
+  it('blocks ftp:// URLs', () => {
+    const result = validateImageUrl('ftp://example.com/image.png');
+    expect(result.valid).toBe(false);
+    expect(result.error).toContain('ftp://');
+  });
+
+  it('blocks data: URLs that are not data:image/', () => {
+    const result = validateImageUrl('data:text/html,<script>alert(1)</script>');
+    expect(result.valid).toBe(false);
+  });
+
+  it('blocks empty strings', () => {
+    expect(validateImageUrl('').valid).toBe(false);
+  });
+
+  it('blocks null and undefined', () => {
+    expect(validateImageUrl(null).valid).toBe(false);
+    expect(validateImageUrl(undefined).valid).toBe(false);
+  });
+
+  it('blocks non-string values', () => {
+    expect(validateImageUrl(42).valid).toBe(false);
+    expect(validateImageUrl(42).error).toContain('must be a string');
+  });
+
+  it('blocks bare filenames without path prefix', () => {
+    const result = validateImageUrl('image.png');
+    expect(result.valid).toBe(false);
+  });
+});
+
+describe('validateSlide image URL validation', () => {
+  it('accepts image slide with https src', () => {
+    const result = validateSlide({ type: 'image', src: 'https://example.com/photo.jpg' });
+    expect(result.valid).toBe(true);
+  });
+
+  it('accepts image slide with relative path src', () => {
+    const result = validateSlide({ type: 'image', src: '/images/hero.png' });
+    expect(result.valid).toBe(true);
+  });
+
+  it('rejects image slide with http src', () => {
+    const result = validateSlide({ type: 'image', src: 'http://example.com/photo.jpg' });
+    expect(result.valid).toBe(false);
+    expect(result.errors[0]).toContain('invalid src');
+  });
+
+  it('rejects image slide with javascript src', () => {
+    const result = validateSlide({ type: 'image', src: 'javascript:alert(1)' });
+    expect(result.valid).toBe(false);
+  });
+});
+
+describe('validateBlock image URL validation', () => {
+  it('accepts image block with https src', () => {
+    const result = validateBlock({ kind: 'image', src: 'https://cdn.example.com/pic.webp' });
+    expect(result.valid).toBe(true);
+  });
+
+  it('rejects image block with http src', () => {
+    const result = validateBlock({ kind: 'image', src: 'http://example.com/pic.webp' });
+    expect(result.valid).toBe(false);
+    expect(result.errors[0]).toContain('invalid src');
+  });
+
+  it('rejects image block with file:// src', () => {
+    const result = validateBlock({ kind: 'image', src: 'file:///etc/shadow' });
+    expect(result.valid).toBe(false);
   });
 });
 
