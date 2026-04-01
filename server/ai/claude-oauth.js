@@ -9,12 +9,9 @@ const AUTHORIZE_URL = 'https://claude.com/cai/oauth/authorize';
 const TOKEN_URL = 'https://platform.claude.com/v1/oauth/token';
 const SUCCESS_URL = 'https://platform.claude.com/oauth/code/success?app=claude-code';
 const SCOPES = [
-  'org:create_api_key',
   'user:profile',
   'user:inference',
   'user:sessions:claude_code',
-  'user:mcp_servers',
-  'user:file_upload',
 ].join(' ');
 const CALLBACK_HOST = 'localhost';
 const CALLBACK_PATH = '/callback';
