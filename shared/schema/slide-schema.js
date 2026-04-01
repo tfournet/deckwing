@@ -150,6 +150,58 @@ export function migrateDeck(deck) {
   return migrated;
 }
 
+/**
+ * Validate an image URL against an allow-list of safe protocols.
+ * Allows: https://, data:image/, relative paths (/, ./, ../)
+ * Blocks: http://, javascript:, file://, ftp://, and anything else
+ * @param {string} url - The URL to validate
+ * @returns {{ valid: boolean, error?: string }}
+ */
+export function validateImageUrl(url) {
+  if (url === undefined || url === null || url === '') {
+    return { valid: false, error: 'Image URL is empty or missing' };
+  }
+
+  if (typeof url !== 'string') {
+    return { valid: false, error: 'Image URL must be a string' };
+  }
+
+  // Allow https:// URLs
+  if (url.startsWith('https://')) {
+    return { valid: true };
+  }
+
+  // Allow data:image/ data URLs
+  if (url.startsWith('data:image/')) {
+    return { valid: true };
+  }
+
+  // Allow relative paths starting with /, ./, or ../
+  if (url.startsWith('/') || url.startsWith('./') || url.startsWith('../')) {
+    return { valid: true };
+  }
+
+  // Block everything else with a descriptive error
+  if (url.startsWith('http://')) {
+    return { valid: false, error: 'Image URL must use HTTPS, not HTTP' };
+  }
+
+  if (url.startsWith('javascript:')) {
+    return { valid: false, error: 'Image URL must not use javascript: protocol' };
+  }
+
+  if (url.startsWith('file://')) {
+    return { valid: false, error: 'Image URL must not use file:// protocol' };
+  }
+
+  if (url.startsWith('ftp://')) {
+    return { valid: false, error: 'Image URL must not use ftp:// protocol' };
+  }
+
+  // Catch-all for any other protocol or malformed URL
+  return { valid: false, error: `Image URL uses a disallowed format: ${url.slice(0, 50)}` };
+}
+
 const ENABLED_CHART_TYPES = Object.entries(chartsConfig.chartTypes ?? {})
   .filter(([, config]) => config?.enabled)
   .map(([type]) => type);
@@ -221,6 +273,13 @@ export function validateSlide(slide) {
     }
   }
 
+  if (slide.type === 'image' && slide.src !== undefined && slide.src !== null) {
+    const urlResult = validateImageUrl(slide.src);
+    if (!urlResult.valid) {
+      errors.push(`Slide type "image" has invalid src: ${urlResult.error}`);
+    }
+  }
+
   if (slide.type === 'chart') {
     if (slide.chartType !== undefined && slide.chartType !== null && !ENABLED_CHART_TYPES.includes(slide.chartType)) {
       errors.push(`Slide type "chart" has unsupported chartType: ${slide.chartType}`);
@@ -256,6 +315,13 @@ export function validateBlock(block) {
   for (const field of schema.required) {
     if (block[field] === undefined || block[field] === null) {
       errors.push(`Block kind "${block.kind}" missing required field: ${field}`);
+    }
+  }
+
+  if (block.kind === 'image' && block.src !== undefined && block.src !== null) {
+    const urlResult = validateImageUrl(block.src);
+    if (!urlResult.valid) {
+      errors.push(`Block kind "image" has invalid src: ${urlResult.error}`);
     }
   }
 
