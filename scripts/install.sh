@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 #
 # DeckWing Installer — Mac/Linux
-# Usage: curl -fsSL https://raw.githubusercontent.com/tfournet/deckwing/main/scripts/install.sh | bash
+# Usage: curl -fsSL https://raw.githubusercontent.com/rewstapp/deckwing/main/scripts/install.sh | bash
 #
 set -euo pipefail
 
-GITHUB_REPO="tfournet/deckwing"
+GITHUB_REPO="rewstapp/deckwing"
 
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'

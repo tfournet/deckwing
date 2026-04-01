@@ -49,7 +49,7 @@ if (!existsSync(join(DIST, 'index.html'))) {
   console.log('  Hmm, it looks like the app files are missing.');
   console.log('  Try reinstalling:');
   console.log('');
-  console.log('    npm install -g github:tfournet/deckwing');
+  console.log('    npm install -g github:rewstapp/deckwing');
   console.log('');
   process.exit(1);
 }

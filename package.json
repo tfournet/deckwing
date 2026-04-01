@@ -106,7 +106,7 @@
     "extraResources": [],
     "publish": {
       "provider": "github",
-      "owner": "tfournet",
+      "owner": "rewstapp",
       "repo": "deckwing"
     },
     "win": {

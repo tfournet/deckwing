@@ -26,9 +26,9 @@ AI-powered presentation builder for Rewst. Describe what you want, get on-brand 
 
 | Platform | Download |
 |----------|----------|
-| Windows | [DeckWing-Setup.exe](https://github.com/tfournet/deckwing/releases/latest/download/DeckWing-Setup.exe) |
-| Mac | [DeckWing.dmg](https://github.com/tfournet/deckwing/releases/latest/download/DeckWing.dmg) |
-| Linux | [DeckWing.AppImage](https://github.com/tfournet/deckwing/releases/latest/download/DeckWing.AppImage) |
+| Windows | [DeckWing-Setup.exe](https://github.com/rewstapp/deckwing/releases/latest/download/DeckWing-Setup.exe) |
+| Mac | [DeckWing.dmg](https://github.com/rewstapp/deckwing/releases/latest/download/DeckWing.dmg) |
+| Linux | [DeckWing.AppImage](https://github.com/rewstapp/deckwing/releases/latest/download/DeckWing.AppImage) |
 
 Double-click to install. Everything is bundled — no Node.js, no terminal, no setup.
 
@@ -42,12 +42,12 @@ Then double-click to open normally. (This is only needed until we add code signi
 
 **Mac/Linux:**
 ```bash
-curl -fsSL https://github.com/tfournet/deckwing/releases/latest/download/install.sh | bash
+curl -fsSL https://github.com/rewstapp/deckwing/releases/latest/download/install.sh | bash
 ```
 
 **Windows (PowerShell):**
 ```powershell
-irm https://github.com/tfournet/deckwing/releases/latest/download/install.ps1 | iex
+irm https://github.com/rewstapp/deckwing/releases/latest/download/install.ps1 | iex
 ```
 
 The install scripts handle Node.js, Claude Code, and the app.
@@ -98,7 +98,7 @@ No terminal commands, no API keys, no configuration files.
 ## Development
 
 ```bash
-git clone https://github.com/tfournet/deckwing.git
+git clone https://github.com/rewstapp/deckwing.git
 cd deckwing
 npm install
 npm run dev:full    # Frontend (port 3000) + backend (port 3001)
