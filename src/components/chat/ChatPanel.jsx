@@ -30,6 +30,13 @@ export function ChatPanel({ messages, isLoading, thinkingStatus, onSendMessage, 
     }
   }, [messages, isLoading]);
 
+  // Refocus input when loading finishes (disabled textarea loses focus)
+  useEffect(() => {
+    if (!isLoading) {
+      inputRef.current?.focus();
+    }
+  }, [isLoading]);
+
   const handleSend = useCallback(() => {
     const trimmed = inputValue.trim();
     if (!trimmed || isLoading) return;
